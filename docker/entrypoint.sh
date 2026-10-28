@@ -67,6 +67,24 @@ fi
 # STATIC_ROOT out from under a web container already serving from it.
 if [ "${HORILLA_SKIP_RELEASE_TASKS:-0}" = "1" ]; then
   echo "HORILLA_SKIP_RELEASE_TASKS=1 -- skipping migrate and collectstatic."
+  # Wait for the container that does run them. Platforms that start services
+  # in parallel (Railway) otherwise boot the scheduler against a schema web
+  # has not migrated yet: it crashed on the missing django_apscheduler tables
+  # on a fresh database, and would run jobs against the old schema on an
+  # upgrade.
+  MIGRATE_WAIT_TRIES="${HORILLA_MIGRATE_WAIT_TRIES:-60}"
+  COUNT=0
+  until MIGRATE_CHECK="$(python manage.py migrate --check 2>&1)"; do
+    COUNT=$((COUNT + 1))
+    if [ "$COUNT" -ge "$MIGRATE_WAIT_TRIES" ]; then
+      # Not only "unapplied": a settings or DB error fails the check too.
+      echo "ERROR: migrate --check still failing after $MIGRATE_WAIT_TRIES checks:"
+      echo "$MIGRATE_CHECK"
+      exit 1
+    fi
+    echo "Waiting for migrations to be applied (check $COUNT/$MIGRATE_WAIT_TRIES)..."
+    sleep 5
+  done
   echo "Starting server..."
   exec "$@"
 fi
