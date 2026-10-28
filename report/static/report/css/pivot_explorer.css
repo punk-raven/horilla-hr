@@ -103,12 +103,12 @@
 
         .oh-report-template-load ion-icon {
             flex-shrink: 0;
-            color: #e54f38;
+            color: var(--primary-600, #e54f38);
             font-size: 15px;
         }
 
         .oh-report-template-load:hover {
-            color: #e54f38;
+            color: var(--primary-600, #e54f38);
         }
 
         .oh-report-template-delete {

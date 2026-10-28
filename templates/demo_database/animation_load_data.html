@@ -10,11 +10,11 @@
             <div class="hdl-ring hdl-ring--middle"></div>
             <div class="hdl-ring-core">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                    <circle cx="9" cy="7" r="3" stroke="#E54F38" stroke-width="2" />
-                    <circle cx="15" cy="7" r="3" stroke="#E54F38" stroke-width="2" />
+                    <circle cx="9" cy="7" r="3" style="stroke: var(--primary-600, #e54f38)" stroke-width="2" />
+                    <circle cx="15" cy="7" r="3" style="stroke: var(--primary-600, #e54f38)" stroke-width="2" />
                     <path
                         d="M3 19c0-3.314 2.686-6 6-6h6c3.314 0 6 2.686 6 6"
-                        stroke="#E54F38"
+                        style="stroke: var(--primary-600, #e54f38)"
                         stroke-width="2"
                         stroke-linecap="round"
                     />
@@ -36,8 +36,8 @@
         border-radius: 24px;
         background: #fff;
         box-shadow:
-            0 0 0 1px rgba(229, 79, 56, 0.08),
-            0 8px 32px rgba(229, 79, 56, 0.12),
+            0 0 0 1px color-mix(in srgb, var(--primary-600, #e54f38) 8%, transparent),
+            0 8px 32px color-mix(in srgb, var(--primary-600, #e54f38) 12%, transparent),
             0 24px 64px rgba(0, 0, 0, 0.1);
         text-align: center;
     }
@@ -75,16 +75,16 @@
     .hdl-ring--outer {
         width: 120px;
         height: 120px;
-        border-top-color: #e54f38;
-        border-right-color: rgba(229, 79, 56, 0.22);
+        border-top-color: var(--primary-600, #e54f38);
+        border-right-color: color-mix(in srgb, var(--primary-600, #e54f38) 22%, transparent);
         animation-duration: 2.2s;
     }
 
     .hdl-ring--middle {
         width: 90px;
         height: 90px;
-        border-top-color: rgba(229, 79, 56, 0.55);
-        border-left-color: rgba(229, 79, 56, 0.18);
+        border-top-color: color-mix(in srgb, var(--primary-600, #e54f38) 55%, transparent);
+        border-left-color: color-mix(in srgb, var(--primary-600, #e54f38) 18%, transparent);
         animation-duration: 1.6s;
         animation-direction: reverse;
     }
@@ -98,14 +98,14 @@
         height: 60px;
         border-radius: 50%;
         background: linear-gradient(135deg, #fff5f1, #fceded);
-        box-shadow: 0 2px 8px rgba(229, 79, 56, 0.15);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--primary-600, #e54f38) 15%, transparent);
     }
 
     .hdl-pulse-ring {
         position: absolute;
         width: 120px;
         height: 120px;
-        border: 1.5px solid rgba(229, 79, 56, 0.18);
+        border: 1.5px solid color-mix(in srgb, var(--primary-600, #e54f38) 18%, transparent);
         border-radius: 50%;
         animation: hdl-pulse-expand 2.4s ease-out infinite;
     }

@@ -22,7 +22,7 @@
             font-family: inherit;
         }
         .dark .rd-dashboard {
-            background: #000000;
+            background: #05080f;
         }
 
         .rd-header {
@@ -87,7 +87,7 @@
         }
         .dark .rd-kpi-card {
             border-color: rgba(255, 255, 255, 0.08);
-            background: #242424;
+            background: #1c2437;
         }
 
         .rd-kpi-card__icon {
@@ -221,7 +221,7 @@
         }
         .dark .rd-chart-card {
             border-color: rgba(255, 255, 255, 0.08);
-            background: #242424;
+            background: #1c2437;
         }
         .rd-chart-card--wide {
             grid-column: span 2;
@@ -542,7 +542,7 @@
             padding: 1px 7px;
             border-radius: 10px;
             background: rgba(99, 102, 241, 0.1);
-            color: #E54F38;
+            color: var(--primary-600, #e54f38);
             font-weight: 600;
             font-size: 10px;
         }
@@ -589,7 +589,7 @@
         }
         .dark .rd-info-panel {
             border-color: rgba(255, 255, 255, 0.08);
-            background: #242424;
+            background: #1c2437;
         }
         .rd-info-panel__header {
             display: flex;
@@ -661,7 +661,7 @@
             transition: right 0.25s ease;
         }
         .dark .rd-customize-panel {
-            background: #242424;
+            background: #1c2437;
         }
         .rd-customize-panel--open {
             right: 0;
@@ -1317,7 +1317,7 @@
             let stageData = [];
             const stageLabel = c => c.type === 'hired' ? '{% trans "Shortlisted"|escapejs %}' : c.stage;
             function drawStageChart() {
-                stageLegend.innerHTML = stageData.map(c => `<button type="button" class="rd-stage-chip ${stageHidden.has(c.type) ? 'rd-stage-chip--off' : ''}" data-stage-type="${c.type}"><span class="rd-stage-chip__dot" style="background:${stageColors[c.type] || '#E54F38'}"></span>${stageLabel(c)}</button>`).join('');
+                stageLegend.innerHTML = stageData.map(c => `<button type="button" class="rd-stage-chip ${stageHidden.has(c.type) ? 'rd-stage-chip--off' : ''}" data-stage-type="${c.type}"><span class="rd-stage-chip__dot" style="background:${stageColors[c.type] || 'var(--primary-600, #e54f38)'}"></span>${stageLabel(c)}</button>`).join('');
                 const el = document.querySelector("#chart-conversion-funnel");
                 const visible = stageData.filter(c => !stageHidden.has(c.type));
                 if (!visible.length) {
@@ -1332,7 +1332,7 @@
                             window.location.href = "{% url 'candidate-view' %}?stage_id__stage_type=" + encodeURIComponent(visible[config.dataPointIndex].type);
                         }}
                     },
-                    colors: visible.map(c => stageColors[c.type] || '#E54F38'),
+                    colors: visible.map(c => stageColors[c.type] || (getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim() || '#E54F38')),
                     plotOptions: { bar: { borderRadius: 8, columnWidth: '45%', distributed: true } },
                     xaxis: { categories: visible.map(stageLabel), labels: { style: { colors: textColor, fontSize: '12px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
                     yaxis: { labels: { style: { colors: textColor }, formatter: v => Math.round(v) }, forceNiceScale: true },
@@ -1550,7 +1550,7 @@
                                 window.location.href = "{% url 'candidate-view' %}?stage_id__stage_type=" + stage.type;
                             }}
                         },
-                        colors: data.stages.map(s => stageColors[s.type] || '#E54F38'),
+                        colors: data.stages.map(s => stageColors[s.type] || (getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim() || '#E54F38')),
                         plotOptions: { bar: { borderRadius: 8, columnWidth: '55%', distributed: true } },
                         xaxis: { categories: data.stages.map(s => s.label), labels: { style: { colors: textColor, fontSize: '12px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
                         yaxis: { labels: { style: { colors: textColor } } },
@@ -1746,7 +1746,7 @@
                                 window.location.href = "{% url 'candidate-view' %}?recruitment=" + encodeURIComponent(rec) + "&hired=true";
                             }}
                         },
-                        colors: ['#E54F38'],
+                        colors: [(getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim() || '#E54F38')],
                         plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
                         xaxis: { categories: data.data.map(d => d.recruitment), labels: { style: { colors: textColor, fontSize: '11px' }, rotate: -45 }, axisBorder: { show: false }, axisTicks: { show: false } },
                         yaxis: { labels: { style: { colors: textColor }, formatter: v => v + 'd' } },

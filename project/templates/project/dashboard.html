@@ -22,7 +22,7 @@
         padding: 24px;
         min-height: calc(100vh - 80px);
     }
-    .dark .pr-dashboard { background: #000000; }
+    .dark .pr-dashboard { background: #05080f; }
 
     .pr-header {
         display: flex;
@@ -76,7 +76,7 @@
     .pr-customize-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1050; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .pr-customize-overlay--open { opacity: 1; pointer-events: auto; }
     .pr-customize-panel { position: fixed; top: 0; right: -420px; width: 400px; height: 100vh; background: #ffffff; box-shadow: -4px 0 24px rgba(0,0,0,0.12); z-index: 1051; display: flex; flex-direction: column; transition: right 0.25s ease; }
-    .dark .pr-customize-panel { background: #242424; }
+    .dark .pr-customize-panel { background: #1c2437; }
     .pr-customize-panel--open { right: 0; }
     .pr-customize-panel__header { padding: 18px 20px; border-bottom: 1px solid rgba(128,128,128,0.12); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .pr-customize-panel__header h3 { font-size: 16px; font-weight: 700; margin: 0; }
@@ -109,7 +109,7 @@
     .pr-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
     .pr-kpi-card { border-radius: 12px; padding: 16px; background: #ffffff; border: 1px solid rgba(128,128,128,0.12); transition: all 0.2s; text-decoration: none; color: inherit; display: block; }
     .pr-kpi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-1px); text-decoration: none; color: inherit; }
-    .dark .pr-kpi-card { background: #242424; border-color: rgba(255,255,255,0.08); }
+    .dark .pr-kpi-card { background: #1c2437; border-color: rgba(255,255,255,0.08); }
     .pr-kpi-card__icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 8px; }
     .pr-kpi-card__icon--blue { background: #dbeafe; color: var(--pr-blue); }
     .pr-kpi-card__icon--green { background: #dcfce7; color: var(--pr-green); }
@@ -144,7 +144,7 @@
     /* Chart grid */
     .pr-chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
     .pr-chart-card { border-radius: 12px; background: #ffffff; border: 1px solid rgba(128,128,128,0.12); overflow: visible; }
-    .dark .pr-chart-card { background: #242424; border-color: rgba(255,255,255,0.08); }
+    .dark .pr-chart-card { background: #1c2437; border-color: rgba(255,255,255,0.08); }
     .pr-chart-card--wide { grid-column: span 2; }
     .pr-chart-card__header { padding: 14px 18px 0; display: flex; justify-content: space-between; align-items: center; }
     .pr-chart-card__title { font-size: 14px; font-weight: 600; }
@@ -161,7 +161,7 @@
 
     /* Sidebar info panels — ported from pd-info-panel */
     .pr-info-panel { border-radius: 12px; background: #ffffff; border: 1px solid rgba(128,128,128,0.12); overflow: hidden; display: flex; flex-direction: column; flex-shrink: 0; }
-    .dark .pr-info-panel { background: #242424; border-color: rgba(255,255,255,0.08); }
+    .dark .pr-info-panel { background: #1c2437; border-color: rgba(255,255,255,0.08); }
     .pr-info-panel__header { padding: 14px 16px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-bottom: 1px solid rgba(128,128,128,0.08); }
     .pr-info-panel__title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     /* How many records the card holds, beside its title. Hidden at zero. */
@@ -207,7 +207,7 @@
     .pr-pop { display: none; position: absolute; right: 0; bottom: 100%; padding-bottom: 8px; z-index: 40; }
     .pr-pill-more:hover .pr-pop, .pr-pill-more:focus-within .pr-pop { display: block; }
     .pr-pop__box { width: max-content; min-width: 200px; max-width: 340px; border: 1px solid rgba(128,128,128,0.15); border-radius: 10px; background: #ffffff; box-shadow: 0 8px 28px rgba(0,0,0,0.15); padding: 8px 4px 6px; }
-    .dark .pr-pop__box { background: #242424; }
+    .dark .pr-pop__box { background: #1c2437; }
     .pr-pop__list { max-height: 190px; overflow-y: auto; }
     .pr-pop__row { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
     .pr-pop__row:hover { background: rgba(128,128,128,0.1); }

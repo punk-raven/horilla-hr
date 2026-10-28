@@ -2303,7 +2303,7 @@ video {
   border-color: rgb(221 221 221 / var(--tw-border-opacity, 1));
 }
 
-.border-\[\#e54f38\] {
+.border-\[\var(--primary-600, #e54f38)\] {
   --tw-border-opacity: 1;
   border-color: rgb(229 79 56 / var(--tw-border-opacity, 1));
 }

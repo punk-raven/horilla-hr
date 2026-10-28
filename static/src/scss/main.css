@@ -11113,7 +11113,7 @@ span.oh-activity-sidebar__a img {
 @media (max-width: 575.98px) {
   .oh-general__tab-link--active {
     border-bottom: none;
-    background-color: rgba(229, 79, 56, 0.1);
+    background-color: color-mix(in srgb, var(--primary-600, #e54f38) 10%, transparent);
     color: hsl(8, 77%, 56%);
     border-radius: 0.25rem;
   }
@@ -11515,7 +11515,7 @@ div.ui-tooltip {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(229, 79, 56, 0.15);
+  border: 1px solid color-mix(in srgb, var(--primary-600, #e54f38) 15%, transparent);
   transition: background-color 0.3s ease-in-out;
 }
 .oh-titlebar__tag:hover {
@@ -12507,7 +12507,7 @@ div.ui-tooltip {
 }
 
 .oh-onboarding-card__count {
-  background-color: rgba(229, 79, 56, 0.1);
+  background-color: color-mix(in srgb, var(--primary-600, #e54f38) 10%, transparent);
   color: hsl(8, 77%, 56%);
   width: 25px;
   height: 25px;
@@ -14083,7 +14083,7 @@ div.ui-tooltip {
 
 .oh-helpdesk__bubble--reply {
   border-color: hsl(8, 77%, 56%);
-  background-color: rgba(229, 79, 56, 0.03);
+  background-color: color-mix(in srgb, var(--primary-600, #e54f38) 3%, transparent);
 }
 .oh-helpdesk__bubble--reply .oh-helpdesk__bubble-header {
   border-color: hsl(213, 22%, 84%);
@@ -14754,7 +14754,7 @@ div.ui-tooltip {
 }
 
 .qs-square.qs-num.qs-active {
-  background-color: rgba(229, 79, 56, 0.2) !important;
+  background-color: color-mix(in srgb, var(--primary-600, #e54f38) 20%, transparent) !important;
 }
 
 .qs-month-year {
@@ -14807,7 +14807,7 @@ div.ui-tooltip {
   opacity: 1 !important;
 }
 .qs-overlay-month:hover {
-  background-color: rgba(229, 79, 56, 0.1) !important;
+  background-color: color-mix(in srgb, var(--primary-600, #e54f38) 10%, transparent) !important;
   color: hsl(8, 77%, 56%) !important;
 }
 

@@ -32,7 +32,7 @@
             font-family: inherit;
         }
         .dark .am-dashboard {
-            background: #000000;
+            background: #05080f;
         }
 
         /* ── Header ── */
@@ -131,7 +131,7 @@
         }
         .dark .am-kpi-card {
             border-color: rgba(255, 255, 255, 0.07);
-            background: #242424;
+            background: #1c2437;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
@@ -269,7 +269,7 @@
         }
         .dark .am-chart-card {
             border-color: rgba(255, 255, 255, 0.07);
-            background: #242424;
+            background: #1c2437;
             box-shadow:
                 0 2px 8px rgba(0, 0, 0, 0.3),
                 0 4px 20px rgba(0, 0, 0, 0.25);
@@ -288,7 +288,7 @@
             content: "";
         }
         .am-chart-card[data-chart-section="overview"]::before {
-            background: linear-gradient(90deg, #e54f38, #a855f7);
+            background: linear-gradient(90deg, var(--primary-600, #e54f38), #a855f7);
         }
         .am-chart-card[data-chart-section="attendance"]::before {
             background: linear-gradient(90deg, #22c55e, #06b6d4);
@@ -297,7 +297,7 @@
             background: linear-gradient(90deg, #f59e0b, #ef4444);
         }
         .am-chart-card[data-chart-section="hours"]::before {
-            background: linear-gradient(90deg, #3b82f6, #e54f38);
+            background: linear-gradient(90deg, #3b82f6, var(--primary-600, #e54f38));
         }
 
         .am-chart-card--wide {
@@ -359,7 +359,7 @@
         .am-dimension-select:focus {
             outline: none;
             border-color: var(--am-indigo);
-            box-shadow: 0 0 0 2px rgba(229, 79, 56, 0.15);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-600, #e54f38) 15%, transparent);
         }
         .dark .am-dimension-select {
             background-color: rgba(255, 255, 255, 0.04);
@@ -422,7 +422,7 @@
         }
         .dark .am-info-panel {
             border-color: rgba(255, 255, 255, 0.08);
-            background: #242424;
+            background: #1c2437;
         }
         .am-info-panel__header {
             display: flex;
@@ -650,7 +650,7 @@
             transition: right 0.25s ease;
         }
         .dark .am-customize-panel {
-            background: #242424;
+            background: #1c2437;
         }
         .am-customize-panel--open {
             right: 0;
@@ -963,7 +963,7 @@
             z-index: 50;
         }
         .md-pie-chip[data-tip]:hover::after { opacity: 1; visibility: visible; }
-        .dark .md-pie-chip[data-tip]::after { background: #242424; color: #e2e8f0; border-color: rgba(255, 255, 255, 0.12); }
+        .dark .md-pie-chip[data-tip]::after { background: #1c2437; color: #e2e8f0; border-color: rgba(255, 255, 255, 0.12); }
         .md-pie-chip.is-off {
             opacity: 0.45;
         }
@@ -1009,7 +1009,7 @@
             padding: 8px 4px 6px;
         }
         .dark .md-pie-pop__box {
-            background: #242424;
+            background: #1c2437;
         }
         .md-pie-pop__title {
             padding: 0 10px 6px;
