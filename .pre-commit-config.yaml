@@ -1,3 +1,6 @@
+# Agent skills are installed verbatim from upstream (see skills-lock.json);
+# reformatting them would break the lock hash.
+exclude: ^\.agents/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

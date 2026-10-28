@@ -20,6 +20,8 @@ extend-exclude = [
     "*/migrations/*",
     # Vendored django-notifications, carrying upstream's own style.
     "notifications",
+    # Agent skills installed from upstream (see skills-lock.json).
+    ".agents",
 ]
 
 [tool.ruff.lint]
