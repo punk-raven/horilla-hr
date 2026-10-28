@@ -14,6 +14,10 @@ CONNECTOR = "10.250.0.7"
 VISITOR = "203.0.113.42"
 
 
+# Pin the proxy count: it comes from AXES_PROXY_COUNT in the environment, and
+# the dev compose stack sets it to 1, under which ipware expects a forwarded
+# hop these requests do not have and returns None.
+@override_settings(AXES_IPWARE_PROXY_COUNT=None)
 class AxesClientIpTests(SimpleTestCase):
     def request(self, **meta):
         return RequestFactory().post("/login/", REMOTE_ADDR=CONNECTOR, **meta)
