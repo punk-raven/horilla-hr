@@ -21,7 +21,7 @@
     <title class="time-runner stop-runner">{{white_label_company_name}}</title>
     <link rel="stylesheet" href="{% static 'build/css/driver.min.css' %}" />
     <meta name="theme-color" content="orangered">
-    <link rel="manifest" href="{% static 'build/manifest.json' %}">
+    <link rel="manifest" href="{% static 'build/manifest.json' %}" crossorigin="use-credentials">
     <link rel="apple-touch-icon" sizes="180x180"
         href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'favicons/apple-touch-icon.png' %}{% endif %}">
     <link rel="icon" type="image/png" sizes="32x32"
@@ -250,7 +250,7 @@
     <script src="{% static '/base/date_settings.js' %}"></script>
     <script src="{% static '/base/time_formatting.js' %}"></script>
     <script src="{% static '/base/time_settings.js' %}"></script>
-    <script src="{% static '/base/date_formatting.js' %}"></script>
+    <script src="{% static '/base/date_formatting.js' %}?v=2"></script>
 
     <script src="{% static 'build/js/pivottable.min.js' %}"></script>
     <script src="{% static 'build/js/pivottable_plot.min.js' %}"></script>

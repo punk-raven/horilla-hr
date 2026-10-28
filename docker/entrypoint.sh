@@ -3,22 +3,40 @@ set -e
 
 echo "Starting Horilla HR..."
 
-DB_HOST="${DB_HOST:-db}"
-DB_PORT="${DB_PORT:-5432}"
+# Wait on the database Django will actually use. Settings prefer DATABASE_URL
+# over the discrete DB_* vars, so the wait must too: on Railway only
+# DATABASE_URL is wired up, and falling back to the compose host "db" there
+# waited on a name that does not resolve. A URL without a host (sqlite) has
+# nothing to wait for.
+if [ -n "${DATABASE_URL:-}" ]; then
+  read -r DB_HOST DB_PORT < <(python -c '
+import os
+from urllib.parse import urlsplit
+u = urlsplit(os.environ["DATABASE_URL"])
+print(u.hostname or "-", u.port or 5432)
+')
+else
+  DB_HOST="${DB_HOST:-db}"
+  DB_PORT="${DB_PORT:-5432}"
+fi
 
-# Wait for PostgreSQL to be ready (with timeout)
-echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT}..."
-MAX_TRIES=30
-COUNT=0
-while ! nc -z "$DB_HOST" "$DB_PORT"; do
-  COUNT=$((COUNT + 1))
-  if [ "$COUNT" -ge "$MAX_TRIES" ]; then
-    echo "ERROR: PostgreSQL not available at ${DB_HOST}:${DB_PORT} after $MAX_TRIES attempts"
-    exit 1
-  fi
-  sleep 1
-done
-echo "PostgreSQL is ready!"
+if [ "$DB_HOST" = "-" ]; then
+  echo "DATABASE_URL has no host -- skipping the PostgreSQL wait."
+else
+  # Wait for PostgreSQL to be ready (with timeout)
+  echo "Waiting for PostgreSQL at ${DB_HOST}:${DB_PORT}..."
+  MAX_TRIES=30
+  COUNT=0
+  while ! nc -z "$DB_HOST" "$DB_PORT"; do
+    COUNT=$((COUNT + 1))
+    if [ "$COUNT" -ge "$MAX_TRIES" ]; then
+      echo "ERROR: PostgreSQL not available at ${DB_HOST}:${DB_PORT} after $MAX_TRIES attempts"
+      exit 1
+    fi
+    sleep 1
+  done
+  echo "PostgreSQL is ready!"
+fi
 
 # Every shipped default (.env.dist, docker-compose.yml's own dev default, and
 # historical leaked keys) is a known, public string -- never a real secret.

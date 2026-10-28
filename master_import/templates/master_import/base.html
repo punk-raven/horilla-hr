@@ -3,7 +3,7 @@
 
 {% block settings %}
 <style>
-  .mi { --mi-line: #e5e7eb; --mi-soft: #f8fafc; --mi-muted: #6b7280; --mi-ink: #111827; --mi-accent: #e54f38; --mi-ok: #16a34a; --mi-warn: #b45309; --mi-bad: #b91c1c; max-width: 1280px; margin: 0 auto; padding: .35rem .5rem 1rem; zoom: .88; }
+  .mi { --mi-line: #e5e7eb; --mi-soft: #f8fafc; --mi-muted: #6b7280; --mi-ink: #111827; --mi-accent: var(--primary-600, #e54f38); --mi-ok: #16a34a; --mi-warn: #b45309; --mi-bad: #b91c1c; max-width: 1280px; margin: 0 auto; padding: .35rem .5rem 1rem; zoom: .88; }
   .mi__title { font-size: 1.2rem; font-weight: 700; color: var(--mi-ink); margin: 0 0 .15rem; }
   .mi__lead { color: var(--mi-muted); font-size: .85rem; margin-bottom: .9rem; }
   .mi__steps { display: grid; grid-template-columns: repeat(3, 1fr); background: #fff; border: 1px solid var(--mi-line); border-radius: 10px; margin-bottom: 1.1rem; overflow: hidden; }
@@ -90,8 +90,8 @@
   .mi__cell--bad { border-color: #fecaca; background: #fef2f2; }
   /* A changed value stays marked, and a focused cell is plainly the one being typed in. */
   .mi__cell--edited { border-color: #f59e0b; background: #fef3c7; box-shadow: inset 3px 0 0 #f59e0b; font-weight: 600; }
-  .mi__cell:focus { outline: 0; border-color: var(--mi-accent); background: #fff; box-shadow: 0 0 0 3px rgba(229, 79, 56, .18); }
-  .mi__cell--edited:focus { background: #fffbeb; box-shadow: inset 3px 0 0 #f59e0b, 0 0 0 3px rgba(229, 79, 56, .18); }
+  .mi__cell:focus { outline: 0; border-color: var(--mi-accent); background: #fff; box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-600, #e54f38) 18%, transparent); }
+  .mi__cell--edited:focus { background: #fffbeb; box-shadow: inset 3px 0 0 #f59e0b, 0 0 0 3px color-mix(in srgb, var(--primary-600, #e54f38) 18%, transparent); }
   .mi__progress-line { display: flex; justify-content: space-between; font-size: .85rem; color: var(--mi-muted); margin-bottom: .5rem; }
   .mi__bar { height: 10px; background: #eef0f3; border-radius: 999px; overflow: hidden; }
   .mi__bar-fill { height: 100%; background: var(--mi-accent); border-radius: 999px; transition: width .35s ease; }

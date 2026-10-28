@@ -34,7 +34,7 @@
         color: var(--primary-600, #E54F38);
         border-color: var(--primary-600, #E54F38);
     }
-    .dark #srTabs .sr-tab--active { background-color: rgba(229, 79, 56, .16); }
+    .dark #srTabs .sr-tab--active { background-color: color-mix(in srgb, var(--primary-600, #e54f38) 16%, transparent); }
     #srTabs .sr-tab__badge {
         min-width: 24px;
         height: 24px;
@@ -73,7 +73,7 @@
         box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
         padding: 12px 16px;
     }
-    .dark .sr-card-block { background: #242424; }
+    .dark .sr-card-block { background: #1c2437; }
     .sr-toolbar-controls-card { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .sr-search { position: relative; flex: 1; min-width: 200px; max-width: 420px; }
     .sr-search ion-icon {
@@ -198,7 +198,7 @@
         padding: 20px;
         min-width: 0;
     }
-    .dark .sr-browse-layout { background: #242424; border-color: hsl(0, 0%, 25%); }
+    .dark .sr-browse-layout { background: #1c2437; border-color: hsl(0, 0%, 25%); }
     @media (max-width: 900px) {
         .sr-browse-layout { grid-template-columns: 1fr; }
         .sr-rail { display: none; }
@@ -224,7 +224,7 @@
     .dark .sr-rail-link:hover { background: hsl(0, 0%, 20%); }
     .sr-rail-link--hidden { display: none; }
     .sr-rail-link--active { background: var(--primary-100, #FFF5F1); color: var(--primary-600, #E54F38); }
-    .dark .sr-rail-link--active { background: rgba(229, 79, 56, .16); color: var(--primary-500, #F7C8C1); }
+    .dark .sr-rail-link--active { background: color-mix(in srgb, var(--primary-600, #e54f38) 16%, transparent); color: var(--primary-500, #F7C8C1); }
     .sr-count-badge { font-size: 12px; color: #666; }
     .dark .sr-count-badge { color: hsl(0, 0%, 65%); }
     .sr-saved-view {
@@ -243,7 +243,7 @@
     .sr-saved-view:hover { background: hsl(213, 22%, 93%); }
     .dark .sr-saved-view:hover { background: hsl(0, 0%, 20%); }
     .sr-saved-view--active { background: var(--primary-100, #FFF5F1); color: var(--primary-600, #E54F38); }
-    .dark .sr-saved-view--active { background: rgba(229, 79, 56, .16); color: var(--primary-500, #F7C8C1); }
+    .dark .sr-saved-view--active { background: color-mix(in srgb, var(--primary-600, #e54f38) 16%, transparent); color: var(--primary-500, #F7C8C1); }
     .sr-saved-view__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     /* "My favorites" is the one saved-view row with an icon -- a real icon
        (not the literal "★" text glyph this had before) sized/aligned to sit
@@ -319,7 +319,7 @@
     /* Selected-for-inspector state (list mode only) — coral instead of the
        mockup's blue. */
     .sr-row.is-selected { background: var(--primary-100, #FFF5F1); }
-    .dark .sr-row.is-selected { background: rgba(229, 79, 56, .14); }
+    .dark .sr-row.is-selected { background: color-mix(in srgb, var(--primary-600, #e54f38) 14%, transparent); }
     .sr-row__icon {
         width: 30px;
         height: 30px;
@@ -423,7 +423,7 @@
         box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.09);
     }
     .dark .sr-sections.sr-view--grid .sr-row:hover {
-        background: #242424;
+        background: #1c2437;
         border-color: hsl(0, 0%, 32%);
     }
     .sr-sections.sr-view--grid .sr-row.is-selected {
@@ -431,7 +431,7 @@
         box-shadow: 0 0 0 1px var(--primary-600, #E54F38);
     }
     .dark .sr-sections.sr-view--grid .sr-row {
-        background: #242424;
+        background: #1c2437;
         border-color: hsl(0, 0%, 25%);
     }
     /* Checkbox lifted out of the grid flow to the top-left corner: as a
@@ -566,7 +566,7 @@
         padding: 10px 14px;
         margin-bottom: 14px;
     }
-    .dark .sr-bulk-bar { background: rgba(229, 79, 56, .14); border-color: rgba(229, 79, 56, .35); }
+    .dark .sr-bulk-bar { background: color-mix(in srgb, var(--primary-600, #e54f38) 14%, transparent); border-color: color-mix(in srgb, var(--primary-600, #e54f38) 35%, transparent); }
     .sr-bulk-bar[hidden] { display: none; }
     .sr-bulk-bar__count { font-size: 13px; font-weight: 600; color: var(--primary-600, #E54F38); }
     .sr-bulk-bar__actions { display: flex; gap: 8px; }
@@ -588,7 +588,7 @@
         position: sticky;
         top: 0;
     }
-    .dark .sr-inspector { background: #242424; border-color: hsl(0, 0%, 25%); }
+    .dark .sr-inspector { background: #1c2437; border-color: hsl(0, 0%, 25%); }
     .sr-inspector__eyebrow {
         font-size: 12px;
         font-weight: 700;

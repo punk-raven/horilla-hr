@@ -64,8 +64,20 @@ var DateFormattingUtility = DateFormattingUtility || class DateFormattingUtility
             processedDate = date.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1');
         }
 
-        // Format the processed date using moment.js
-        const formattedDate = moment(processedDate).format(storedDateFormat);
+        // Parse the formats this page actually receives: ISO from the
+        // preprocessing above, and Django's default DATE_FORMAT ("July 30,
+        // 2026", "Jan. 5, 2026"). Anything else goes through Date() exactly
+        // as before, but explicitly: handing moment a non-ISO string made it
+        // fall back to Date() itself and log a deprecation warning per call.
+        let parsed = moment(
+            processedDate,
+            [moment.ISO_8601, 'MMMM D, YYYY', 'MMM. D, YYYY', 'MMM D, YYYY'],
+            true
+        );
+        if (!parsed.isValid()) {
+            parsed = moment(new Date(processedDate));
+        }
+        const formattedDate = parsed.format(storedDateFormat);
 
         return formattedDate;
     }

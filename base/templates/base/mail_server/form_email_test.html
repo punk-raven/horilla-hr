@@ -42,8 +42,13 @@
 </style>
 
 <h2 class="oh-inner-sidebar-content__title">{% trans "Send Test Email" %}</h2>
-<form hx-post="{{ request.get_full_path }}"
-    hx-on="htmx:afterSwap: checkValidationErrors" hx-target="#mailServerModalBody">
+{# The request gets its own timeout: the site-wide htmx default (15s) is
+   shorter than an SMTP attempt, so the browser used to abandon the request
+   while the server was still trying, and the overlay below never cleared. #}
+<form hx-post="{{ request.get_full_path }}" hx-target="#mailServerModalBody"
+    hx-request='{"timeout": 60000}'
+    hx-on::before-request="testEmailSending(true)"
+    hx-on::after-request="testEmailSending(false, event)">
     {% csrf_token %}
     {% for field in form %}
         {% if field.field.widget.is_hidden %}
@@ -77,6 +82,7 @@
 <p>
     {{send_test_mail_result}}
 </p>
+<p id="testEmailError" class="text-danger d-none" role="alert"></p>
 
 <div id="loading-overlay" class="loading-overlay d-none">
     <dotlottie-player src="https://lottie.host/8d113289-1471-4cbc-8bab-33e90da32727/1hzz3KiKas.lottie"
@@ -86,35 +92,23 @@
 </div>
 
 <script>
-    // Show the loading overlay immediately when the request starts
-    document.body.addEventListener("htmx:beforeRequest", function (event) {
-        // Show the loading overlay before the request is sent
-        const overlay = $("#loading-overlay");
-        overlay.removeClass('d-none')
-    });
-
-    // Function to check if there are any validation errors in the form after HTMX updates it
-    document.body.addEventListener("htmx:afterSwap", function (event) {
-        // Only check for errors if the updated content is a form
-        if (event.target.closest("form")) {
-            checkValidationErrors(event.target);
+    // Scoped to this form. The previous handlers listened on document.body, so
+    // every htmx request on the page (e.g. notification polling) raised the
+    // overlay, and nothing lowered it when the request failed or timed out.
+    function testEmailSending(sending, event) {
+        $("#loading-overlay").toggleClass("d-none", !sending);
+        const error = $("#testEmailError");
+        error.addClass("d-none").text("");
+        if (sending || !event || event.detail.successful) {
+            return;
         }
-    });
-
-    function checkValidationErrors(form) {
-        const errorList = form.querySelector(".errorlist");
-        const overlay = $("#loading-overlay");
-        const formContainer = form.closest('#mailServerModalBody'); // Assuming the form is inside a section
-
-        // Check if errorList exists and contains errors
-        if (errorList && errorList.children.length > 0) {
-            // Hide the loading overlay if there are validation errors
-            overlay.addClass("d-none");
-        } else {
-            // Show the loading overlay and hide the form if there are no validation errors
-            overlay.removeClass("d-none");
-            formContainer.addClass("d-none");  // Hide form if no validation errors
-        }
+        // A successful send or a send error both answer 200 with HX-Redirect
+        // and a flash message; reaching here means no answer came back.
+        error.text(
+            event.detail.xhr && event.detail.xhr.status
+                ? "{% trans 'The server could not send the test email. Please try again.' %}"
+                : "{% trans 'The mail server did not respond in time. Check the host, port and SSL/TLS settings, and that outbound SMTP is allowed from this server.' %}"
+        ).removeClass("d-none");
     }
 </script>
 

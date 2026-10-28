@@ -2027,7 +2027,7 @@ function hlvBulkDeleteProgress(count, title) {
                   (m.recordsCount || "record(s)") + "</div>"
                 : "") +
             '<div style="height:6px;border-radius:6px;background:#eceef2;overflow:hidden;margin-bottom:18px">' +
-            '<div style="width:40%;height:100%;border-radius:6px;background:#e54f38;animation:hlvSlide 1.1s ease-in-out infinite"></div></div>',
+            '<div style="width:40%;height:100%;border-radius:6px;background:var(--primary-600, #e54f38);animation:hlvSlide 1.1s ease-in-out infinite"></div></div>',
         allowOutsideClick: false,
         allowEscapeKey: false,
         showConfirmButton: false,

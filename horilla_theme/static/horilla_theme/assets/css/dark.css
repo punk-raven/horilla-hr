@@ -1,7 +1,7 @@
 body.dark.bg-secondary-50,
 body.dark {
-  background-color: #000000 !important;
-  color: white;
+  background-color: #05080f !important;
+  color: #dde1e9;
 }
 /* primary-600 is calibrated as text on light backgrounds (e.g. the
    Settings sidebar's active-item indicator) — against the dark panels
@@ -17,7 +17,7 @@ body.dark .text-color-600 {
   color: #bbbbbb !important;
 }
 body.dark .bg-secondary-50 {
-  background-color: #333333 !important;
+  background-color: #29334c !important;
 }
 /* group-hover primary text loses to body.dark .text-dark-* !important
    overrides — reassert theme primary on hover for related-object chips. */
@@ -44,7 +44,7 @@ body.dark .note-btn.focus,
 body.dark .note-btn:active,
 body.dark .note-btn:focus,
 body.dark .note-btn:hover {
-  background-color: #242424;
+  background-color: #1c2437;
 }
 body.dark #sidebar nav .sidebox,
 body.dark .oh-dropdown__menu,
@@ -63,7 +63,7 @@ body.dark #pivot-container .pvtTable td,
 body.dark #pivot-container .pvtTable tr:nth-child(2n) td,
 body.dark .note-toolbar,
 body.dark .ansbox {
-  background-color: #1b1b1b !important;
+  background-color: #151b2a !important;
 }
 
 body.dark .border-b-dark-50,
@@ -126,7 +126,7 @@ body.dark .note-btn,
 body.dark .ansbox,
 body.dark .ansbox .oh-main__titlebar,
 body.dark .oh-activity-sidebar__qa-item {
-  border-color: #444444 !important;
+  border-color: #374564 !important;
 }
 body.dark .oh-input,
 body.dark .oh-select,
@@ -140,7 +140,7 @@ body.dark .form-input-items .oh-input,
 body.dark .form-input-items .oh-select,
 body.dark .note-btn {
   color: #dfdfdf !important;
-  background-color: #111111;
+  background-color: #0c111d;
   border-color: #656565 !important;
 }
 body.dark .oh-input,
@@ -214,7 +214,7 @@ body.dark .pvtFilterBox,
 body.dark .oh-activity-sidebar__qa-item,
 body.dark .oh-accordion-header,
 body.dark .bg-\[\#F6F6F6\] {
-  background-color: #000000 !important;
+  background-color: #05080f !important;
 }
 body.dark .bg-primary-100,
 body.dark .bg-\[\#f3f3f3\],
@@ -232,7 +232,7 @@ body.dark .bg-\[\#e9edf090\],
 body.dark .oh-sticky-table__tr--custom:hover,
 body.dark .oh-titlebar__tag,
 body.dark #pivot-container .pvtUiCell {
-  background-color: #1a1a1a !important;
+  background-color: #141a29 !important;
 }
 body.dark .text-\[\#333\],
 body.dark .text-gray-700 {
@@ -319,7 +319,7 @@ body.dark #sidebar ::-webkit-scrollbar-thumb:hover {
 }
 body.dark .stickyleft,
 body.dark .bg-\[white\] {
-  background-color: #2e2e2e;
+  background-color: #252e45;
   color: white;
 }
 body.dark .selection:focus-visible {
@@ -327,17 +327,17 @@ body.dark .selection:focus-visible {
 }
 
 body.dark .oh-modal__dialog {
-  border: 1px solid #444444;
+  border: 1px solid #374564;
 }
 body.dark .oh-btn-group > * {
   border-right: unset;
 }
 body.dark .stickyleft-second,
 body.dark .stickyright {
-  background-color: #444444;
+  background-color: #374564;
 }
 body.dark .sha::after {
-  background: linear-gradient(360deg, #000000, transparent);
+  background: linear-gradient(360deg, #05080f, transparent);
 }
 .pvtAxisContainer li span.pvtAttr {
   font-size: 0.9rem;
@@ -373,7 +373,7 @@ body.dark .sr-only.peer + .relative {
 body.dark .sr-only.peer + div::after,
 body.dark .sr-only.peer + .relative::after,
 body.dark .oh-switch .oh-switch__checkbox {
-  background: #3a3a3a;
+  background: #2f3b56;
 }
 body.dark .oh-btn img,
 body.dark .sideboxmain svg,
@@ -384,24 +384,24 @@ body.dark .deleteicon{
   filter: brightness(0) invert(1);
 }
 body.dark .oh-btn:hover {
-  background-color: #2a2a2a;
+  background-color: #212a3f;
 }
 body.dark .oh-btn ion-icon {
   color: white;
 }
 
 body.dark .oh-activity-sidebar {
-  border-left: 1px solid #444444;
+  border-left: 1px solid #374564;
 }
 
 body.dark .dropdown-content {
-  border: 1px solid #444444;
+  border: 1px solid #374564;
 }
 body.dark input:focus-visible {
   outline: unset;
 }
 body.dark .hover\:bg-primary-50:hover {
-  background-color: #2a2a2a !important;
+  background-color: #212a3f !important;
 }
 
 /* Report pivot builder labels/hints added in v1_styles.css — the light
@@ -414,19 +414,19 @@ body.dark .pvtAxisContainer.pvtUnused::before,
 body.dark .pvtAxisContainer.pvtRows::before,
 body.dark .pvtAxisContainer.pvtCols::before {
   color: #9aa1ab;
-  background-color: #1a1a1a;
-  border-color: #444444;
+  background-color: #141a29;
+  border-color: #374564;
 }
 body.dark .pvtAxisContainer.pvtUnused {
-  background-color: #0d0d0d;
+  background-color: #090d17;
 }
 body.dark .pvtAxisContainer.pvtRows:not(:has(li))::after,
 body.dark .pvtAxisContainer.pvtCols:not(:has(li))::after {
   color: #777777;
-  border-color: #444444;
+  border-color: #374564;
 }
 body.dark .pvtUiCell {
-  background-color: #141414 !important;
+  background-color: #0f1421 !important;
 }
 body.dark .pvtVals.pvtUiCell,
 body.dark .pvtAxisContainer.pvtRows {
@@ -434,13 +434,13 @@ body.dark .pvtAxisContainer.pvtRows {
 }
 body.dark .pvtRendererArea {
   border-color: #666666 !important;
-  /* Between the page background (#000) and the table's own cells (#1b1b1b)
+  /* Between the page background (#05080f) and the table's own cells (#151b2a)
      so the same light/frame/table layering from light mode carries over. */
-  background-color: #101010;
+  background-color: #0b101b;
 }
 
 body.dark .pvtFilterBox .pvtCheckContainer label:hover {
-  background-color: #1a1a1a;
+  background-color: #141a29;
 }
 body.dark .pvtFilterBox {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
@@ -462,29 +462,29 @@ body.dark .oh-profile-settings__link:hover {
 /* Gear settings dropdown in the newer Tailwind-based profile card
    (horilla_theme/templates/generic/horilla_profile_view.html). */
 body.dark .oh-dropdown .border-secondary-100 {
-  border-color: #333333 !important;
+  border-color: #29334c !important;
 }
 body.dark .oh-dropdown .border-secondary-200 {
-  border-color: #444444 !important;
+  border-color: #374564 !important;
 }
 
 /* Column configurator (list view toggle) */
 body.dark .oh-sticky-table_dropdown:has(.oh-column-config) {
-  border-color: #333;
+  border-color: #29334c;
   box-shadow:
     0 12px 28px rgba(0, 0, 0, 0.45),
     0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 body.dark .oh-column-config {
-  background: #1a1a1a;
+  background: #141a29;
   color: #ddd;
 }
 
 body.dark .oh-column-config__header,
 body.dark .oh-column-config__footer {
-  border-color: #2a2a2a;
-  background: #161616;
+  border-color: #212a3f;
+  background: #111624;
 }
 
 body.dark .oh-column-config__title {
@@ -498,17 +498,17 @@ body.dark .oh-column-config__empty {
 }
 
 body.dark .oh-column-config__count {
-  background: #2a2a2a;
+  background: #212a3f;
   color: #bbb;
 }
 
 body.dark .oh-column-config__search {
-  background: #121212;
-  border-color: #333;
+  background: #0d121e;
+  border-color: #29334c;
 }
 
 body.dark .oh-column-config__search:focus-within {
-  background: #1a1a1a;
+  background: #141a29;
 }
 
 body.dark .oh-column-config__search-input {
@@ -516,12 +516,12 @@ body.dark .oh-column-config__search-input {
 }
 
 body.dark .oh-column-config__select-all {
-  background: #222;
+  background: #1b2234;
 }
 
 body.dark .oh-column-config__select-all:hover,
 body.dark .oh-column-config__item:hover {
-  background: #262626;
+  background: #1e263a;
 }
 
 body.dark .oh-column-config__select-all .oh-column-config__label,
@@ -530,26 +530,26 @@ body.dark .oh-column-config__label {
 }
 
 body.dark .oh-column-config__item.is-draggable:hover .oh-column-config__handle {
-  background: #333;
+  background: #29334c;
   color: #bbb;
 }
 
 body.dark .oh-column-config__item.ui-sortable-helper {
-  background: #1f1f1f;
-  border-color: #333;
+  background: #181f30;
+  border-color: #29334c;
 }
 
 body.dark .oh-sticky-dropdown_btn.is-column-config-trigger:hover,
 body.dark .oh-sticky-dropdown_btn.is-column-config-trigger[aria-expanded="true"] {
-  background: rgba(229, 79, 56, 0.12);
-  border-color: rgba(229, 79, 56, 0.35);
+  background: color-mix(in srgb, var(--primary-600, #e54f38) 12%, transparent);
+  border-color: color-mix(in srgb, var(--primary-600, #e54f38) 35%, transparent);
 }
 
 body.dark .bg-gray-100 {
-  background-color: #2a2a2a !important;
+  background-color: #212a3f !important;
 }
 body.dark .hover\:bg-gray-200:hover {
-  background-color: #3a3a3a !important;
+  background-color: #2f3b56 !important;
 }
 
 body.dark .select2-container--default .select2-results__option {
@@ -557,11 +557,28 @@ body.dark .select2-container--default .select2-results__option {
 }
 body.dark .select2-container--default .select2-results__option--selected,
 body.dark .select2-container--default .select2-results__option[aria-selected="true"] {
-  background-color: #333333;
+  background-color: #29334c;
   color: #ffffff;
 }
 body.dark .select2-container--default .select2-results__option--highlighted[aria-selected],
 body.dark .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
-  background-color: rgba(229, 79, 56, 0.18) !important;
+  background-color: color-mix(in srgb, var(--primary-600, #e54f38) 18%, transparent) !important;
   color: var(--primary-300, #fcedeb);
+}
+
+/* Icon buttons in table rows were painted with the page background, so they
+   read as holes in the row surface. Lift them one step above the row
+   (#1c2437) instead. Declared last so it wins over the grouped rules above. */
+body.dark .oh-btn--light-bkg {
+  background-color: #212a3f !important;
+}
+body.dark .oh-btn--light-bkg:hover {
+  background-color: #29334c !important;
+}
+
+/* The column-config trigger had no dark style and stayed a white square. */
+body.dark .oh-sticky-dropdown_btn.is-column-config-trigger {
+  background: #212a3f;
+  border-color: #29334c;
+  color: #bbbbbb;
 }

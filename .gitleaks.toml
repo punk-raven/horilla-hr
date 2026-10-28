@@ -36,6 +36,14 @@ regexes = [
 
 [[allowlists]]
 description = """
+Fake credentials in test fixtures. The mail server tests store a placeholder
+password to prove the form never echoes it back into the page.
+"""
+regexTarget = "line"
+regexes = ['''s3cret-api-key''']
+
+[[allowlists]]
+description = """
 The production-settings-gate job in quality.yml feeds deliberately insecure
 values -- the documented default SECRET_KEY and DB_INIT_PASSWORD -- to prove
 settings REFUSE to import with them. Flagging that fixture as a leak would

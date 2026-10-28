@@ -26,7 +26,7 @@
 <script src="{% static '/base/date_settings.js' %}"></script>
 <script src="{% static '/base/time_formatting.js' %}"></script>
 <script src="{% static '/base/time_settings.js' %}"></script>
-<script src="{% static '/base/date_formatting.js' %}"></script>
+<script src="{% static '/base/date_formatting.js' %}?v=2"></script>
 
 <script src="{% static 'build/js/pivottable.min.js' %}"></script>
 <script src="{% static 'build/js/pivottable_plot.min.js' %}"></script>
@@ -46,7 +46,7 @@
       window.history.replaceState({}, document.title, urlWithoutQuery)
     }
 </script>
-<script src="{% static 'horilla_theme/assets/js/footerScripts.js' %}?v=2"></script>
+<script src="{% static 'horilla_theme/assets/js/footerScripts.js' %}?v=3"></script>
 
 <!-- Product tour engine (horilla_tour) -->
 {% if request.user.is_authenticated %}

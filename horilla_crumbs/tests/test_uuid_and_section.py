@@ -2,7 +2,11 @@
 
 from django.test import SimpleTestCase
 
-from horilla_crumbs.context_processors import _resolve_menu_section, is_valid_uuid
+from horilla_crumbs.context_processors import (
+    _resolve_menu_section,
+    crumb_name,
+    is_valid_uuid,
+)
 
 
 class UuidHelperTests(SimpleTestCase):
@@ -26,3 +30,14 @@ class ResolveMenuSectionTests(SimpleTestCase):
         ]
         result = _resolve_menu_section("/employee/list/detail/", menus)
         self.assertEqual(result, ("People", "/employee/list/"))
+
+
+class CrumbNameTests(SimpleTestCase):
+    def test_global_settings_is_not_labelled_payroll(self):
+        self.assertEqual(crumb_name(["settings", "mail-server-conf"], 0), "Settings")
+
+    def test_payroll_settings_keeps_its_label(self):
+        self.assertEqual(crumb_name(["payroll", "settings"], 1), "Payroll Settings")
+
+    def test_unmapped_segment_falls_through(self):
+        self.assertEqual(crumb_name(["x", "unknown-slug"], 1), "unknown-slug")

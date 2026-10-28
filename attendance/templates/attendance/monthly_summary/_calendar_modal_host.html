@@ -766,7 +766,7 @@ and to_date.
           showCancelButton: true,
           confirmButtonText: foot.dataset.warnYes,
           cancelButtonText: foot.dataset.warnNo,
-          confirmButtonColor: '#e54f38',
+          confirmButtonColor: (getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim() || '#E54F38'),
           // The calendar modal sits above the library's default layer.
           didOpen: function () { Swal.getContainer().style.zIndex = '100000'; },
         }).then(function (result) { if (result.isConfirmed) send(); });

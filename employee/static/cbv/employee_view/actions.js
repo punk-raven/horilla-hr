@@ -403,7 +403,7 @@ $(document).on("click", "#resetPasswordEmployees", function (e) {
                         '<div style="margin:14px 0 6px;color:#6b7280;font-size:14px">' +
                         ids.length + " " + (i18nMessages.resettingCount || "employee(s)") + "</div>" +
                         '<div style="height:8px;border-radius:6px;background:#eceef2;overflow:hidden">' +
-                        '<div style="width:40%;height:100%;border-radius:6px;background:#e54f38;animation:rpSlide 1.1s ease-in-out infinite"></div></div>',
+                        '<div style="width:40%;height:100%;border-radius:6px;background:var(--primary-600, #e54f38);animation:rpSlide 1.1s ease-in-out infinite"></div></div>',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     showConfirmButton: false,

@@ -29,7 +29,7 @@
         <link href="{% static 'cdn/select2/css/select2.min.css' %}" rel="stylesheet">
         <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/global.css' %}">
         <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/v1_styles.css' %}">
-        <link rel="manifest" href="{% static 'build/manifest.json' %}">
+        <link rel="manifest" href="{% static 'build/manifest.json' %}" crossorigin="use-credentials">
     </head>
 
     <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' style="font-family: Inter, sans-serif;">

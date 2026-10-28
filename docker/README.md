@@ -390,10 +390,12 @@ SECRET_KEY=<random>                      # must be set: no shared disk to persis
 DB_INIT_PASSWORD=<random>
 DEBUG=0
 HORILLA_ENV=production
-DATABASE_URL=${{Postgres.DATABASE_URL}}
-DB_HOST=${{Postgres.PGHOST}}             # entrypoint waits on these, default host "db"
-DB_PORT=${{Postgres.PGPORT}}
-REDIS_URL=${{Redis.REDIS_URL}}
+# Reference only non-derived variables. Postgres.DATABASE_URL, PGHOST and
+# Redis.REDIS_URL are themselves built from references, and referencing them
+# from another service rendered an empty string. The entrypoint waits on
+# DATABASE_URL's host, so DB_HOST/DB_PORT are not needed.
+DATABASE_URL=postgresql://${{Postgres.POSTGRES_USER}}:${{Postgres.POSTGRES_PASSWORD}}@${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:5432/${{Postgres.POSTGRES_DB}}
+REDIS_URL=redis://default:${{Redis.REDIS_PASSWORD}}@${{Redis.RAILWAY_PRIVATE_DOMAIN}}:6379
 ALLOWED_HOSTS=hr.example.com,healthcheck.railway.app
 TIME_ZONE=Asia/Kolkata
 LOCAL_BACKUPS_ENABLED=0                  # no persistent disk: hide local-disk backups

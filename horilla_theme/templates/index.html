@@ -13,7 +13,7 @@
         <link rel="stylesheet" href="{% static 'build/css/orgChart.css' %}">
         <link rel="stylesheet" href="{% static 'build/css/driver.min.css' %}">
 
-        <link rel="manifest" href="{% static 'build/manifest.json' %}">
+        <link rel="manifest" href="{% static 'build/manifest.json' %}" crossorigin="use-credentials">
         <link
             rel="apple-touch-icon"
             sizes="180x180"
@@ -32,15 +32,10 @@
             href="{% if white_label_company.icon %}{{white_label_company.icon.url}} {% else %}{% static 'favicons/favicon-16x16.png' %}{% endif %}"
         >
 
-        {% comment %} defer, not removed: tailwind.css below is a periodically
-           re-exported snapshot, not a build-pipeline output kept in sync on
-           every template change, so this runtime JIT compiler is still the
-           source of truth for any utility class added since that snapshot.
-           `defer` only delays execution past HTML parsing (this compiler
-           scans the DOM via MutationObserver, so it doesn't need to run
-           before other content loads) -- it doesn't change what gets
-           styled. {% endcomment %}
-        <script src='{% static "horilla_theme/assets/js/tailwindcdn.js" %}' defer></script>
+        {% comment %} The Tailwind runtime JIT compiler is loaded, and given the
+           theme palette, by header_scripts.html. A second copy used to be
+           loaded here as well: two compilers watched the DOM and emitted
+           every utility twice, for ~880 KB of JS per page. {% endcomment %}
         {% include "horilla_theme/components/header_scripts.html" %}
 
         <link

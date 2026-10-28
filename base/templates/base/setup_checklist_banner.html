@@ -3,8 +3,8 @@
 <style>
 /* ── Banner card ────────────────────────────────────────────────────────── */
 .hcl-banner {
-    background: linear-gradient(135deg, #fef4f2 0%, #ffffff 55%);
-    border: 1px solid #f4b8b0;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary-600, #e54f38) 7%, white) 0%, #ffffff 55%);
+    border: 1px solid color-mix(in srgb, var(--primary-600, #e54f38) 40%, white);
     border-radius: 16px;
     padding: 24px 28px 20px;
     position: relative;
@@ -12,15 +12,15 @@
     margin-bottom: 24px;
 }
 .dark .hcl-banner {
-    background: linear-gradient(135deg, #3d1510 0%, #0f172a 55%);
-    border-color: #6b1a10;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary-600, #e54f38) 20%, #0b1220) 0%, #0f172a 55%);
+    border-color: color-mix(in srgb, var(--primary-600, #e54f38) 45%, #0b1220);
 }
 
 /* ── Decorative blob ────────────────────────────────────────────────────── */
 .hcl-blob {
     position: absolute; top: -50px; right: -50px;
     width: 180px; height: 180px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(229,79,56,0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--primary-600, #e54f38) 12%, transparent) 0%, transparent 70%);
     pointer-events: none;
 }
 
@@ -32,13 +32,13 @@
 }
 .hcl-icon {
     width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
-    background: linear-gradient(135deg, #e54f38, #e8705e);
+    background: linear-gradient(135deg, var(--primary-600, #e54f38), color-mix(in srgb, var(--primary-600, #e54f38) 80%, white));
     display: flex; align-items: center; justify-content: center;
 }
 .hcl-title {
     margin: 0; font-size: 15px; font-weight: 700; color: #1f2937;
 }
-.dark .hcl-title { color: #fde0db; }
+.dark .hcl-title { color: color-mix(in srgb, var(--primary-600, #e54f38) 12%, #dde1e9); }
 .hcl-subtitle {
     margin: 3px 0 0; font-size: 12px; color: #6b7280;
 }
@@ -77,7 +77,7 @@
 }
 .hcl-line-left  { left: 0;   right: 50%; }
 .hcl-line-right { left: 50%; right: 0;   }
-.hcl-line-active   { background: #e54f38; }
+.hcl-line-active   { background: var(--primary-600, #e54f38); }
 .hcl-line-inactive { background: #e5e7eb; }
 .dark .hcl-line-inactive { background: #374151; }
 
@@ -90,28 +90,28 @@
     transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
 }
 .hcl-circle-done {
-    background: #e54f38; border: 2px solid #e54f38;
+    background: var(--primary-600, #e54f38); border: 2px solid var(--primary-600, #e54f38);
 }
-.hcl-circle-done:hover { background: #cc3f29; border-color: #cc3f29; }
+.hcl-circle-done:hover { background: color-mix(in srgb, var(--primary-600, #e54f38) 85%, black); border-color: color-mix(in srgb, var(--primary-600, #e54f38) 85%, black); }
 .hcl-circle-active {
-    background: #ffffff; border: 2px solid #e54f38;
-    box-shadow: 0 0 0 4px rgba(229,79,56,0.18);
+    background: #ffffff; border: 2px solid var(--primary-600, #e54f38);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-600, #e54f38) 18%, transparent);
 }
-.dark .hcl-circle-active { background: #3d1510; }
+.dark .hcl-circle-active { background: color-mix(in srgb, var(--primary-600, #e54f38) 20%, #0b1220); }
 .hcl-circle-pending {
     background: #ffffff; border: 2px solid #d1d5db;
 }
 .dark .hcl-circle-pending { background: #1f2937; border-color: #4b5563; }
 .hcl-circle-pending:hover {
-    border-color: #e54f38;
-    box-shadow: 0 0 0 3px rgba(229,79,56,0.12);
+    border-color: var(--primary-600, #e54f38);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-600, #e54f38) 12%, transparent);
 }
 
 /* Step number / checkmark */
 .hcl-circle-num {
     font-size: 11px; font-weight: 700; user-select: none;
 }
-.hcl-circle-num-active  { color: #e54f38; }
+.hcl-circle-num-active  { color: var(--primary-600, #e54f38); }
 .hcl-circle-num-pending { color: #9ca3af; }
 .dark .hcl-circle-num-pending { color: #6b7280; }
 
@@ -120,18 +120,18 @@
     font-size: 10px; margin-top: 6px; text-align: center;
     line-height: 1.3; padding: 0 4px; word-break: break-word;
 }
-.hcl-label-done    { color: #e54f38; font-weight: 600; }
+.hcl-label-done    { color: var(--primary-600, #e54f38); font-weight: 600; }
 .hcl-label-active  { color: #1f2937; font-weight: 700; }
 .hcl-label-pending { color: #9ca3af; font-weight: 500; }
-.dark .hcl-label-active  { color: #fde0db; }
+.dark .hcl-label-active  { color: color-mix(in srgb, var(--primary-600, #e54f38) 12%, #dde1e9); }
 .dark .hcl-label-pending { color: #6b7280; }
 
 /* ── Action card ────────────────────────────────────────────────────────── */
 .hcl-action {
     margin-top: 18px;
     background: #ffffff;
-    border: 1px solid #f4b8b0;
-    border-left: 4px solid #e54f38;
+    border: 1px solid color-mix(in srgb, var(--primary-600, #e54f38) 40%, white);
+    border-left: 4px solid var(--primary-600, #e54f38);
     border-radius: 10px;
     padding: 14px 18px;
     display: flex; align-items: center;
@@ -139,14 +139,14 @@
     flex-wrap: wrap;
 }
 .dark .hcl-action {
-    background: #3d1510;
-    border-color: #6b1a10;
-    border-left-color: #ea6e5a;
+    background: color-mix(in srgb, var(--primary-600, #e54f38) 20%, #0b1220);
+    border-color: color-mix(in srgb, var(--primary-600, #e54f38) 45%, #0b1220);
+    border-left-color: color-mix(in srgb, var(--primary-600, #e54f38) 80%, white);
 }
 .hcl-action-title {
     margin: 0; font-size: 14px; font-weight: 600; color: #1f2937;
 }
-.dark .hcl-action-title { color: #fde0db; }
+.dark .hcl-action-title { color: color-mix(in srgb, var(--primary-600, #e54f38) 12%, #dde1e9); }
 .hcl-action-desc {
     margin: 4px 0 0; font-size: 13px; color: #6b7280;
 }
@@ -154,7 +154,7 @@
 .hcl-action-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 9px 18px; border-radius: 8px;
-    background: linear-gradient(135deg, #e54f38, #e8705e);
+    background: linear-gradient(135deg, var(--primary-600, #e54f38), color-mix(in srgb, var(--primary-600, #e54f38) 80%, white));
     color: #ffffff; font-size: 13px; font-weight: 600;
     text-decoration: none; white-space: nowrap; flex-shrink: 0;
     transition: opacity 0.15s, transform 0.15s;
