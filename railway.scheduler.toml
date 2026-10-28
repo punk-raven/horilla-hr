@@ -1,0 +1,20 @@
+# Railway config for the `scheduler` service (run_scheduler). Point the
+# service's Settings -> Config-as-code path at /railway.scheduler.toml.
+#
+# Needs the same variables as web plus HORILLA_SKIP_RELEASE_TASKS=1, so it
+# never races web's migrate and collectstatic.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# A start command replaces the image ENTRYPOINT on Railway, so call it
+# explicitly: it waits for Postgres and guards against a placeholder
+# SECRET_KEY before handing over to run_scheduler.
+startCommand = "/entrypoint.sh python manage.py run_scheduler"
+# The jobs are not idempotent (payslips, backups): a second replica means a
+# second run of each.
+numReplicas = 1
+# No healthcheckPath: this container binds no port.
+restartPolicyType = "ALWAYS"

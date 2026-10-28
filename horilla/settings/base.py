@@ -650,9 +650,17 @@ AXES_IPWARE_PROXY_COUNT = env.int("AXES_PROXY_COUNT", default=None)
 # as-is, so a client could send a fresh header per attempt and the IP half of
 # the lock never matches. Read the header only when AXES_PROXY_COUNT is set;
 # the shipped compose sets it to 1 for its nginx.
+#
+# AXES_CLIENT_IP_HEADER names a single-IP header set by a trusted edge, e.g.
+# HTTP_CF_CONNECTING_IP behind a Cloudflare Tunnel, where REMOTE_ADDR is the
+# tunnel connector and would put every user behind one shared IP. Only set it
+# when that edge is the sole way in; otherwise a client can spoof the header.
+AXES_CLIENT_IP_HEADER = env("AXES_CLIENT_IP_HEADER", default=None)
 AXES_IPWARE_META_PRECEDENCE_ORDER = (
-    ["HTTP_X_FORWARDED_FOR"] if AXES_IPWARE_PROXY_COUNT else []
-) + ["REMOTE_ADDR"]
+    ([AXES_CLIENT_IP_HEADER] if AXES_CLIENT_IP_HEADER else [])
+    + (["HTTP_X_FORWARDED_FOR"] if AXES_IPWARE_PROXY_COUNT else [])
+    + ["REMOTE_ADDR"]
+)
 
 
 # ========================================

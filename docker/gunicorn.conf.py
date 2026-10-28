@@ -5,7 +5,10 @@ import multiprocessing
 import os
 
 # Bind settings
-bind = f"0.0.0.0:{os.environ.get('PORT', '8000')}"
+# GUNICORN_BIND overrides the address, e.g. "[::]:8000" where the platform's
+# private network is IPv6 (older Railway environments resolve
+# *.railway.internal to IPv6 only, so an IPv4 bind refuses the connection).
+bind = os.environ.get("GUNICORN_BIND") or f"0.0.0.0:{os.environ.get('PORT', '8000')}"
 host = "0.0.0.0"
 port = int(os.environ.get("PORT", "8000"))
 

@@ -358,6 +358,74 @@ curl http://localhost:8000/ready/
 docker compose logs --tail=50 web
 ```
 
+### Deploying on Railway (behind Cloudflare)
+
+The repo ships `railway.toml` (web) and `railway.scheduler.toml` (scheduler).
+The layout below keeps web off the public internet: Cloudflare owns the
+domain and reaches web only through a Cloudflare Tunnel, and media lives in a
+Cloudflare R2 bucket so web and scheduler share it (a Railway volume attaches
+to one service only).
+
+| Railway service | Source | Notes |
+|---|---|---|
+| `Postgres`, `Redis` | Railway database templates | |
+| `web` | this repo | uses `railway.toml`; **no public Railway domain** |
+| `scheduler` | this repo | config-as-code path `/railway.scheduler.toml`; exactly 1 replica |
+| `cloudflared` | image `cloudflare/cloudflared:<pinned tag>` | start command `cloudflared tunnel --no-autoupdate run`, variable `TUNNEL_TOKEN` |
+
+**Cloudflare, once:**
+
+1. R2: create a private bucket (no public URL, no custom domain) and an API
+   token with *Object Read & Write* on that bucket only.
+2. Zero Trust → Networks → Tunnels: create a tunnel, copy its token, and add a
+   public hostname `hr.example.com` → `http://web.railway.internal:8000`.
+3. SSL/TLS: turn on *Always Use HTTPS* and HSTS. Django's
+   `SECURE_SSL_REDIRECT` stays off, because Railway's healthcheck is plain
+   HTTP and would get a redirect.
+
+**Variables** (shared between web and scheduler unless noted):
+
+```
+SECRET_KEY=<random>                      # must be set: no shared disk to persist a generated one
+DB_INIT_PASSWORD=<random>
+DEBUG=0
+HORILLA_ENV=production
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+DB_HOST=${{Postgres.PGHOST}}             # entrypoint waits on these, default host "db"
+DB_PORT=${{Postgres.PGPORT}}
+REDIS_URL=${{Redis.REDIS_URL}}
+ALLOWED_HOSTS=hr.example.com,healthcheck.railway.app
+TIME_ZONE=Asia/Kolkata
+
+# R2 media
+AWS_ACCESS_KEY_ID=<R2 token access key>
+AWS_SECRET_ACCESS_KEY=<R2 token secret>
+AWS_STORAGE_BUCKET_NAME=horilla-media
+AWS_S3_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+AWS_S3_REGION_NAME=auto
+AWS_LOCATION=media
+
+# web only
+CSRF_TRUSTED_ORIGINS=https://hr.example.com
+PORT=8000                                # fixed, so the tunnel target never moves
+GUNICORN_BIND=[::]:8000                  # older Railway environments are IPv6-only
+GUNICORN_WORKERS=3
+AXES_CLIENT_IP_HEADER=HTTP_CF_CONNECTING_IP
+
+# scheduler only
+HORILLA_SKIP_RELEASE_TASKS=1
+```
+
+`AXES_CLIENT_IP_HEADER` is only safe because the tunnel is the sole way in.
+If web also had a public Railway domain, a client could send its own
+`CF-Connecting-IP` and dodge the login lockout.
+
+Web runs migrations and `collectstatic`. Railway starts services in
+parallel, so the scheduler's entrypoint waits until `migrate --check` passes
+(up to `HORILLA_MIGRATE_WAIT_TRIES` checks, 5s apart, default 60) instead of
+booting against an unmigrated schema. In-app database backups shell out to `pg_dump`, which the
+image does not ship; use Railway's Postgres backups instead.
+
 ---
 
 ## 7. Database Management
@@ -419,15 +487,31 @@ docker cp $(docker compose ps -q web):/app/media ./media-backup
 
 ### Using Cloud Storage (S3/GCP)
 
-Horilla supports AWS S3 and Google Cloud Storage. Add to your environment:
+Horilla supports S3-compatible storage (AWS S3, Cloudflare R2, MinIO) and
+Google Cloud Storage. Add to your environment:
 
 **AWS S3:**
 ```
 AWS_ACCESS_KEY_ID=your-key
 AWS_SECRET_ACCESS_KEY=your-secret
 AWS_STORAGE_BUCKET_NAME=your-bucket
-DEFAULT_FILE_STORAGE=horilla.horilla_backends.PrivateMediaStorage
+AWS_S3_REGION_NAME=your-region
 ```
+
+**Cloudflare R2 / other S3-compatible:** the same, plus the endpoint. R2's
+region is `auto`.
+```
+AWS_S3_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+AWS_S3_REGION_NAME=auto
+```
+
+Optional: `AWS_LOCATION` (key prefix inside the bucket, default none),
+`AWS_QUERYSTRING_EXPIRE` (seconds a signed file URL stays valid, default
+3600), `DEFAULT_FILE_STORAGE` (default
+`storages.backends.s3boto3.S3Boto3Storage`). Keep the bucket private: files
+are served through signed URLs, so anyone holding one can fetch the file
+until it expires. `horilla.horilla_backends.PrivateMediaStorage` sends an
+object ACL, which R2 does not implement; use the default backend there.
 
 **Google Cloud Storage:**
 ```
