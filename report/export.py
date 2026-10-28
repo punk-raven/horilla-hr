@@ -15,11 +15,13 @@ import logging
 import re
 from datetime import date, datetime
 from typing import Any, Optional
+from urllib.parse import unquote
 
 from django.http import HttpResponse
 from django.utils import timezone
 
 from horilla.export_safety import FORMULA_TRIGGERS, neutralize_formula
+from horilla.media import media_data_uri, read_media
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +99,7 @@ def _company_from_meta(meta: Optional[dict]) -> dict[str, Any]:
             "state": "",
             "city": "",
             "zip": "",
-            "logo_path": None,
+            "logo_name": None,
             "is_all": company in ("", "All companies", "all"),
             "location_line": "",
             "address_lines": [company or "All companies"],
@@ -109,7 +111,7 @@ def _company_from_meta(meta: Optional[dict]) -> dict[str, Any]:
         "state": company.get("state") or "",
         "city": company.get("city") or "",
         "zip": company.get("zip") or "",
-        "logo_path": company.get("logo_path"),
+        "logo_name": company.get("logo_name"),
         "is_all": bool(company.get("is_all", False)),
         "location_line": company.get("location_line") or "",
         "address_lines": company.get("address_lines")
@@ -479,7 +481,7 @@ def _write_letterhead(ws, company: dict, styles, meta: dict, col_span: int = 6) 
     from openpyxl.drawing.image import Image as XLImage
 
     row = 1
-    logo_path = company.get("logo_path")
+    logo_content = read_media(company.get("logo_name"))
     has_logo = False
     text_col = 1
 
@@ -492,9 +494,9 @@ def _write_letterhead(ws, company: dict, styles, meta: dict, col_span: int = 6) 
     product.font = styles["product_font"]
     product.alignment = styles["right"]
 
-    if logo_path:
+    if logo_content:
         try:
-            img = XLImage(logo_path)
+            img = XLImage(io.BytesIO(logo_content))
             img.width = 52
             img.height = 52
             ws.add_image(img, "A1")
@@ -1186,11 +1188,8 @@ def _pdf_link_callback(uri: str, rel: str):
                 if _os.path.isfile(candidate):
                     return candidate
         elif media_url and uri.startswith(media_url):
-            candidate = _os.path.join(
-                getattr(_settings, "MEDIA_ROOT", ""), uri[len(media_url) :]
-            )
-            if _os.path.isfile(candidate):
-                return candidate
+            # Through the storage: with S3/R2 nothing is under MEDIA_ROOT.
+            return media_data_uri(unquote(uri[len(media_url) :])) or uri
     except Exception:
         logger.exception("PDF resource could not be resolved: %s", uri)
     return uri
@@ -1286,9 +1285,7 @@ def export_pdf(
             f"{_period_label(compare['period'])}"
         )
 
-    logo_path = company.get("logo_path")
-    if logo_path and not os.path.exists(logo_path):
-        logo_path = None
+    logo_path = media_data_uri(company.get("logo_name"))
 
     address_lines = company.get("address_lines") or [
         company.get("name") or "All companies"

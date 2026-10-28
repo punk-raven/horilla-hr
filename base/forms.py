@@ -78,6 +78,7 @@ from employee.filters import EmployeeFilter
 from employee.models import Employee, EmployeeTag
 from horilla import horilla_middlewares
 from horilla.horilla_middlewares import _thread_locals
+from horilla.media import read_media
 from horilla.methods import get_horilla_model_class
 from horilla_audit.models import AuditTag
 from horilla_auth.models import HorillaUser
@@ -3245,15 +3246,14 @@ class PassWordResetForm(forms.Form):
             html_email = loader.render_to_string(html_email_template_name, context)
             email_message.attach_alternative(html_email, "text/html")
             # The company logo the HTML refers to as cid:company_logo
-            logo_path = context.get("logo_path")
-            if logo_path:
-                with open(logo_path, "rb") as logo_file:
-                    logo = MIMEImage(logo_file.read())
+            logo_content = context.get("logo_content")
+            if logo_content:
+                logo = MIMEImage(logo_content)
                 logo.add_header("Content-ID", "<company_logo>")
                 logo.add_header(
                     "Content-Disposition",
                     "inline",
-                    filename=os.path.basename(logo_path),
+                    filename=context.get("logo_filename"),
                 )
                 email_message.attach(logo)
 
@@ -3262,12 +3262,17 @@ class PassWordResetForm(forms.Form):
     @staticmethod
     def get_branding(employee):
         """
-        The name and logo the mail is sent under: the employee's company when
-        WHITE_LABELLING is on (else the headquarters company), Horilla when it
-        is off or no company has one.
+        The name and logo (file name and bytes) the mail is sent under: the
+        employee's company when WHITE_LABELLING is on (else the headquarters
+        company), Horilla when it is off or no company logo can be read.
         """
         name = "Horilla"
+        logo_filename, logo_content = None, None
         logo_path = finders.find("images/ui/horilla-sticker-round.png")
+        if logo_path:
+            logo_filename = os.path.basename(logo_path)
+            with open(logo_path, "rb") as logo_file:
+                logo_content = logo_file.read()
         if getattr(settings, "WHITE_LABELLING", False):
             company = None
             try:
@@ -3277,10 +3282,11 @@ class PassWordResetForm(forms.Form):
             company = company or Company.objects.filter(hq=True).last()
             if company:
                 name = company.company
-                icon = company.icon
-                if icon and os.path.exists(icon.path):
-                    logo_path = icon.path
-        return name, logo_path
+                icon_content = read_media(company.icon)
+                if icon_content:
+                    logo_filename = os.path.basename(company.icon.name)
+                    logo_content = icon_content
+        return name, logo_filename, logo_content
 
     def get_users(self, email):
         """
@@ -3360,7 +3366,7 @@ class PassWordResetForm(forms.Form):
             token = token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             protocol = "https" if use_https else "http"
-            company_name, logo_path = self.get_branding(employee)
+            company_name, logo_filename, logo_content = self.get_branding(employee)
             context = {
                 "email": email,
                 "domain": domain,
@@ -3376,7 +3382,8 @@ class PassWordResetForm(forms.Form):
                 ),
                 "valid_hours": settings.PASSWORD_RESET_TIMEOUT // 3600,
                 "white_label_company_name": company_name,
-                "logo_path": logo_path,
+                "logo_filename": logo_filename,
+                "logo_content": logo_content,
                 **(extra_email_context or {}),
             }
             self.send_mail(

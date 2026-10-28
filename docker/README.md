@@ -565,13 +565,23 @@ AWS_S3_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
 AWS_S3_REGION_NAME=auto
 ```
 
+Keep the bucket private. Every file link still points at the app's own
+`/media/<name>`, so `protected_media` runs the same login, JWT and public
+allow-list checks as on local disk. It then redirects the browser to a
+presigned bucket URL, which carries the same content type, and the same
+forced download for HTML/SVG/XML, as a file served from disk. Anyone holding
+that URL can fetch the file until it expires, so its lifetime is short.
+Page scripts that `fetch()` a file (logos in client-side report exports) are
+streamed through the app instead, so the bucket needs no CORS policy.
+
 Optional: `AWS_LOCATION` (key prefix inside the bucket, default none),
-`AWS_QUERYSTRING_EXPIRE` (seconds a signed file URL stays valid, default
-3600), `DEFAULT_FILE_STORAGE` (default
-`storages.backends.s3boto3.S3Boto3Storage`). Keep the bucket private: files
-are served through signed URLs, so anyone holding one can fetch the file
-until it expires. `horilla.horilla_backends.PrivateMediaStorage` sends an
-object ACL, which R2 does not implement; use the default backend there.
+`AWS_QUERYSTRING_EXPIRE` (seconds the presigned URL stays valid, default 60),
+`AWS_S3_FILE_OVERWRITE` (default false: a second upload with the same name
+is renamed, as on local disk, instead of replacing the first),
+`DEFAULT_FILE_STORAGE` (default `horilla.horilla_backends.MediaStorage`).
+`horilla.horilla_backends.PrivateMediaStorage` adds the `NAMESPACE` key
+prefix and sends an object ACL, which R2 does not implement; use the default
+backend there.
 
 **Google Cloud Storage:**
 ```

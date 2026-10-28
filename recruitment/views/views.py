@@ -60,7 +60,6 @@ from base.methods import (
 from base.models import EmailLog, HorillaMailTemplate, JobPosition, clear_messages
 from employee.models import Employee, EmployeeWorkInformation
 from employee.views import get_content_type
-from horilla import settings
 from horilla.decorators import (
     any_permission_required,
     hx_request_required,
@@ -70,6 +69,7 @@ from horilla.decorators import (
 )
 from horilla.group_by import group_by_queryset
 from horilla.http import HorillaRedirect
+from horilla.media import read_media
 from horilla_auth.models import HorillaUser
 from horilla_documents.models import Document
 from notifications.signals import notify
@@ -2209,9 +2209,7 @@ def delete_profile_image(request, obj_id):
 
     try:
         if candidate_obj.profile:
-            file_path = candidate_obj.profile.path
-            absolute_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            os.remove(absolute_path)
+            candidate_obj.profile.delete(save=False)
             candidate_obj.profile = None
             candidate_obj.save()
             messages.success(request, _("Profile image removed."))
@@ -3975,7 +3973,10 @@ def extract_words_from_pdf(pdf_file):
         pdf_file: pdf file
 
     """
-    pdf_document = pymupdf.open(pdf_file.path)
+    content = read_media(pdf_file)
+    if not content:
+        return ""
+    pdf_document = pymupdf.open(stream=content, filetype="pdf")
 
     text_chunks = []
 
@@ -4386,18 +4387,11 @@ def view_file(request, id):
         "document": document_obj,
     }
     if document_obj.document:
-        file_path = document_obj.document.path
-        file_extension = os.path.splitext(file_path)[1][1:].lower()
+        file_extension = os.path.splitext(document_obj.document.name)[1][1:].lower()
 
         content_type = get_content_type(file_extension)
 
-        try:
-            with open(file_path, "rb") as file:
-                file_content = file.read()
-        except:
-            file_content = None
-
-        context["file_content"] = file_content
+        context["file_content"] = read_media(document_obj.document)
         context["file_extension"] = file_extension
         context["content_type"] = content_type
 

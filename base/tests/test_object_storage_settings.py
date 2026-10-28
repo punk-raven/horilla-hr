@@ -31,6 +31,7 @@ STORAGE_VARS = (
     "AWS_LOCATION",
     "AWS_QUERYSTRING_EXPIRE",
     "AWS_S3_ADDRESSING_STYLE",
+    "AWS_S3_FILE_OVERWRITE",
     "DEFAULT_FILE_STORAGE",
     "MEDIA_URL",
     "MEDIA_ROOT",
@@ -61,14 +62,17 @@ class ObjectStorageSettingsTests(SimpleTestCase):
 
         self.assertEqual(
             addons.STORAGES["default"]["BACKEND"],
-            "storages.backends.s3boto3.S3Boto3Storage",
+            "horilla.horilla_backends.MediaStorage",
         )
         self.assertEqual(
             addons.AWS_S3_ENDPOINT_URL, "https://accountid.r2.cloudflarestorage.com"
         )
         self.assertEqual(addons.AWS_S3_REGION_NAME, "auto")
         self.assertEqual(addons.AWS_LOCATION, "")
-        self.assertEqual(addons.AWS_QUERYSTRING_EXPIRE, 3600)
+        # Only protected_media's redirect is signed, and it is followed at once.
+        self.assertEqual(addons.AWS_QUERYSTRING_EXPIRE, 60)
+        # Same-named uploads are renamed, as on local disk, not replaced.
+        self.assertIs(addons.AWS_S3_FILE_OVERWRITE, False)
         self.assertIn("storages", addons.INSTALLED_APPS)
         # Static files stay on WhiteNoise; only media moves to the bucket.
         self.assertEqual(addons.STORAGES["staticfiles"], base.STORAGES["staticfiles"])

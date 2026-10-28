@@ -51,6 +51,7 @@ from horilla import settings
 from horilla.decorators import hx_request_required, login_required, permission_required
 from horilla.group_by import group_by_queryset as general_group_by
 from horilla.http.response import HorillaRedirect
+from horilla.media import read_media
 from horilla_auth.models import HorillaUser
 from horilla_documents.models import Document
 from notifications.signals import notify
@@ -884,21 +885,23 @@ def email_send(request):
         # ✅ Attach company logo INLINE
         try:
             company = candidate.recruitment_id.company_id
-            if company and company.icon and os.path.exists(company.icon.path):
-                image_path = company.icon.path
-            else:
+            image_content = read_media(company.icon) if company else None
+            image_path = company.icon.name if image_content else None
+            if image_content is None:
                 image_path = finders.find("images/ui/horilla-sticker-round.png")
+                if image_path:
+                    with open(image_path, "rb") as f:
+                        image_content = f.read()
 
-            if image_path:
-                with open(image_path, "rb") as f:
-                    logo = MIMEImage(f.read())
-                    logo.add_header("Content-ID", "<company_logo>")
-                    logo.add_header(
-                        "Content-Disposition",
-                        "inline",
-                        filename=os.path.basename(image_path),
-                    )
-                    email.attach(logo)
+            if image_content:
+                logo = MIMEImage(image_content)
+                logo.add_header("Content-ID", "<company_logo>")
+                logo.add_header(
+                    "Content-Disposition",
+                    "inline",
+                    filename=os.path.basename(image_path),
+                )
+                email.attach(logo)
         except Exception as e:
             logger.error(f"Company logo attach failed: {e}")
 

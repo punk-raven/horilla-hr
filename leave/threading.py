@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
 from base.backends import ConfiguredEmailBackend
+from horilla.media import read_media
 
 logger = logging.getLogger(__name__)
 
@@ -104,21 +105,23 @@ class LeaveMailSendThread(Thread):
             email.attach_alternative(html_message, "text/html")
 
             # Attach company logo inline, fall back to static Horilla logo if file missing
-            if company and company.icon and os.path.exists(company.icon.path):
-                image_path = company.icon.path
-            else:
+            image_content = read_media(company.icon) if company else None
+            image_path = company.icon.name if image_content else None
+            if image_content is None:
                 image_path = finders.find("images/ui/horilla-sticker-round.png")
+                if image_path:
+                    with open(image_path, "rb") as f:
+                        image_content = f.read()
 
-            if image_path:
-                with open(image_path, "rb") as f:
-                    logo = MIMEImage(f.read())
-                    logo.add_header("Content-ID", "<company_logo>")
-                    logo.add_header(
-                        "Content-Disposition",
-                        "inline",
-                        filename=os.path.basename(image_path),
-                    )
-                    email.attach(logo)
+            if image_content:
+                logo = MIMEImage(image_content)
+                logo.add_header("Content-ID", "<company_logo>")
+                logo.add_header(
+                    "Content-Disposition",
+                    "inline",
+                    filename=os.path.basename(image_path),
+                )
+                email.attach(logo)
 
             # Attach static leave icon inline if available
             leave_icon_path = finders.find("images/ui/leave_types.png")

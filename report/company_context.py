@@ -7,7 +7,6 @@ selected; a simple "All companies" label when the session is unscoped.
 
 from __future__ import annotations
 
-import os
 from typing import Any, Optional
 
 from django.utils.translation import gettext as _
@@ -24,7 +23,7 @@ def _empty_all() -> dict[str, Any]:
         "state": "",
         "city": "",
         "zip": "",
-        "logo_path": None,
+        "logo_name": None,
         "logo_url": None,
         "is_all": True,
         "location_line": "",
@@ -43,19 +42,16 @@ def _from_company(company: Company) -> dict[str, Any]:
     if company.zip:
         address_lines.append(f"ZIP: {company.zip}")
 
-    logo_path = None
+    logo_name = None
     logo_url = None
     if company.icon:
         try:
             logo_url = company.icon.url
         except Exception:
             logo_url = None
-        try:
-            path = company.icon.path
-            if path and os.path.exists(path):
-                logo_path = path
-        except Exception:
-            logo_path = None
+        # The storage name, not a path: with S3/R2 there is none. Exports read
+        # the bytes through the storage (horilla.media.read_media).
+        logo_name = company.icon.name
 
     return {
         "id": company.id,
@@ -65,7 +61,7 @@ def _from_company(company: Company) -> dict[str, Any]:
         "state": company.state or "",
         "city": company.city or "",
         "zip": company.zip or "",
-        "logo_path": logo_path,
+        "logo_name": logo_name,
         "logo_url": logo_url,
         "is_all": False,
         "location_line": location_line,

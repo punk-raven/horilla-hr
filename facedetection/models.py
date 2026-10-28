@@ -1,5 +1,3 @@
-import os
-
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_delete
@@ -52,6 +50,5 @@ class EmployeeFaceDetection(models.Model):
 
 @receiver(post_delete, sender=EmployeeFaceDetection)
 def delete_image_file(sender, instance, **kwargs):
-    if instance.image and instance.image.path:
-        if os.path.isfile(instance.image.path):
-            os.remove(instance.image.path)
+    if instance.image:
+        instance.image.delete(save=False)

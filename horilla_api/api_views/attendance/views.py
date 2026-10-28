@@ -2,8 +2,8 @@ import logging
 from datetime import date, datetime, timedelta, timezone
 
 from django import template
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.storage import default_storage
 from django.core.mail import EmailMessage
 from django.db.models import Case, CharField, F, Value, When
 from django.http import QueryDict
@@ -962,8 +962,8 @@ class OfflineEmployeesListView(APIView):
 
         for employee in employees_with_leave_status:
             if employee["employee_profile"]:
-                employee["employee_profile"] = (
-                    settings.MEDIA_URL + employee["employee_profile"]
+                employee["employee_profile"] = default_storage.url(
+                    employee["employee_profile"]
                 )
         return employees_with_leave_status
 
