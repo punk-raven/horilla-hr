@@ -862,3 +862,30 @@ $(document).on("mouseleave", ".avatar-thumb", function () {
     clearTimeout(avatarPreviewTimer);
     $("#imagePreview").hide();
 });
+
+// Keep each modal's aria-hidden in step with its visibility. Modals ship with
+// aria-hidden="true" and dozens of call sites show them by adding
+// .oh-modal--show without touching the attribute, so an open modal - and the
+// input focused inside it - stayed hidden from assistive technology (Chrome
+// logs "Blocked aria-hidden on an element because its descendant retained
+// focus"). One observer covers every call site, including modals swapped in
+// later by htmx.
+(function syncModalAriaHidden() {
+    const sync = (modal) =>
+        modal.setAttribute(
+            "aria-hidden",
+            modal.classList.contains("oh-modal--show") ? "false" : "true"
+        );
+    new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            if (m.target.classList && m.target.classList.contains("oh-modal")) {
+                sync(m.target);
+            }
+        }
+    }).observe(document.documentElement, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class"],
+    });
+    document.querySelectorAll(".oh-modal").forEach(sync);
+})();
