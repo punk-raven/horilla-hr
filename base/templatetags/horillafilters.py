@@ -11,6 +11,7 @@ from itertools import groupby
 
 from django import template
 from django.apps import apps
+from django.core.files.storage import default_storage
 from django.forms.widgets import SelectMultiple, Textarea
 from django.template import TemplateSyntaxError
 from django.utils.translation import gettext as _
@@ -226,6 +227,15 @@ def is_text_area(widget):
     {% endif %}
     """
     return isinstance(widget, Textarea)
+
+
+@register.filter
+def media_url(name):
+    """
+    URL of a stored file from its name, for names kept as plain strings
+    (survey attachment answers) rather than in a FileField.
+    """
+    return default_storage.url(name) if name else ""
 
 
 @register.filter

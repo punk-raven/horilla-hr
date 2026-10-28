@@ -1,7 +1,6 @@
 import csv
 import importlib
 import json
-import os
 import re
 from collections import defaultdict
 from io import BytesIO
@@ -10,11 +9,9 @@ from arabic_reshaper import ArabicReshaper
 from bidi.algorithm import get_display
 from django import forms
 from django.apps import apps
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.utils import NestedObjects
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.staticfiles import finders
 from django.core.cache import cache as CACHE
 from django.core.exceptions import FieldDoesNotExist
 from django.db import connection, router
@@ -36,6 +33,7 @@ from base.methods import eval_validate, has_export_access
 from horilla.decorators import login_required as func_login_required
 from horilla.export_safety import safe_cell
 from horilla.http.response import HorillaRedirect
+from horilla.media import media_data_uri, read_media
 from horilla.signals import post_generic_delete, pre_generic_delete
 from horilla_views import models
 from horilla_views.cbv_methods import (
@@ -731,48 +729,6 @@ def sanitize_filename(filename):
     return re.sub(r'[<>:"/\\|?*\[\]]+', "_", filename)[:200]  # limit to 200 chars
 
 
-def link_callback(uri, rel):
-    """
-    Convert html URIs to absolute system paths so xhtml2pdf can access them.
-    Called by pisa.CreatePDF(..., link_callback=link_callback)
-    """
-    # If absolute URL (http/https/file) return as-is
-    if (
-        uri.startswith("http://")
-        or uri.startswith("https://")
-        or uri.startswith("file://")
-    ):
-        return uri
-
-    # Try static files first
-    static_path = None
-    if uri.startswith(settings.STATIC_URL):
-        # remove STATIC_URL prefix
-        rel_path = uri.replace(settings.STATIC_URL, "")
-        # find with staticfiles finders
-        found = finders.find(rel_path)
-        if found:
-            static_path = found
-
-    # Try media files next
-    media_path = None
-    if uri.startswith(settings.MEDIA_URL):
-        rel_path = uri.replace(settings.MEDIA_URL, "")
-        media_path = os.path.join(settings.MEDIA_ROOT, rel_path)
-
-    # If a path found, return it
-    for path in (static_path, media_path, uri):
-        if path and os.path.exists(path):
-            return path
-
-    # Last resort: maybe it's relative to your project root
-    project_path = os.path.join(settings.BASE_DIR, uri)
-    if os.path.exists(project_path):
-        return project_path
-
-    raise Exception("File not found for URI: %s" % uri)
-
-
 def reshape_text(text):
     """
     Make text safe for xhtml2pdf:
@@ -824,13 +780,12 @@ def export_data(request, *args, **kwargs):
     # COMPANY
     # =====================================================
     company_name = "All Company"
-    logo_path = None
+    logo_content = None
 
     company = getattr(request, "selected_company_instance", None)
     if company:
         company_name = company.company or company_name
-        if company.icon:
-            logo_path = company.icon.path
+        logo_content = read_media(company.icon)
 
     # =====================================================
     # MODEL
@@ -978,8 +933,8 @@ def export_data(request, *args, **kwargs):
         border = Border(left=thin, right=thin, top=thin, bottom=thin)
 
         # Logo
-        if logo_path and os.path.exists(logo_path):
-            img = Image(logo_path)
+        if logo_content:
+            img = Image(BytesIO(logo_content))
             img.width = 120
             img.height = 60
             ws.add_image(img, "A1")
@@ -1041,7 +996,7 @@ def export_data(request, *args, **kwargs):
                 "date_range": date_range,
                 "report_title": file_name,
                 "logo_path": (
-                    logo_path if logo_path and os.path.exists(logo_path) else None
+                    media_data_uri(company.icon, logo_content) if logo_content else None
                 ),
                 "landscape": len(headers) > 5,
             },

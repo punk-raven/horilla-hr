@@ -13,6 +13,15 @@
     </div>
 </div>
 {% endif %}
+{% if needs_auth %}
+<div class="oh-wrapper">
+    <div class="oh-alert-container">
+        <div class="oh-alert oh-alert--animated oh-alert--warning">
+            {% trans "Authorization required. Click 'Authorize Google Drive' to grant access before starting the backup." %}
+        </div>
+    </div>
+</div>
+{% endif %}
 <form method="post" action="{% url 'gdrive' %}" enctype="multipart/form-data">
     {% csrf_token %}
     {{form.as_p}}
@@ -23,7 +32,9 @@
 
         $('.oh-payslip__header').append(`<div class="flex items-center gap-1">
             {% if show %}
-            {% if active %}
+            {% if needs_auth %}
+            <a class="oh-btn oh-btn--info" href="{% url 'gdrive_authorize' %}" title="{% trans 'Authorize'|escapejs %}">{% trans "Authorize Google Drive"|escapejs %}</a>
+            {% elif active %}
             <a class="oh-btn oh-btn--danger" href="{% url 'gdrive_start_stop' %}" title="Stop">Stop</a>
             {% else %}
             <a class="oh-btn oh-btn--success" href="{% url 'gdrive_start_stop' %}" title="Start">Start</a>

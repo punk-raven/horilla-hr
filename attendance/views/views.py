@@ -16,6 +16,7 @@ import uuid
 
 from base.import_template_data import import_template_frame, write_import_xlsx
 from horilla.http.response import HorillaRedirect, with_bulk_result
+from horilla.media import read_media
 from horilla.methods import remove_dynamic_url
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,6 @@ import calendar
 import contextlib
 import io
 import json
-import os
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 from urllib.parse import parse_qs, urlparse
@@ -2950,13 +2950,9 @@ def work_record_export(request):
         # single row's height.
         worksheet.merge_range(0, 0, 2, 0, "")
 
-        logo_full_path = (
-            str(os.path.join(settings.MEDIA_ROOT, str(logo_path)))
-            if logo_path
-            else None
-        )
+        logo_content = read_media(logo_path) if logo_path else None
 
-        if logo_full_path and os.path.exists(logo_full_path):
+        if logo_content:
             try:
                 # A fixed scale factor sizes the logo relative to its own
                 # source resolution, so it renders at a different size for
@@ -2964,13 +2960,17 @@ def work_record_export(request):
                 # against the actual pixel dimensions instead, so the logo
                 # always comes out at roughly the same size in the sheet.
                 target_size = 60
-                with Image.open(logo_full_path) as img:
+                with Image.open(io.BytesIO(logo_content)) as img:
                     width, height = img.size
                 scale = min(target_size / width, target_size / height)
                 worksheet.insert_image(
                     "A1",
-                    logo_full_path,
-                    {"x_scale": scale, "y_scale": scale},
+                    logo_path.name,
+                    {
+                        "image_data": io.BytesIO(logo_content),
+                        "x_scale": scale,
+                        "y_scale": scale,
+                    },
                 )
             except Exception as e:
                 print(f"Logo insert failed: {e}")

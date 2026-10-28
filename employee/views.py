@@ -1895,9 +1895,7 @@ def remove_profile_image(request, obj_id):
         return HttpResponse(
             response.content.decode("utf-8") + "<script>location.reload();</script>"
         )
-    file_path = employee.employee_profile.path
-    absolute_path = os.path.join(settings.MEDIA_ROOT, file_path)
-    os.remove(absolute_path)
+    employee.employee_profile.delete(save=False)
     employee.employee_profile = None
     employee.save()
     messages.success(request, _("Profile image removed."))
@@ -1926,9 +1924,7 @@ def remove_own_profile_image(request):
         return HttpResponse(
             response.content.decode("utf-8") + "<script>location.reload();</script>"
         )
-    file_path = employee.employee_profile.path
-    absolute_path = os.path.join(settings.MEDIA_ROOT, file_path)
-    os.remove(absolute_path)
+    employee.employee_profile.delete(save=False)
     employee.employee_profile = None
     employee.save()
 

@@ -14,7 +14,6 @@ from collections import defaultdict
 from itertools import chain
 
 import pandas as pd
-from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -47,6 +46,7 @@ from base.models import (
 from employee.filters import EmployeeFilter
 from employee.models import Employee, EmployeeTag
 from horilla.decorators import hx_request_required, login_required, manager_can_enter
+from horilla.media import read_media
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -1250,14 +1250,17 @@ def attendance_monthly_summary_export(request):
             xl_range(3, 0, 3, total_cols - 1), date_range_str, date_fmt
         )
 
-        if company_logo:
+        logo_content = read_media(company_logo) if company_logo else None
+        if logo_content:
             try:
-                import os
-
                 worksheet.insert_image(
                     "A1",
-                    str(os.path.join(settings.MEDIA_ROOT, str(company_logo))),
-                    {"x_scale": 0.25, "y_scale": 0.25},
+                    company_logo.name,
+                    {
+                        "image_data": io.BytesIO(logo_content),
+                        "x_scale": 0.25,
+                        "y_scale": 0.25,
+                    },
                 )
             except Exception:
                 pass

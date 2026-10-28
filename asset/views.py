@@ -13,7 +13,6 @@ from urllib.parse import parse_qs
 import pandas as pd
 from django.contrib import messages
 from django.core.files.base import ContentFile
-from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import ProtectedError
@@ -1364,9 +1363,6 @@ def convert_nan(val):
     if pd.isna(val):
         return None
     return val
-
-
-fs = FileSystemStorage(location="csv_tmp/")
 
 
 ASSET_IMPORT_COLUMNS = [

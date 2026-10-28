@@ -19,10 +19,6 @@ from horilla.scheduling import (
     register_job,
 )
 
-# Reconfigured at runtime rather than statically registered, so they still own a
-# live scheduler. See the ponytail: comments in those modules.
-RUNTIME_CONFIGURED = {"horilla_backup", "pg_backup"}
-
 
 class RegistryTests(SimpleTestCase):
     def setUp(self):
@@ -89,8 +85,6 @@ class NoSchedulerStartsAtImportTests(SimpleTestCase):
 
         offenders = []
         for config in apps.get_app_configs():
-            if config.label in RUNTIME_CONFIGURED:
-                continue
             if not module_has_submodule(config.module, "scheduler"):
                 continue
             path = f"{config.path}/scheduler.py"

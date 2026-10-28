@@ -358,6 +358,134 @@ curl http://localhost:8000/ready/
 docker compose logs --tail=50 web
 ```
 
+### Deploying on Railway (behind Cloudflare)
+
+The repo ships `railway.toml` (web) and `railway.scheduler.toml` (scheduler).
+The layout below keeps web off the public internet: Cloudflare owns the
+domain and reaches web only through a Cloudflare Tunnel, and media lives in a
+Cloudflare R2 bucket so web and scheduler share it (a Railway volume attaches
+to one service only).
+
+| Railway service | Source | Notes |
+|---|---|---|
+| `Postgres`, `Redis` | Railway database templates | |
+| `web` | this repo | uses `railway.toml`; **no public Railway domain** |
+| `scheduler` | this repo | config-as-code path `/railway.scheduler.toml`; exactly 1 replica |
+| `cloudflared` | image `cloudflare/cloudflared:<pinned tag>` | start command `cloudflared tunnel --no-autoupdate run`, variable `TUNNEL_TOKEN` |
+
+**Cloudflare, once:**
+
+1. R2: create a private bucket (no public URL, no custom domain) and an API
+   token with *Object Read & Write* on that bucket only.
+2. Zero Trust → Networks → Tunnels: create a tunnel, copy its token, and add a
+   public hostname `hr.example.com` → `http://web.railway.internal:8000`.
+3. SSL/TLS: turn on *Always Use HTTPS* and HSTS. Django's
+   `SECURE_SSL_REDIRECT` stays off, because Railway's healthcheck is plain
+   HTTP and would get a redirect.
+
+**Variables** (shared between web and scheduler unless noted):
+
+```
+SECRET_KEY=<random>                      # must be set: no shared disk to persist a generated one
+DB_INIT_PASSWORD=<random>
+DEBUG=0
+HORILLA_ENV=production
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+DB_HOST=${{Postgres.PGHOST}}             # entrypoint waits on these, default host "db"
+DB_PORT=${{Postgres.PGPORT}}
+REDIS_URL=${{Redis.REDIS_URL}}
+ALLOWED_HOSTS=hr.example.com,healthcheck.railway.app
+TIME_ZONE=Asia/Kolkata
+LOCAL_BACKUPS_ENABLED=0                  # no persistent disk: hide local-disk backups
+
+# R2 media
+AWS_ACCESS_KEY_ID=<R2 token access key>
+AWS_SECRET_ACCESS_KEY=<R2 token secret>
+AWS_STORAGE_BUCKET_NAME=horilla-media
+AWS_S3_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+AWS_S3_REGION_NAME=auto
+AWS_LOCATION=media
+
+# web only
+CSRF_TRUSTED_ORIGINS=https://hr.example.com
+PORT=8000                                # fixed, so the tunnel target never moves
+GUNICORN_BIND=[::]:8000                  # older Railway environments are IPv6-only
+GUNICORN_WORKERS=3
+AXES_CLIENT_IP_HEADER=HTTP_CF_CONNECTING_IP
+
+# scheduler only
+HORILLA_SKIP_RELEASE_TASKS=1
+```
+
+`AXES_CLIENT_IP_HEADER` is only safe because the tunnel is the sole way in.
+If web also had a public Railway domain, a client could send its own
+`CF-Connecting-IP` and dodge the login lockout.
+
+Web runs migrations and `collectstatic`. Railway starts services in
+parallel, so the scheduler's entrypoint waits until `migrate --check` passes
+(up to `HORILLA_MIGRATE_WAIT_TRIES` checks, 5s apart, default 60) instead of
+booting against an unmigrated schema.
+
+#### Backups on Railway
+
+Two independent copies: Railway's own volume backups of the Postgres service,
+and the in-app Google Drive backup, which keeps a copy outside Railway.
+
+**Railway Postgres backups (configured in the Railway UI, not in code).** Open
+the `Postgres` service → *Backups* tab and enable the **Weekly** (kept 27 days)
+and **Monthly** (kept 89 days) schedules; *Daily* (kept 6 days) is optional.
+To restore, click *Restore* on a backup: Railway stages a new volume from it
+alongside the old one, and *Deploy* applies it. These backups live with the
+volume (wiping the volume deletes them, and they restore only into the same
+project and environment), which is why the Drive copy below is worth keeping.
+
+**Local-disk backups are disabled.** `/app` is read-only and nothing on a
+Railway container's disk survives a redeploy, so `LOCAL_BACKUPS_ENABLED=0`
+(above) hides horilla_backup's local mode from the admin and stops the
+`pg_backup` app from registering its jobs if it is ever added to
+`INSTALLED_APPS`. Other installs leave it unset and keep both.
+
+**Google Drive backup.** The image ships `pg_dump` 18 (PostgreSQL's apt repo),
+which can dump any Railway Postgres major (14-18). The job runs only in the
+`scheduler` service: web just saves the settings row, and the scheduler picks
+up changes within a minute. Each run connects with the `DATABASE_URL`
+credentials (password via `PGPASSWORD`, never argv), writes a custom-format
+dump (and, if enabled, a zip of the R2 media bucket) to a private temp
+directory, uploads it and deletes it. Files are named
+`horilla-db-<timestamp>.dump` and `horilla-media-<timestamp>.zip`; Drive
+keeps every one, so prune old ones there.
+
+Set up, once, in Google Cloud:
+
+1. Enable the **Google Drive API** for a project.
+2. Pick a credential type:
+   - **Service account (Google Workspace).** Create a service account and a
+     JSON key. A service account has no Drive storage of its own, so the
+     folder must be inside a **shared drive**: add the service account's
+     email to the shared drive as *Content manager*. No browser step needed.
+   - **OAuth client (personal Google account).** Create an OAuth client of
+     type *Web application* with the authorized redirect URI
+     `https://hr.example.com/backup/google/callback/`, and download its JSON.
+     If the consent screen is in *Testing* status, Google expires the
+     refresh token after 7 days; publish the app (or use an *Internal* app
+     on Workspace) so the scheduler keeps working.
+3. Copy the folder ID from the folder's URL
+   (`https://drive.google.com/drive/folders/<FOLDER_ID>`).
+
+Then in Horilla: *Settings → Google Drive Backup*, upload the JSON, enter the
+folder ID, tick *Backup DB* (and *Backup Media* if wanted), choose an interval
+or a fixed daily time (`TIME_ZONE`), and save. For an OAuth client click
+*Authorize Google Drive* and grant access. Click *Start*. Failures are logged
+by the scheduler service as `Scheduled job horilla_backup.gdrive_backup
+raised ...` (and reach Sentry when `SENTRY_DSN` is set).
+
+To restore a Drive dump into Railway Postgres from a machine with `pg_restore`
+18:
+
+```bash
+pg_restore --no-owner --clean --if-exists -d "$DATABASE_PUBLIC_URL" horilla-db-<timestamp>.dump
+```
+
 ---
 
 ## 7. Database Management
@@ -419,15 +547,41 @@ docker cp $(docker compose ps -q web):/app/media ./media-backup
 
 ### Using Cloud Storage (S3/GCP)
 
-Horilla supports AWS S3 and Google Cloud Storage. Add to your environment:
+Horilla supports S3-compatible storage (AWS S3, Cloudflare R2, MinIO) and
+Google Cloud Storage. Add to your environment:
 
 **AWS S3:**
 ```
 AWS_ACCESS_KEY_ID=your-key
 AWS_SECRET_ACCESS_KEY=your-secret
 AWS_STORAGE_BUCKET_NAME=your-bucket
-DEFAULT_FILE_STORAGE=horilla.horilla_backends.PrivateMediaStorage
+AWS_S3_REGION_NAME=your-region
 ```
+
+**Cloudflare R2 / other S3-compatible:** the same, plus the endpoint. R2's
+region is `auto`.
+```
+AWS_S3_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+AWS_S3_REGION_NAME=auto
+```
+
+Keep the bucket private. Every file link still points at the app's own
+`/media/<name>`, so `protected_media` runs the same login, JWT and public
+allow-list checks as on local disk. It then redirects the browser to a
+presigned bucket URL, which carries the same content type, and the same
+forced download for HTML/SVG/XML, as a file served from disk. Anyone holding
+that URL can fetch the file until it expires, so its lifetime is short.
+Page scripts that `fetch()` a file (logos in client-side report exports) are
+streamed through the app instead, so the bucket needs no CORS policy.
+
+Optional: `AWS_LOCATION` (key prefix inside the bucket, default none),
+`AWS_QUERYSTRING_EXPIRE` (seconds the presigned URL stays valid, default 60),
+`AWS_S3_FILE_OVERWRITE` (default false: a second upload with the same name
+is renamed, as on local disk, instead of replacing the first),
+`DEFAULT_FILE_STORAGE` (default `horilla.horilla_backends.MediaStorage`).
+`horilla.horilla_backends.PrivateMediaStorage` adds the `NAMESPACE` key
+prefix and sends an object ACL, which R2 does not implement; use the default
+backend there.
 
 **Google Cloud Storage:**
 ```

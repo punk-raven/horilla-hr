@@ -72,6 +72,7 @@ from horilla.decorators import (
 )
 from horilla.group_by import group_by_queryset
 from horilla.http.response import HorillaRedirect, with_bulk_result
+from horilla.media import read_media
 from horilla.methods import handle_no_permission
 from notifications.signals import notify
 
@@ -1261,18 +1262,11 @@ def view_ticket_document(request, doc_id):
         "document": document_obj,
     }
     if document_obj.file:
-        file_path = document_obj.file.path
-        file_extension = os.path.splitext(file_path)[1][
+        file_extension = os.path.splitext(document_obj.file.name)[1][
             1:
         ].lower()  # Get the lowercase file extension
         content_type = get_content_type(file_extension)
-        try:
-            with open(file_path, "rb") as file:
-                file_content = file.read()  # Decode the binary content for display
-        except:
-            file_content = None
-
-        context["file_content"] = file_content
+        context["file_content"] = read_media(document_obj.file)
         context["file_extension"] = file_extension
         context["content_type"] = content_type
     return render(request, "helpdesk/ticket/ticket_document.html", context)

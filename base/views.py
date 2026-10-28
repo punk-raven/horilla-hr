@@ -7,6 +7,7 @@ This module is used to map url pattens with django views or methods
 import calendar
 import csv
 import hmac
+import io
 import json
 import logging
 import mimetypes
@@ -30,6 +31,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.core.management import call_command
 from django.core.validators import validate_ipv46_address
@@ -42,7 +44,10 @@ from django.utils import timezone
 from django.utils._os import safe_join
 from django.utils.decorators import method_decorator
 from django.utils.html import format_html, strip_tags
-from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.http import (
+    content_disposition_header,
+    url_has_allowed_host_and_scheme,
+)
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_noop
 from django.views import View
@@ -196,6 +201,7 @@ from horilla.decorators import (
 )
 from horilla.group_by import group_by_queryset
 from horilla.http.response import HorillaRedirect, with_bulk_result
+from horilla.media import is_remote_storage, read_media
 from horilla.menu import get_settings_menu
 from horilla.methods import get_horilla_model_class, remove_dynamic_url
 from horilla_audit.forms import HistoryTrackingFieldsForm
@@ -2130,6 +2136,7 @@ def mail_server_test_email(request):
     instance_id = request.GET.get("instance_id")
     white_labelling = getattr(settings, "WHITE_LABELLING", False)
     image_path = path.join(settings.STATIC_ROOT, "images/ui/horilla-logo.png")
+    company_logo = None
     company_name = "Horilla"
 
     if white_labelling:
@@ -2145,7 +2152,7 @@ def mail_server_test_email(request):
 
         if company:
             company_name = company.company
-            image_path = path.join(settings.MEDIA_ROOT, company.icon.name)
+            company_logo = read_media(company.icon)
 
     form = DynamicMailTestForm()
     if request.method == "POST":
@@ -2201,10 +2208,12 @@ def mail_server_test_email(request):
                 )
                 msg.attach_alternative(html_content, "text/html")
 
-                with open(image_path, "rb") as img:
-                    msg_img = MIMEImage(img.read())
-                    msg_img.add_header("Content-ID", "<unique_image_id>")
-                    msg.attach(msg_img)
+                if company_logo is None:
+                    with open(image_path, "rb") as img:
+                        company_logo = img.read()
+                msg_img = MIMEImage(company_logo)
+                msg_img.add_header("Content-ID", "<unique_image_id>")
+                msg.attach(msg_img)
 
                 msg.send()
             except Exception as e:
@@ -8176,76 +8185,73 @@ def csv_holiday_import(file, selected_company=None):
     - "Company": Optional company name; blank applies the holiday to all companies
     """
     holiday_list, error_list = [], []
-    file_name = settings.FILE_STORAGE.save(
-        "holiday_import.csv", ContentFile(file.read())
-    )
-    holiday_file = settings.FILE_STORAGE.path(file_name)
+    total_rows = 0
+    # Parsed in memory. It used to be saved under a relative csv_tmp/ first,
+    # which the production image's non-root user cannot create, so every
+    # import failed with PermissionError (and a parse error left the file
+    # behind).
+    csv_file = io.StringIO(file.read().decode("utf-8", errors="ignore"), newline="")
+    reader = csv.reader(csv_file)
+    next(reader, None)
 
-    with open(holiday_file, errors="ignore") as csv_file:
-        reader = csv.reader(csv_file)
-        next(reader)
+    for total_rows, row in enumerate(reader, start=1):
+        save = True
+        try:
+            name, start_date, end_date, recurring, *rest = row
+            company_name = rest[0] if rest else ""
+            holiday_dict = {
+                "Holiday Name": name,
+                "Start Date": start_date,
+                "End Date": end_date,
+                "Recurring": recurring,
+                "Company": company_name,
+            }
 
-        for total_rows, row in enumerate(reader, start=1):
-            save = True
-            try:
-                name, start_date, end_date, recurring, *rest = row
-                company_name = rest[0] if rest else ""
-                holiday_dict = {
-                    "Holiday Name": name,
-                    "Start Date": start_date,
-                    "End Date": end_date,
-                    "Recurring": recurring,
-                    "Company": company_name,
-                }
-
-                company, company_error = _resolve_holiday_company(
-                    company_name, selected_company
-                )
-                if company_error:
-                    save = False
-                    holiday_dict["Company Error"] = company_error
-                    error_list.append(holiday_dict)
-
-                try:
-                    start_date = format_date(start_date)
-                except:
-                    save = False
-                    holiday_dict["Start Date Error"] = _("Invalid start date format.")
-                    error_list.append(holiday_dict)
-
-                try:
-                    end_date = format_date(end_date)
-                except:
-                    save = False
-                    holiday_dict["End Date Error"] = _("Invalid end date format.")
-                    error_list.append(holiday_dict)
-
-                if recurring.lower() not in ["yes", "no"]:
-                    save = False
-                    holiday_dict["Recurring Field Error"] = _(
-                        "Recurring must be yes or no."
-                    )
-                    error_list.append(holiday_dict)
-
-                if save:
-                    holiday_list.append(
-                        Holidays(
-                            name=name,
-                            start_date=start_date,
-                            end_date=end_date,
-                            recurring=recurring.lower() == "yes",
-                            company_id=company,
-                        )
-                    )
-
-            except Exception as e:
-                holiday_dict["Other Errors"] = str(e)
+            company, company_error = _resolve_holiday_company(
+                company_name, selected_company
+            )
+            if company_error:
+                save = False
+                holiday_dict["Company Error"] = company_error
                 error_list.append(holiday_dict)
 
-    _bulk_create_unique_holidays(holiday_list, error_list)
+            try:
+                start_date = format_date(start_date)
+            except:
+                save = False
+                holiday_dict["Start Date Error"] = _("Invalid start date format.")
+                error_list.append(holiday_dict)
 
-    if os.path.exists(holiday_file):
-        os.remove(holiday_file)
+            try:
+                end_date = format_date(end_date)
+            except:
+                save = False
+                holiday_dict["End Date Error"] = _("Invalid end date format.")
+                error_list.append(holiday_dict)
+
+            if recurring.lower() not in ["yes", "no"]:
+                save = False
+                holiday_dict["Recurring Field Error"] = _(
+                    "Recurring must be yes or no."
+                )
+                error_list.append(holiday_dict)
+
+            if save:
+                holiday_list.append(
+                    Holidays(
+                        name=name,
+                        start_date=start_date,
+                        end_date=end_date,
+                        recurring=recurring.lower() == "yes",
+                        company_id=company,
+                    )
+                )
+
+        except Exception as e:
+            holiday_dict["Other Errors"] = str(e)
+            error_list.append(holiday_dict)
+
+    _bulk_create_unique_holidays(holiday_list, error_list)
 
     return (error_list, total_rows)
 
@@ -8862,14 +8868,20 @@ def protected_media(request, path):
         # safe_join raises ValueError if traversal detected
         raise Http404("Invalid file path")
 
-    if not os.path.exists(media_path) or not os.path.isfile(media_path):
-        raise Http404("File not found")
-
     # Uploads never produce dot-files or dot-directories, but the Docker
     # entrypoint persists the generated SECRET_KEY at media/.generated_secret_key
     # so it survives restarts. Serving it would let any logged-in user forge
     # sessions and JWTs, so refuse every hidden path outright.
     if any(part.startswith(".") for part in path.split("/")):
+        raise Http404("File not found")
+
+    # With S3 or Cloudflare R2 the file is in the bucket, not under MEDIA_ROOT.
+    remote = is_remote_storage()
+    if remote:
+        found = bool(path) and not path.endswith("/") and default_storage.exists(path)
+    else:
+        found = os.path.exists(media_path) and os.path.isfile(media_path)
+    if not found:
         raise Http404("File not found")
 
     is_public_asset = any(path.startswith(prefix) for prefix in public_media_prefixes)
@@ -8888,7 +8900,7 @@ def protected_media(request, path):
     # as active markup (HTML/SVG/XML/etc.) must never render in this origin --
     # doing so would turn any file upload into stored XSS (CWE-79). Such files
     # are forced to download instead. See GHSA-p68r-g665-5cm9.
-    content_type, _encoding = mimetypes.guess_type(media_path)
+    content_type, _encoding = mimetypes.guess_type(path)
     renderable_active_types = {
         "text/html",
         "application/xhtml+xml",
@@ -8901,14 +8913,37 @@ def protected_media(request, path):
         "application/x-javascript",
     }
     force_download = content_type is None or content_type in renderable_active_types
+    filename = os.path.basename(path)
 
-    response = FileResponse(open(media_path, "rb"))
+    if remote:
+        signed_url = getattr(default_storage, "signed_url", None)
+        # fetch() from the page (logos for client-side exports) would need a
+        # CORS policy on the bucket to follow a cross-origin redirect, so
+        # those are streamed instead. Everything else goes straight to the
+        # bucket on a short-lived URL that sends the same headers as below.
+        if signed_url and request.headers.get("Sec-Fetch-Mode") != "cors":
+            response = redirect(
+                signed_url(
+                    path,
+                    content_type=content_type or "application/octet-stream",
+                    content_disposition=(
+                        content_disposition_header(True, filename)
+                        if force_download
+                        else None
+                    ),
+                )
+            )
+            # The URL is a bearer credential: no shared cache may keep it.
+            response["Cache-Control"] = "private, no-store"
+            return response
+        response = FileResponse(default_storage.open(path, "rb"))
+    else:
+        response = FileResponse(open(media_path, "rb"))
     # Always send a content type so the browser does not sniff one of its own.
     response["Content-Type"] = content_type or "application/octet-stream"
     # Block MIME sniffing -- a browser must honour the declared type and not
     # re-interpret e.g. an octet-stream as HTML.
     response["X-Content-Type-Options"] = "nosniff"
     if force_download:
-        filename = os.path.basename(media_path)
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response

@@ -84,6 +84,26 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
+# pg_dump for horilla_backup's Google Drive backup. It must be at least the
+# server's major version (pg_dump refuses to dump a newer server), and Railway
+# runs Postgres 14-18, so take 18 from the PostgreSQL project's own apt repo:
+# Debian trixie only packages 17. The repo key is vendored rather than fetched
+# at build time; fingerprint B97B 0AFC AA1A 47F0 44F2 44A0 7FCC 7D46 ACCC 4CF8,
+# as published at https://www.postgresql.org/download/linux/debian/.
+# Adds postgresql-client-18, postgresql-client-common and perl (pg_wrapper),
+# and moves libpq5 to the PGDG 18 build. The app opens libpq through
+# psycopg2-binary's bundled copy, so this libpq5 only serves the client tools.
+ARG PG_CLIENT_MAJOR=18
+COPY docker/pgdg-archive-key.asc /usr/share/keyrings/pgdg-archive-key.asc
+RUN . /etc/os-release \
+    && echo "deb [signed-by=/usr/share/keyrings/pgdg-archive-key.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+        > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends "postgresql-client-${PG_CLIENT_MAJOR}" \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && pg_dump --version | grep -q " ${PG_CLIENT_MAJOR}\."
+
 # The base image ships its own setuptools (and pip's vendored msgpack) in
 # /usr/local/lib/python3.12/site-packages, outside the /opt/venv this app
 # runs from. Pinning them in requirements.txt only fixes the venv copy, so

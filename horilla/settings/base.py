@@ -10,7 +10,6 @@ from pathlib import Path
 
 import environ
 from django.contrib.messages import constants as messages
-from django.core.files.storage import FileSystemStorage
 
 # ========================================
 # BASE PATH & ENVIRONMENT CONFIGURATION
@@ -452,6 +451,11 @@ TWO_FACTORS_AUTHENTICATION = False
 # When True, /ready/ returns 503 until run_scheduler has registered jobs.
 # Off by default so Docker CI (web without the scheduler service) still passes.
 HORILLA_REQUIRE_SCHEDULER = env.bool("HORILLA_REQUIRE_SCHEDULER", default=False)
+# Backups that write to the server's own disk: horilla_backup's local mode and
+# the pg_backup app. Set False where that disk is read-only or ephemeral
+# (Railway), so neither is offered nor scheduled. Google Drive backup is not
+# affected.
+LOCAL_BACKUPS_ENABLED = env.bool("LOCAL_BACKUPS_ENABLED", default=True)
 
 SIDEBARS = [
     "employee",
@@ -551,8 +555,6 @@ NO_PERMISSION_MODALS = [
     "profileeditfeature",
 ]
 
-FILE_STORAGE = FileSystemStorage(location="csv_tmp/")
-
 HORILLA_DATE_FORMATS = {
     "DD/MM/YY": "%d/%m/%y",
     "DD-MM-YYYY": "%d-%m-%Y",
@@ -650,9 +652,17 @@ AXES_IPWARE_PROXY_COUNT = env.int("AXES_PROXY_COUNT", default=None)
 # as-is, so a client could send a fresh header per attempt and the IP half of
 # the lock never matches. Read the header only when AXES_PROXY_COUNT is set;
 # the shipped compose sets it to 1 for its nginx.
+#
+# AXES_CLIENT_IP_HEADER names a single-IP header set by a trusted edge, e.g.
+# HTTP_CF_CONNECTING_IP behind a Cloudflare Tunnel, where REMOTE_ADDR is the
+# tunnel connector and would put every user behind one shared IP. Only set it
+# when that edge is the sole way in; otherwise a client can spoof the header.
+AXES_CLIENT_IP_HEADER = env("AXES_CLIENT_IP_HEADER", default=None)
 AXES_IPWARE_META_PRECEDENCE_ORDER = (
-    ["HTTP_X_FORWARDED_FOR"] if AXES_IPWARE_PROXY_COUNT else []
-) + ["REMOTE_ADDR"]
+    ([AXES_CLIENT_IP_HEADER] if AXES_CLIENT_IP_HEADER else [])
+    + (["HTTP_X_FORWARDED_FOR"] if AXES_IPWARE_PROXY_COUNT else [])
+    + ["REMOTE_ADDR"]
+)
 
 
 # ========================================

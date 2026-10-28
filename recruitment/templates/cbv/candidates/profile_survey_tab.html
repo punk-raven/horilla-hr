@@ -28,7 +28,7 @@
                                 {% elif question|slice:"0:11" == "percentage_" %}
                                     {{ answer_list.0 }}%
                                 {% elif question|slice:"0:5" == "file_" %}
-                                    <a href="/media/{{ answer_list.0 }}" target="_blank">{{ answer_list.0 }}</a>
+                                    <a href="{{ answer_list.0|media_url }}" target="_blank">{{ answer_list.0 }}</a>
                                 {% elif question|slice:"0:7" == "rating_" %}
                                     <div class="oh-rate">
                                         <input
