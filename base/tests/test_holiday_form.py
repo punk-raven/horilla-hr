@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from base.forms import HolidayForm
 from base.models import Department, Holidays
-from horilla.testkit import make_company
+from horilla.testkit import make_company, read_only_cwd
 
 
 class HolidayFormTests(TestCase):
@@ -208,3 +208,30 @@ class HolidayImportTests(TestCase):
             list(Holidays.objects.entire().values_list("name", flat=True)), ["Ok"]
         )
         self.assertEqual(sum("Company Error" in e for e in errors), 2)
+
+    def test_import_does_not_write_to_the_working_directory(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from base.views import csv_holiday_import
+
+        csv_data = (
+            "Holiday Name,Start Date,End Date,Recurring\n"
+            "New Year,2026-01-01,2026-01-01,yes\n"
+        )
+        with read_only_cwd():
+            errors, total = csv_holiday_import(
+                SimpleUploadedFile("h.csv", csv_data.encode(), content_type="text/csv")
+            )
+        self.assertEqual((errors, total), ([], 1))
+        self.assertTrue(Holidays.objects.entire().filter(name="New Year").exists())
+
+    def test_empty_upload_imports_nothing(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from base.views import csv_holiday_import
+
+        for content in (b"", b"Holiday Name,Start Date,End Date,Recurring\n"):
+            with self.subTest(content=content):
+                self.assertEqual(
+                    csv_holiday_import(SimpleUploadedFile("h.csv", content)), ([], 0)
+                )

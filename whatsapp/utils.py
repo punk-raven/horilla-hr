@@ -968,16 +968,19 @@ def update_flow(flow_id, flow_json, token):
     url = get_meta_url(flow_id, "assets")
     headers = {"Authorization": f"Bearer {token}"}
 
-    with open("flow.json", "w") as file:
-        json.dump(flow_json, file, indent=2)
-
-    with open("flow.json", "rb") as file:
-        files = {
-            "file": ("flow.json", file, "application/json"),
-            "name": (None, "flow.json"),
-            "asset_type": (None, "FLOW_JSON"),
-        }
-        response = requests.post(url, headers=headers, files=files, timeout=30)
+    # Sent from memory: writing flow.json to the working directory first
+    # failed in the production image (non-root user, read-only /app) and let
+    # two concurrent updates overwrite each other's file.
+    files = {
+        "file": (
+            "flow.json",
+            json.dumps(flow_json, indent=2).encode(),
+            "application/json",
+        ),
+        "name": (None, "flow.json"),
+        "asset_type": (None, "FLOW_JSON"),
+    }
+    response = requests.post(url, headers=headers, files=files, timeout=30)
 
     data = response.json()
 

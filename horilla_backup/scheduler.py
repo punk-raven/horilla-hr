@@ -1,4 +1,5 @@
 import os
+import tempfile
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.core.management import call_command
@@ -92,22 +93,25 @@ def google_drive_backup():
         google_drive = GoogleDriveBackup.objects.first()
         service_account_file = google_drive.service_account_file.path
         gdrive_folder_id = google_drive.gdrive_folder_id
-        if google_drive.backup_db:
-            db = settings.DATABASES["default"]
-            dump_postgres_db(
-                db_name=db["NAME"],
-                username=db["USER"],
-                output_file="backupdb.dump",
-                password=db["PASSWORD"],
-            )
-            upload_file("backupdb.dump", service_account_file, gdrive_folder_id)
-            os.remove("backupdb.dump")
-        if google_drive.backup_media:
-            folder_to_zip = settings.MEDIA_ROOT
-            output_zip_file = "media.zip"
-            zip_folder(folder_to_zip, output_zip_file)
-            upload_file("media.zip", service_account_file, gdrive_folder_id)
-            os.remove("media.zip")
+        # A private temp dir, not the working directory: the production image
+        # cannot write to /app, and a failed upload used to leave the dump
+        # behind. upload_file names the Drive file after the basename, so the
+        # uploads keep their old names.
+        with tempfile.TemporaryDirectory(prefix="horilla-gdrive-") as tmp_dir:
+            if google_drive.backup_db:
+                db = settings.DATABASES["default"]
+                dump_file = os.path.join(tmp_dir, "backupdb.dump")
+                dump_postgres_db(
+                    db_name=db["NAME"],
+                    username=db["USER"],
+                    output_file=dump_file,
+                    password=db["PASSWORD"],
+                )
+                upload_file(dump_file, service_account_file, gdrive_folder_id)
+            if google_drive.backup_media:
+                zip_file = os.path.join(tmp_dir, "media.zip")
+                zip_folder(settings.MEDIA_ROOT, zip_file)
+                upload_file(zip_file, service_account_file, gdrive_folder_id)
 
 
 def start_gdrive_backup_job():

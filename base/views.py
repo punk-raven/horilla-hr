@@ -7,6 +7,7 @@ This module is used to map url pattens with django views or methods
 import calendar
 import csv
 import hmac
+import io
 import json
 import logging
 import mimetypes
@@ -29,7 +30,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.core.management import call_command
 from django.core.validators import validate_ipv46_address
@@ -8176,76 +8176,73 @@ def csv_holiday_import(file, selected_company=None):
     - "Company": Optional company name; blank applies the holiday to all companies
     """
     holiday_list, error_list = [], []
-    file_name = settings.FILE_STORAGE.save(
-        "holiday_import.csv", ContentFile(file.read())
-    )
-    holiday_file = settings.FILE_STORAGE.path(file_name)
+    total_rows = 0
+    # Parsed in memory. It used to be saved under a relative csv_tmp/ first,
+    # which the production image's non-root user cannot create, so every
+    # import failed with PermissionError (and a parse error left the file
+    # behind).
+    csv_file = io.StringIO(file.read().decode("utf-8", errors="ignore"), newline="")
+    reader = csv.reader(csv_file)
+    next(reader, None)
 
-    with open(holiday_file, errors="ignore") as csv_file:
-        reader = csv.reader(csv_file)
-        next(reader)
+    for total_rows, row in enumerate(reader, start=1):
+        save = True
+        try:
+            name, start_date, end_date, recurring, *rest = row
+            company_name = rest[0] if rest else ""
+            holiday_dict = {
+                "Holiday Name": name,
+                "Start Date": start_date,
+                "End Date": end_date,
+                "Recurring": recurring,
+                "Company": company_name,
+            }
 
-        for total_rows, row in enumerate(reader, start=1):
-            save = True
-            try:
-                name, start_date, end_date, recurring, *rest = row
-                company_name = rest[0] if rest else ""
-                holiday_dict = {
-                    "Holiday Name": name,
-                    "Start Date": start_date,
-                    "End Date": end_date,
-                    "Recurring": recurring,
-                    "Company": company_name,
-                }
-
-                company, company_error = _resolve_holiday_company(
-                    company_name, selected_company
-                )
-                if company_error:
-                    save = False
-                    holiday_dict["Company Error"] = company_error
-                    error_list.append(holiday_dict)
-
-                try:
-                    start_date = format_date(start_date)
-                except:
-                    save = False
-                    holiday_dict["Start Date Error"] = _("Invalid start date format.")
-                    error_list.append(holiday_dict)
-
-                try:
-                    end_date = format_date(end_date)
-                except:
-                    save = False
-                    holiday_dict["End Date Error"] = _("Invalid end date format.")
-                    error_list.append(holiday_dict)
-
-                if recurring.lower() not in ["yes", "no"]:
-                    save = False
-                    holiday_dict["Recurring Field Error"] = _(
-                        "Recurring must be yes or no."
-                    )
-                    error_list.append(holiday_dict)
-
-                if save:
-                    holiday_list.append(
-                        Holidays(
-                            name=name,
-                            start_date=start_date,
-                            end_date=end_date,
-                            recurring=recurring.lower() == "yes",
-                            company_id=company,
-                        )
-                    )
-
-            except Exception as e:
-                holiday_dict["Other Errors"] = str(e)
+            company, company_error = _resolve_holiday_company(
+                company_name, selected_company
+            )
+            if company_error:
+                save = False
+                holiday_dict["Company Error"] = company_error
                 error_list.append(holiday_dict)
 
-    _bulk_create_unique_holidays(holiday_list, error_list)
+            try:
+                start_date = format_date(start_date)
+            except:
+                save = False
+                holiday_dict["Start Date Error"] = _("Invalid start date format.")
+                error_list.append(holiday_dict)
 
-    if os.path.exists(holiday_file):
-        os.remove(holiday_file)
+            try:
+                end_date = format_date(end_date)
+            except:
+                save = False
+                holiday_dict["End Date Error"] = _("Invalid end date format.")
+                error_list.append(holiday_dict)
+
+            if recurring.lower() not in ["yes", "no"]:
+                save = False
+                holiday_dict["Recurring Field Error"] = _(
+                    "Recurring must be yes or no."
+                )
+                error_list.append(holiday_dict)
+
+            if save:
+                holiday_list.append(
+                    Holidays(
+                        name=name,
+                        start_date=start_date,
+                        end_date=end_date,
+                        recurring=recurring.lower() == "yes",
+                        company_id=company,
+                    )
+                )
+
+        except Exception as e:
+            holiday_dict["Other Errors"] = str(e)
+            error_list.append(holiday_dict)
+
+    _bulk_create_unique_holidays(holiday_list, error_list)
 
     return (error_list, total_rows)
 

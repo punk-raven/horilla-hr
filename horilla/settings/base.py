@@ -10,7 +10,6 @@ from pathlib import Path
 
 import environ
 from django.contrib.messages import constants as messages
-from django.core.files.storage import FileSystemStorage
 
 # ========================================
 # BASE PATH & ENVIRONMENT CONFIGURATION
@@ -550,8 +549,6 @@ NO_PERMISSION_MODALS = [
     "recruitmentmailtemplate",
     "profileeditfeature",
 ]
-
-FILE_STORAGE = FileSystemStorage(location="csv_tmp/")
 
 HORILLA_DATE_FORMATS = {
     "DD/MM/YY": "%d/%m/%y",
