@@ -48,7 +48,7 @@
                     id="ohAuthCard"
                 >
                     <div class="oh-onboarding-card__header">
-                        <span class="oh-onboarding-card__company-name">{{ white_label_company_name }} HRMS</span>
+                        <span class="oh-onboarding-card__company-name">{{ white_label_company_name }}</span>
                     </div>
                     <h1 class="oh-onboarding-card__title oh-onboarding-card__title--h2 text-center my-3">
                         {% trans "Two Factor Authentication" %}
@@ -142,9 +142,10 @@
                     </div>
                 </div>
                 <img
-                    src="{% if white_label_company.icon %}
-                "{{white_label_company.icon.url}}" {% else %} "{% static 'images/ui/auth-logo.png' %}" {% endif %}"
-                    alt="{% trans 'Horilla' %}"
+                    src="{% if white_label_company.icon %}{{ white_label_company.icon.url }}{% else %}{% static 'horilla_theme/assets/img/logo.svg' %}{% endif %}"
+                    alt="{{ white_label_company_name }}"
+                    width="64"
+                    height="64"
                 >
             </main>
         </div>

@@ -2064,6 +2064,23 @@ class DynamicEmailConfiguration(HorillaModel):
     SingletonModel to keep the mail server configurations
     """
 
+    SMTP = "smtp"
+    RESEND_API = "resend_api"
+    TRANSPORT_CHOICES = [
+        (SMTP, _("SMTP")),
+        (RESEND_API, _("Resend API (HTTPS)")),
+    ]
+
+    # Some hosts block outbound SMTP (Railway below the Pro plan), so a server
+    # can deliver over Resend's HTTPS API instead. The API key goes in the
+    # password field; host, port, TLS and SSL apply to SMTP only.
+    transport = models.CharField(
+        max_length=16,
+        choices=TRANSPORT_CHOICES,
+        default=SMTP,
+        verbose_name=_("Send Via"),
+    )
+
     host = models.CharField(null=True, max_length=256, verbose_name=_("Email Host"))
 
     port = models.SmallIntegerField(null=True, verbose_name=_("Email Port"))
@@ -2144,7 +2161,7 @@ class DynamicEmailConfiguration(HorillaModel):
             raise ValidationError({"company_id": _("This field is required")})
 
     def __str__(self):
-        return self.username
+        return self.username or self.from_email or ""
 
     def save(self, *args, **kwargs) -> None:
         if self.is_primary:

@@ -488,6 +488,14 @@ To restore a Drive dump into Railway Postgres from a machine with `pg_restore`
 pg_restore --no-owner --clean --if-exists -d "$DATABASE_PUBLIC_URL" horilla-db-<timestamp>.dump
 ```
 
+**Email.** Railway blocks outbound SMTP below the Pro plan: connections to
+ports 25, 465 and 587 get no answer, so a send times out. On those plans set
+the mail server (*Settings → Email Servers*) to *Send Via: Resend API
+(HTTPS)*, put the Resend API key in the key field and use a sender address on
+a domain verified in Resend. Host, port and TLS/SSL apply to SMTP only and
+are hidden. On Pro, SMTP works too; for Resend on port 465 tick *Use SSL* and
+leave *Use TLS* off (TLS means STARTTLS, which is for 587).
+
 ---
 
 ## 7. Database Management

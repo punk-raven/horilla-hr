@@ -42,9 +42,11 @@
 </style>
 
 <h2 class="oh-inner-sidebar-content__title">{% trans "Send Test Email" %}</h2>
-{# The request gets its own timeout: the site-wide htmx default (15s) is
-   shorter than an SMTP attempt, so the browser used to abandon the request
-   while the server was still trying, and the overlay below never cleared. #}
+{% comment %}
+    The request gets its own timeout: the site-wide htmx default (15s) is
+    shorter than an SMTP attempt, so the browser used to abandon the request
+    while the server was still trying, and the overlay below never cleared.
+{% endcomment %}
 <form hx-post="{{ request.get_full_path }}" hx-target="#mailServerModalBody"
     hx-request='{"timeout": 60000}'
     hx-on::before-request="testEmailSending(true)"

@@ -542,4 +542,8 @@ def remove_item_at(obj, idx):
 
 @register.simple_tag(takes_context=True)
 def get_def_theme(context):
-    return HorillaColorTheme.objects.filter(is_default=True).first()
+    """
+    The colour theme of the pre-login pages: the one marked as the login
+    page's default, else LOGIN_FALLBACK_THEME.
+    """
+    return HorillaColorTheme.get_default_theme()

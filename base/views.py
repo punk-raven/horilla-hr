@@ -2133,6 +2133,21 @@ def mail_server_conf(request):
 TEST_EMAIL_TIMEOUT = 20
 
 
+def test_email_failure_message(emailconfig, error):
+    """What a failed test send tells the admin: the error, and where to look."""
+    if emailconfig and emailconfig.transport == DynamicEmailConfiguration.RESEND_API:
+        hint = _("Check the Resend API key and that the sender domain is verified.")
+    elif isinstance(error, TimeoutError):
+        hint = _(
+            "%(host)s:%(port)s did not answer. Check the host, port and SSL/TLS "
+            "settings, and that this server allows outbound SMTP (Railway "
+            "blocks it below the Pro plan; use the Resend API instead)."
+        ) % {"host": emailconfig.host, "port": emailconfig.port}
+    else:
+        hint = _("Check the host, port, username, password and SSL/TLS settings.")
+    return " ".join([_("The test email was not sent:"), str(error) + ".", str(hint)])
+
+
 @login_required
 @hx_request_required
 @permission_required("base.view_dynamicemailconfiguration")
@@ -2163,7 +2178,7 @@ def mail_server_test_email(request):
         form = DynamicMailTestForm(request.POST)
         if form.is_valid():
             email_to = form.cleaned_data["to_email"]
-            subject = _("Test mail from Horilla")
+            subject = _("Test mail from %(name)s") % {"name": company_name}
 
             # HTML content
             html_content = f"""
@@ -2215,6 +2230,8 @@ def mail_server_test_email(request):
             email_backend.timeout = min(
                 email_backend.dynamic_timeout or TEST_EMAIL_TIMEOUT, TEST_EMAIL_TIMEOUT
             )
+            # A test must report failure, whatever the company's server says.
+            email_backend.fail_silently = False
 
             try:
                 msg = EmailMultiAlternatives(
@@ -2235,7 +2252,10 @@ def mail_server_test_email(request):
 
                 msg.send()
             except Exception as e:
-                messages.error(request, " ".join([_("Something went wrong :"), str(e)]))
+                logger.exception(
+                    "Test email through mail server %s failed", instance_id
+                )
+                messages.error(request, test_email_failure_message(emailconfig, e))
                 return HorillaRedirect(request)
 
             messages.success(request, _("Mail sent successfully"))

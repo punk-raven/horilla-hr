@@ -1,0 +1,17 @@
+{% extends "auth_layout.html" %}
+{% load i18n %}
+{% block title %}{% trans "Forgot Password" %} - {{ white_label_company_name }}{% endblock %}
+{% block card %}
+    <h1 class="text-3xl font-bold mb-2 text-center">
+        {% trans "Check your inbox" %}
+    </h1>
+    <p class="mb-5 text-center text-sm text-color-600">
+        {% trans "Your link to reset the password is on its way. If it is not in your inbox, check the spam folder." %}
+    </p>
+    <a
+        href="{% url 'login' %}"
+        class="p-3 mt-3 bg-brand-600 hover:bg-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 w-full flex gap-3 justify-center rounded-md text-[white] [transition:.3s]"
+    >
+        {% trans "Back to Login" %}
+    </a>
+{% endblock %}

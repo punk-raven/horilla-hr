@@ -13,11 +13,13 @@ from django.utils.translation import gettext_lazy as _
 from base.models import Company
 from horilla.models import HorillaModel
 
+# The theme the login page falls back to when none is marked as its default.
+LOGIN_FALLBACK_THEME = "Ocean Blue Theme"
+
 THEMES_DATA = [
     {
         "name": "Coral Red Theme (Default)",
         "description": "Warm coral-red based theme",
-        "is_default": True,
         "primary_50": "#f6f6f6",
         "primary_100": "#FFF5F1",  # f0f0f0
         "primary_200": "#FEF6F5",
@@ -49,6 +51,8 @@ THEMES_DATA = [
     {
         "name": "Ocean Blue Theme",
         "description": "Professional and trustworthy feel with ocean-inspired blues",
+        # The login page's theme on a new install: PunkRaven's brand is blue.
+        "is_default": True,
         "primary_50": "#eff6ff",
         "primary_100": "#eff6ff",
         "primary_200": "#dbeafe",
@@ -577,7 +581,7 @@ class HorillaColorTheme(HorillaModel):
         default_theme = cls.objects.filter(is_default=True).first()
         if default_theme:
             return default_theme
-        return cls.objects.filter(name="Coral Red Theme (Default)").first()
+        return cls.objects.filter(name=LOGIN_FALLBACK_THEME).first()
 
 
 class CompanyTheme(HorillaModel):
