@@ -73,7 +73,7 @@ from base.models import (
     WorkTypeRequest,
     WorkTypeRequestComment,
 )
-from base.widgets import CustomModelChoiceWidget
+from base.widgets import CustomModelChoiceWidget, MailTransportSelect
 from employee.filters import EmployeeFilter
 from employee.models import Employee, EmployeeTag
 from horilla import horilla_middlewares
@@ -2818,15 +2818,35 @@ class DynamicMailConfForm(ModelForm):
             "password": forms.PasswordInput(
                 render_value=False, attrs={"autocomplete": "new-password"}
             ),
+            "transport": MailTransportSelect(
+                api_value=DynamicEmailConfiguration.RESEND_API,
+                password_labels={
+                    "smtp": _("Email Authentication Password"),
+                    "api": _("Resend API Key"),
+                },
+            ),
         }
+
+    SMTP_REQUIRED_FIELDS = ["host", "port", "username"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Required for SMTP only; clean() enforces that.
+        for field in self.SMTP_REQUIRED_FIELDS:
+            self.fields[field].required = False
         if self.instance.pk and self.instance.password:
             self.fields["password"].required = False
             self.fields["password"].help_text = _(
                 "Leave blank to keep the current password."
             )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("transport") == DynamicEmailConfiguration.SMTP:
+            for field in self.SMTP_REQUIRED_FIELDS:
+                if cleaned_data.get(field) in (None, ""):
+                    self.add_error(field, _("This field is required"))
+        return cleaned_data
 
     def clean_password(self):
         password = self.cleaned_data.get("password")

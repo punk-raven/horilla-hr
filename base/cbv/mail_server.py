@@ -50,6 +50,7 @@ class MailServerListView(HorillaListView):
     template_name = "cbv/settings/extended_mail_server.html"
 
     columns = [
+        (_("Send Via"), "get_transport_display"),
         (_("Host User"), "username"),
         (_("Host"), "host"),
         (_("Company"), "company_id"),

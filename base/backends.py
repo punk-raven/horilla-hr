@@ -196,8 +196,35 @@ if EMAIL_BACKEND and EMAIL_BACKEND != default:
 
 class ConfiguredEmailBackend(BACKEND_CLASS):
 
+    @property
+    def uses_resend_api(self):
+        configuration = getattr(self, "configuration", None)
+        return bool(
+            configuration
+            and configuration.transport == DynamicEmailConfiguration.RESEND_API
+        )
+
+    def open(self):
+        # The Resend API is stateless HTTPS: there is no SMTP session to open.
+        if self.uses_resend_api:
+            return False
+        return super().open()
+
+    def send_via_resend_api(self, email_messages):
+        """Deliver through Resend's HTTPS API, with the stored API key."""
+        from anymail.backends.resend import EmailBackend as ResendBackend
+
+        return ResendBackend(
+            api_key=self.password,
+            fail_silently=self.fail_silently,
+            timeout=self.timeout or 30,
+        ).send_messages(email_messages)
+
     def send_messages(self, email_messages):
-        response = super(BACKEND_CLASS, self).send_messages(email_messages)
+        if self.uses_resend_api:
+            response = self.send_via_resend_api(email_messages)
+        else:
+            response = super(BACKEND_CLASS, self).send_messages(email_messages)
         for message in email_messages:
             from_email = (
                 self.dynamic_from_email_with_display_name
