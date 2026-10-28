@@ -127,7 +127,8 @@ BREADCRUMB_URL_NAMES = {
     "compensation-templates": _("Pay Structures"),
     "wage-bases": _("Wage Bases"),
     "statutory-rules": _("Statutory Rules"),
-    "settings": _("Payroll Settings"),
+    "settings": _("Settings"),
+    "grace-time-view": _("Grace Time"),
     "employee-compensation": _("Employee Compensation"),
     "loans": _("Loans, Advances & Fines"),
     "reimbursements": _("Reimbursements"),
@@ -138,6 +139,22 @@ BREADCRUMB_URL_NAMES = {
     "standard": "Standard Reports",
     "explorer": "Explorer",
 }
+
+# Labels that depend on the parent segment. A bare "settings" is the global
+# Settings page (/settings/...); only /payroll/settings/ is payroll's own.
+BREADCRUMB_SCOPED_NAMES = {
+    ("payroll", "settings"): _("Payroll Settings"),
+}
+
+
+def crumb_name(parts, i):
+    parent = parts[i - 1] if i > 0 else None
+    item = parts[i]
+    return str(
+        BREADCRUMB_SCOPED_NAMES.get((parent, item))
+        or BREADCRUMB_URL_NAMES.get(item, item)
+    )
+
 
 sidebar_urls = [
     "dashboard",
@@ -496,7 +513,7 @@ def breadcrumbs_legacy(request):
                 # now, in the request's own active locale, since breadcrumbs
                 # get JSON-serialized into the session (a lazy translation
                 # proxy isn't JSON-serializable and would 500 the request).
-                "name": str(BREADCRUMB_URL_NAMES.get(item, item)),
+                "name": crumb_name(parts, i),
                 "found": found,
                 "clickable": clickable,
             }
@@ -648,7 +665,7 @@ def build_breadcrumbs(request):
 
         crumb = {
             "url": path,
-            "name": str(BREADCRUMB_URL_NAMES.get(item, item)),
+            "name": crumb_name(parts, i),
             "found": found,
             "clickable": clickable,
         }
