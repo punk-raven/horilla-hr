@@ -14,7 +14,8 @@ dockerfilePath = "Dockerfile"
 # SECRET_KEY before handing over to run_scheduler.
 startCommand = "/entrypoint.sh python manage.py run_scheduler"
 # The jobs are not idempotent (payslips, backups): a second replica means a
-# second run of each.
+# second run of each. The Google Drive backup runs here, never in web: web
+# only saves its settings row, and this process schedules it within a minute.
 numReplicas = 1
 # No healthcheckPath: this container binds no port.
 restartPolicyType = "ALWAYS"

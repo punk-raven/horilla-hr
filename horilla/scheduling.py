@@ -81,3 +81,19 @@ def get_registered_jobs() -> list[ScheduledJob]:
 def clear_registry() -> None:
     """Drop all registrations. For tests only."""
     _REGISTRY.clear()
+
+
+# The scheduler run_scheduler is driving, or None in every other process.
+# Jobs whose schedule is edited at runtime (horilla_backup's Google Drive
+# backup) register a static reconcile job that adds/replaces/removes their real
+# job on this scheduler, so web workers only ever write config rows.
+_RUNNING_SCHEDULER = None
+
+
+def set_running_scheduler(scheduler) -> None:
+    global _RUNNING_SCHEDULER
+    _RUNNING_SCHEDULER = scheduler
+
+
+def get_running_scheduler():
+    return _RUNNING_SCHEDULER

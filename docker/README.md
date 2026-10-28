@@ -396,6 +396,7 @@ DB_PORT=${{Postgres.PGPORT}}
 REDIS_URL=${{Redis.REDIS_URL}}
 ALLOWED_HOSTS=hr.example.com,healthcheck.railway.app
 TIME_ZONE=Asia/Kolkata
+LOCAL_BACKUPS_ENABLED=0                  # no persistent disk: hide local-disk backups
 
 # R2 media
 AWS_ACCESS_KEY_ID=<R2 token access key>
@@ -423,8 +424,67 @@ If web also had a public Railway domain, a client could send its own
 Web runs migrations and `collectstatic`. Railway starts services in
 parallel, so the scheduler's entrypoint waits until `migrate --check` passes
 (up to `HORILLA_MIGRATE_WAIT_TRIES` checks, 5s apart, default 60) instead of
-booting against an unmigrated schema. In-app database backups shell out to `pg_dump`, which the
-image does not ship; use Railway's Postgres backups instead.
+booting against an unmigrated schema.
+
+#### Backups on Railway
+
+Two independent copies: Railway's own volume backups of the Postgres service,
+and the in-app Google Drive backup, which keeps a copy outside Railway.
+
+**Railway Postgres backups (configured in the Railway UI, not in code).** Open
+the `Postgres` service → *Backups* tab and enable the **Weekly** (kept 27 days)
+and **Monthly** (kept 89 days) schedules; *Daily* (kept 6 days) is optional.
+To restore, click *Restore* on a backup: Railway stages a new volume from it
+alongside the old one, and *Deploy* applies it. These backups live with the
+volume (wiping the volume deletes them, and they restore only into the same
+project and environment), which is why the Drive copy below is worth keeping.
+
+**Local-disk backups are disabled.** `/app` is read-only and nothing on a
+Railway container's disk survives a redeploy, so `LOCAL_BACKUPS_ENABLED=0`
+(above) hides horilla_backup's local mode from the admin and stops the
+`pg_backup` app from registering its jobs if it is ever added to
+`INSTALLED_APPS`. Other installs leave it unset and keep both.
+
+**Google Drive backup.** The image ships `pg_dump` 18 (PostgreSQL's apt repo),
+which can dump any Railway Postgres major (14-18). The job runs only in the
+`scheduler` service: web just saves the settings row, and the scheduler picks
+up changes within a minute. Each run connects with the `DATABASE_URL`
+credentials (password via `PGPASSWORD`, never argv), writes a custom-format
+dump (and, if enabled, a zip of the R2 media bucket) to a private temp
+directory, uploads it and deletes it. Files are named
+`horilla-db-<timestamp>.dump` and `horilla-media-<timestamp>.zip`; Drive
+keeps every one, so prune old ones there.
+
+Set up, once, in Google Cloud:
+
+1. Enable the **Google Drive API** for a project.
+2. Pick a credential type:
+   - **Service account (Google Workspace).** Create a service account and a
+     JSON key. A service account has no Drive storage of its own, so the
+     folder must be inside a **shared drive**: add the service account's
+     email to the shared drive as *Content manager*. No browser step needed.
+   - **OAuth client (personal Google account).** Create an OAuth client of
+     type *Web application* with the authorized redirect URI
+     `https://hr.example.com/backup/google/callback/`, and download its JSON.
+     If the consent screen is in *Testing* status, Google expires the
+     refresh token after 7 days; publish the app (or use an *Internal* app
+     on Workspace) so the scheduler keeps working.
+3. Copy the folder ID from the folder's URL
+   (`https://drive.google.com/drive/folders/<FOLDER_ID>`).
+
+Then in Horilla: *Settings → Google Drive Backup*, upload the JSON, enter the
+folder ID, tick *Backup DB* (and *Backup Media* if wanted), choose an interval
+or a fixed daily time (`TIME_ZONE`), and save. For an OAuth client click
+*Authorize Google Drive* and grant access. Click *Start*. Failures are logged
+by the scheduler service as `Scheduled job horilla_backup.gdrive_backup
+raised ...` (and reach Sentry when `SENTRY_DSN` is set).
+
+To restore a Drive dump into Railway Postgres from a machine with `pg_restore`
+18:
+
+```bash
+pg_restore --no-owner --clean --if-exists -d "$DATABASE_PUBLIC_URL" horilla-db-<timestamp>.dump
+```
 
 ---
 

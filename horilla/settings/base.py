@@ -451,6 +451,11 @@ TWO_FACTORS_AUTHENTICATION = False
 # When True, /ready/ returns 503 until run_scheduler has registered jobs.
 # Off by default so Docker CI (web without the scheduler service) still passes.
 HORILLA_REQUIRE_SCHEDULER = env.bool("HORILLA_REQUIRE_SCHEDULER", default=False)
+# Backups that write to the server's own disk: horilla_backup's local mode and
+# the pg_backup app. Set False where that disk is read-only or ephemeral
+# (Railway), so neither is offered nor scheduled. Google Drive backup is not
+# affected.
+LOCAL_BACKUPS_ENABLED = env.bool("LOCAL_BACKUPS_ENABLED", default=True)
 
 SIDEBARS = [
     "employee",

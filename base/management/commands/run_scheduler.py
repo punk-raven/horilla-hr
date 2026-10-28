@@ -22,7 +22,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_apscheduler.jobstores import DjangoJobStore
 
-from horilla.scheduling import get_registered_jobs
+from horilla.scheduling import get_registered_jobs, set_running_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +118,7 @@ class Command(BaseCommand):
         signal.signal(signal.SIGTERM, _shutdown)
         signal.signal(signal.SIGINT, _shutdown)
 
+        set_running_scheduler(scheduler)
         try:
             scheduler.start()
         except (KeyboardInterrupt, SystemExit):
