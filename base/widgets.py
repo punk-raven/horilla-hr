@@ -1,3 +1,5 @@
+import json
+
 from django import forms
 from django.utils.safestring import mark_safe
 
@@ -94,3 +96,55 @@ class CustomTextInputWidget(forms.TextInput):
         </div>
         """
         return mark_safe(custom_html)
+
+
+class MailTransportSelect(forms.Select):
+    """
+    The mail server's "Send via" select. Hides the fields that apply to SMTP
+    only while the Resend API is picked, and relabels the password as the
+    API key. Rendered by the generic form view, so it carries its own script.
+    """
+
+    SMTP_ONLY_FIELDS = ["host", "port", "username", "use_tls", "use_ssl"]
+
+    def __init__(self, *args, api_value, password_labels, **kwargs):
+        self.api_value = api_value
+        self.password_labels = password_labels
+        super().__init__(*args, **kwargs)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        html = super().render(name, value, attrs, renderer)
+        select_id = (attrs or {}).get("id") or f"id_{name}"
+        config = json.dumps(
+            {
+                "select": select_id,
+                "api": self.api_value,
+                "fields": self.SMTP_ONLY_FIELDS,
+                "labels": {
+                    key: str(label) for key, label in self.password_labels.items()
+                },
+            }
+        )
+        script = f"""
+        <script>
+            (function (config) {{
+                const select = document.getElementById(config.select);
+                const form = select && select.closest("form");
+                if (!form) return;
+                function apply() {{
+                    const api = select.value === config.api;
+                    config.fields.forEach(function (field) {{
+                        const row = form.querySelector("#id_" + field + "_parent_div");
+                        if (row) row.style.display = api ? "none" : "";
+                    }});
+                    const label = form.querySelector("#id_password_parent_div label");
+                    if (label) label.textContent = api ? config.labels.api : config.labels.smtp;
+                }}
+                // select2 fires jQuery's change event, which native listeners miss.
+                (window.jQuery ? jQuery(select) : null)?.on("change", apply);
+                select.addEventListener("change", apply);
+                apply();
+            }})({config});
+        </script>
+        """
+        return mark_safe(html + script)
