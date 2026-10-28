@@ -174,10 +174,9 @@ class DefaultHorillaMailBackend(EmailBackend):
 
     @property
     def dynamic_timeout(self):
-        return (
-            self.configuration.timeout
-            if self.configuration
-            else getattr(settings, "EMAIL_TIMEOUT", None)
+        # The field is optional, and a blank one must not mean "no timeout".
+        return (self.configuration and self.configuration.timeout) or getattr(
+            settings, "EMAIL_TIMEOUT", None
         )
 
 

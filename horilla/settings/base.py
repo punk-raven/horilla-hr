@@ -483,6 +483,12 @@ AUDITLOG_EXCLUDE_TRACKING_MODELS = (
 
 EMAIL_BACKEND = "base.backends.ConfiguredEmailBackend"
 
+# Seconds an SMTP connect or read may block. Django's default (None) waits
+# forever: a host or network that silently drops packets then holds the
+# request until gunicorn kills the worker, and the user never sees an error.
+# A mail server's own "Email Send Timeout" field overrides this.
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=30)
+
 """
 DB_INIT_PASSWORD: str
 
