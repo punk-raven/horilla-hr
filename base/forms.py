@@ -2812,6 +2812,27 @@ class DynamicMailConfForm(ModelForm):
         model = DynamicEmailConfiguration
         fields = "__all__"
         exclude = ["is_active"]
+        widgets = {
+            # Never echo the stored secret (an SMTP password or API key) back
+            # into the page: it rendered as a plain, pre-filled text input.
+            "password": forms.PasswordInput(
+                render_value=False, attrs={"autocomplete": "new-password"}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk and self.instance.password:
+            self.fields["password"].required = False
+            self.fields["password"].help_text = _(
+                "Leave blank to keep the current password."
+            )
+
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+        if not password and self.instance.pk:
+            return self.instance.password
+        return password
 
     # def clean(self):
     #     from_mail = self.from_email

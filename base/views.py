@@ -2129,6 +2129,10 @@ def mail_server_conf(request):
     )
 
 
+# Seconds per address for the test send; see mail_server_test_email.
+TEST_EMAIL_TIMEOUT = 20
+
+
 @login_required
 @hx_request_required
 @permission_required("base.view_dynamicemailconfiguration")
@@ -2197,6 +2201,20 @@ def mail_server_test_email(request):
                 id=instance_id
             ).first()
             email_backend.configuration = emailconfig
+            # The backend took its connection settings from the company's
+            # server when it was built; test the server that was picked.
+            email_backend.host = email_backend.dynamic_host
+            email_backend.port = email_backend.dynamic_port
+            email_backend.username = email_backend.dynamic_username
+            email_backend.password = email_backend.dynamic_password
+            email_backend.use_tls = email_backend.dynamic_use_tls
+            email_backend.use_ssl = email_backend.dynamic_use_ssl
+            # The timeout applies to each address the host resolves to, and
+            # must leave the whole attempt inside the form's 60s request
+            # timeout, so cap it for this check.
+            email_backend.timeout = min(
+                email_backend.dynamic_timeout or TEST_EMAIL_TIMEOUT, TEST_EMAIL_TIMEOUT
+            )
 
             try:
                 msg = EmailMultiAlternatives(
