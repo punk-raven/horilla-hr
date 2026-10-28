@@ -42,6 +42,11 @@ django-simple-history==3.13.0
 django-storages==1.14.6
 django-widget-tweaks==1.5.1
 
+# S3-compatible media storage (AWS S3, Cloudflare R2). django-storages does
+# not depend on it, but its s3boto3 backend imports it, so without this pin
+# setting AWS_ACCESS_KEY_ID made every upload fail with ImportError.
+boto3==1.43.120
+
 # REST API
 # 3.17.2 clears CVE-2026-73228 (request.data bypasses Django's
 # DATA_UPLOAD_MAX_MEMORY_SIZE for JSON and urlencoded bodies, so an
