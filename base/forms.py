@@ -3264,9 +3264,9 @@ class PassWordResetForm(forms.Form):
         """
         The name and logo (file name and bytes) the mail is sent under: the
         employee's company when WHITE_LABELLING is on (else the headquarters
-        company), Horilla when it is off or no company logo can be read.
+        company), BRAND_NAME when it is off or no company logo can be read.
         """
-        name = "Horilla"
+        name = getattr(settings, "BRAND_NAME", "Horilla")
         logo_filename, logo_content = None, None
         logo_path = finders.find("images/ui/horilla-sticker-round.png")
         if logo_path:

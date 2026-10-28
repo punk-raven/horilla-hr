@@ -446,6 +446,10 @@ DJANGO_NOTIFICATIONS_CONFIG = {
 # HORILLA-SPECIFIC SETTINGS
 # ========================================
 WHITE_LABELLING = False
+# Product name shown in the browser tab, login page and breadcrumb root.
+# WHITE_LABELLING instead shows the viewer's company name (the full legal
+# name), falling back to this when there is no company.
+BRAND_NAME = env("BRAND_NAME", default="PunkRaven HR")
 NESTED_SUBORDINATE_VISIBILITY = False
 TWO_FACTORS_AUTHENTICATION = False
 # When True, /ready/ returns 503 until run_scheduler has registered jobs.

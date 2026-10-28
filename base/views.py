@@ -2137,7 +2137,7 @@ def mail_server_test_email(request):
     white_labelling = getattr(settings, "WHITE_LABELLING", False)
     image_path = path.join(settings.STATIC_ROOT, "images/ui/horilla-logo.png")
     company_logo = None
-    company_name = "Horilla"
+    company_name = getattr(settings, "BRAND_NAME", "Horilla")
 
     if white_labelling:
         hq = Company.objects.filter(hq=True).last()
