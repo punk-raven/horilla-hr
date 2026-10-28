@@ -16,7 +16,7 @@ from base.models import Company
 from employee.models import Employee
 from horilla.horilla_middlewares import set_selected_company
 from horilla_auth.models import HorillaUser
-from horilla_tour.models import Tour, TourProgress, TourStep
+from horilla_tour.models import Tour, TourPreference, TourProgress, TourStep
 
 
 def make_company(name, address):
@@ -205,6 +205,110 @@ class TourApiTests(TestCase):
         self.assertTrue(pending_tours_flag(request)["tour_has_pending"])
         TourProgress.objects.create(tour=gs, user=self.admin, status="in_progress")
         self.assertFalse(pending_tours_flag(request)["tour_has_pending"])
+
+
+class TourPreferenceTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.admin = HorillaUser.objects.create_superuser(
+            username="pref_admin", email="pref@t.com", password="pass12345"
+        )
+        attach_employee(self.admin, "Pref", "Admin")
+        self.active_url = reverse("tour-active")
+        self.preference_url = reverse("tour-preference")
+
+    def _active(self):
+        resp = self.client.get(self.active_url, {"page": "dashboard"})
+        self.assertEqual(resp.status_code, 200)
+        return json.loads(resp.content)
+
+    def _auto_started(self, data):
+        return [t["slug"] for t in data["tours"] if t["auto_start"]]
+
+    def test_preference_off_tour_autostarts(self):
+        self.client.force_login(self.admin)
+        data = self._active()
+        self.assertFalse(data["auto_start_disabled"])
+        self.assertIn("getting-started", self._auto_started(data))
+
+    def test_preference_on_no_tour_autostarts_but_still_listed(self):
+        TourPreference.objects.create(user=self.admin, auto_start_disabled=True)
+        self.client.force_login(self.admin)
+        data = self._active()
+        self.assertTrue(data["auto_start_disabled"])
+        self.assertEqual(self._auto_started(data), [])
+        # Still offered in the Help launcher for a manual start.
+        self.assertIn("getting-started", [t["slug"] for t in data["tours"]])
+
+    def test_toggle_off_then_back_on(self):
+        self.client.force_login(self.admin)
+        resp = self.client.post(self.preference_url, {"auto_start_disabled": "1"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(json.loads(resp.content)["auto_start_disabled"])
+        self.assertTrue(TourPreference.auto_start_disabled_for(self.admin))
+        self.assertEqual(self._auto_started(self._active()), [])
+
+        resp = self.client.post(self.preference_url, {"auto_start_disabled": "0"})
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(json.loads(resp.content)["auto_start_disabled"])
+        self.assertFalse(TourPreference.auto_start_disabled_for(self.admin))
+        self.assertIn("getting-started", self._auto_started(self._active()))
+        self.assertEqual(TourPreference.objects.filter(user=self.admin).count(), 1)
+
+    def test_preference_is_per_user(self):
+        other = HorillaUser.objects.create_superuser(
+            username="pref_other", email="other@t.com", password="pass12345"
+        )
+        attach_employee(other, "Other", "Admin")
+        TourPreference.objects.create(user=other, auto_start_disabled=True)
+        self.client.force_login(self.admin)
+        self.assertIn("getting-started", self._auto_started(self._active()))
+
+    def test_toggle_requires_login(self):
+        resp = self.client.post(self.preference_url, {"auto_start_disabled": "1"})
+        self.assertIn(resp.status_code, (302, 401, 403))
+        self.assertFalse(TourPreference.objects.exists())
+
+    def test_toggle_rejects_get(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(self.preference_url, {"auto_start_disabled": "1"})
+        self.assertEqual(resp.status_code, 405)
+        self.assertFalse(TourPreference.objects.exists())
+
+    def test_toggle_requires_csrf_token(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.admin)
+        resp = client.post(self.preference_url, {"auto_start_disabled": "1"})
+        self.assertEqual(resp.status_code, 403)
+        self.assertFalse(TourPreference.objects.exists())
+
+    def test_context_flag_hides_pending_dot(self):
+        from django.test import RequestFactory
+
+        from horilla_tour.context_processors import pending_tours_flag
+
+        request = RequestFactory().get("/")
+        request.user = self.admin
+        self.assertTrue(pending_tours_flag(request)["tour_has_pending"])
+        TourPreference.objects.create(user=self.admin, auto_start_disabled=True)
+        flags = pending_tours_flag(request)
+        self.assertFalse(flags["tour_has_pending"])
+        self.assertTrue(flags["tour_auto_start_disabled"])
+        self.assertTrue(flags["tour_launcher_enabled"])
+
+    def test_footer_scripts_expose_preference_config(self):
+        from django.template import Context
+        from django.template.loader import get_template
+        from django.test import RequestFactory
+
+        request = RequestFactory().get("/")
+        request.user = self.admin
+        # Plain Context: skip the global context processors (they need a session).
+        template = get_template("horilla_theme/components/footer_scripts.html")
+        html = template.template.render(Context({"request": request}))
+        self.assertIn(f'preferenceUrl: "{self.preference_url}"', html)
+        self.assertIn("Don\\u0027t show tours again", html)
+        self.assertIn("tourController.js?v=2", html)
 
 
 class TourPermissionTests(TestCase):

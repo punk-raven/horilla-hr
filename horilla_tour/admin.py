@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from horilla_tour.models import Tour, TourProgress, TourStep
+from horilla_tour.models import Tour, TourPreference, TourProgress, TourStep
 
 
 class TourStepInline(admin.TabularInline):
@@ -31,3 +31,10 @@ class TourProgressAdmin(admin.ModelAdmin):
     list_display = ("tour", "user", "status", "last_step", "completed_at")
     list_filter = ("status",)
     search_fields = ("tour__title", "user__username")
+
+
+@admin.register(TourPreference)
+class TourPreferenceAdmin(admin.ModelAdmin):
+    list_display = ("user", "auto_start_disabled", "updated_at")
+    list_filter = ("auto_start_disabled",)
+    search_fields = ("user__username",)

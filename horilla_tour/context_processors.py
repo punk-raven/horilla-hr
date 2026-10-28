@@ -13,20 +13,27 @@ logger = logging.getLogger(__name__)
 
 
 def pending_tours_flag(request):
-    """Return launcher availability + whether the user has an unfinished tour."""
+    """Return launcher availability, whether the user has an unfinished tour and
+    whether they opted out of auto-started tours (also gates legacy drivers)."""
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
-        return {"tour_launcher_enabled": False, "tour_has_pending": False}
+        return {
+            "tour_launcher_enabled": False,
+            "tour_has_pending": False,
+            "tour_auto_start_disabled": False,
+        }
 
     has_pending = False
+    auto_start_disabled = False
     try:
-        from horilla_tour.models import Tour, TourProgress
+        from horilla_tour.models import Tour, TourPreference, TourProgress
 
+        auto_start_disabled = TourPreference.auto_start_disabled_for(user)
         # Published tours visible to the user's company (+ global) that are
         # auto-start and not yet shown to this user (no progress row at all,
         # matching the tour-active API's auto_start rule).
         published = Tour.objects.filter(is_active=True, is_published=True)
-        if published.exists():
+        if not auto_start_disabled and published.exists():
             seen_ids = TourProgress.objects.filter(user=user).values_list(
                 "tour_id", flat=True
             )
@@ -36,4 +43,8 @@ def pending_tours_flag(request):
     except Exception as exc:  # never let the launcher break a page render
         logger.debug("pending_tours_flag skipped: %s", exc)
 
-    return {"tour_launcher_enabled": True, "tour_has_pending": has_pending}
+    return {
+        "tour_launcher_enabled": True,
+        "tour_has_pending": has_pending,
+        "tour_auto_start_disabled": auto_start_disabled,
+    }

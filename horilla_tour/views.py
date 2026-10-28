@@ -6,6 +6,7 @@ Two surfaces:
 1. Authenticated JSON API consumed by ``static/build/js/tourController.js``
    - ``tour-active``   : tours that apply to the current page + user, with steps
    - ``tour-progress`` : record start / completion / skip (replaces /driver-viewed)
+   - ``tour-preference``: per-user "Don't show tours automatically" switch
 
 2. Settings admin CRUD (permission-gated) to author tours and their ordered
    steps, following the HorillaSectionView + HorillaNavView + HorillaListView +
@@ -26,7 +27,7 @@ from django.views.decorators.http import require_GET, require_POST
 from horilla.decorators import permission_required
 from horilla_tour.filters import TourFilter
 from horilla_tour.forms import TourForm, TourStepForm
-from horilla_tour.models import Tour, TourProgress, TourStep
+from horilla_tour.models import Tour, TourPreference, TourProgress, TourStep
 from horilla_views.cbv_methods import login_required
 from horilla_views.generic.cbv.views import (
     HorillaFormView,
@@ -115,6 +116,8 @@ def tour_active(request):
         is_active=True, is_published=True, audience__in=audiences
     ).prefetch_related("steps")
 
+    # Opted-out users still get the list (Help launcher), just no auto-start.
+    auto_start_disabled = TourPreference.auto_start_disabled_for(user)
     progress_map = {
         p.tour_id: p for p in TourProgress.objects.filter(user=user, tour__in=tours)
     }
@@ -131,7 +134,12 @@ def tour_active(request):
         # "Auto-start once": a tour the user has been shown (any progress row:
         # finished, skipped, or left mid-way by navigating away) never starts
         # by itself again. It stays listed in the Help launcher for replay.
-        auto_start = tour.trigger == "auto_once" and progress is None
+        # Users who turned auto-start off get no automatic tours at all.
+        auto_start = (
+            not auto_start_disabled
+            and tour.trigger == "auto_once"
+            and progress is None
+        )
         payload.append(
             {
                 "id": tour.id,
@@ -147,7 +155,7 @@ def tour_active(request):
             }
         )
 
-    return JsonResponse({"tours": payload})
+    return JsonResponse({"tours": payload, "auto_start_disabled": auto_start_disabled})
 
 
 @auth_login_required
@@ -177,6 +185,17 @@ def tour_progress(request):
         status = progress.status
     progress.mark(status, step_index)
     return JsonResponse({"ok": True, "status": progress.status})
+
+
+@auth_login_required
+@require_POST
+def tour_preference(request):
+    """Turn auto-started tours off (``auto_start_disabled=1``) or back on (``0``)."""
+    disabled = request.POST.get("auto_start_disabled") in ("1", "true", "on")
+    TourPreference.objects.update_or_create(
+        user=request.user, defaults={"auto_start_disabled": disabled}
+    )
+    return JsonResponse({"ok": True, "auto_start_disabled": disabled})
 
 
 # ---------------------------------------------------------------------------
