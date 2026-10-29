@@ -659,6 +659,7 @@ class GenericAttendancesDetailView(HorillaDetailedView):
         (_("Min Hour"), "minimum_hour"),
         (_("At Work"), "attendance_worked_hour"),
         (_("Overtime"), "attendance_overtime"),
+        (_("Entry Type"), "entry_mode"),
         (_("Activities"), "attendance_detail_activity_col", True),
     ]
 

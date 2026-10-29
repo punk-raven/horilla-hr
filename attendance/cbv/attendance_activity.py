@@ -69,6 +69,7 @@ class AttendanceActivityListView(HorillaListView):
         (_("Check Out"), "clock_out"),
         (_("Out Date"), "clock_out_date"),
         (_("Duration (HH:MM:SS)"), "duration_format"),
+        (_("Entry Type"), "entry_mode"),
     ]
 
     header_attrs = {
@@ -252,6 +253,7 @@ class AttendanceDetailView(HorillaDetailedView):
         (_("Check Out"), "clock_out"),
         (_("Check Out Date"), "clock_out_date"),
         (_("Duration"), "duration_format"),
+        (_("Entry Type"), "entry_mode"),
         (_("Shift"), "employee_id__employee_work_info__shift_id"),
         (_("Work Type"), "employee_id__employee_work_info__work_type_id"),
     ]
