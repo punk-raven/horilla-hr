@@ -363,9 +363,8 @@ docker compose logs --tail=50 web
 The services are described as code in `.railway/railway.ts` (Railway IaC;
 variables stay unmanaged, in the dashboard). Preview changes with
 `cd .railway && npm ci && cd .. && railway config plan`; a matching file reports
-no changes. `railway.toml` (web) and `railway.scheduler.toml` (scheduler) are the
-deprecated Config as Code files Railway reads until a service is cut over with
-`railway config migrate cutover`; delete them after the cutover.
+no changes; `railway config apply` applies a reviewed change.
+
 The layout below keeps web off the public internet: Cloudflare owns the
 domain and reaches web only through a Cloudflare Tunnel, and media lives in a
 Cloudflare R2 bucket so web and scheduler share it (a Railway volume attaches
