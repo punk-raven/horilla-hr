@@ -586,13 +586,15 @@ def send_employee_invitation(employee, host, is_secure):
     user = employee.employee_user_id
     if not user:
         return False
-    email_backend = ConfiguredEmailBackend()
-    if not email_backend.configuration:
-        return False
-    form = PassWordResetForm(data={"email": user.username})
-    if not form.is_valid():
-        return False
     try:
+        # Building the backend validates the stored mail server (e.g. TLS and
+        # SSL both enabled raises ValueError), so it belongs inside the guard.
+        email_backend = ConfiguredEmailBackend()
+        if not email_backend.configuration:
+            return False
+        form = PassWordResetForm(data={"email": user.username})
+        if not form.is_valid():
+            return False
         user.is_new_employee = True
         user.save(update_fields=["is_new_employee"])
         form.save(
