@@ -98,9 +98,21 @@
             };
         </script>
         <script src="{% static '/jquery/jquery.min.js' %}"></script>
+        <link href="{% static 'cdn/googleapi/css/inter-font-style.css' %}" rel="stylesheet">
+        <style>
+            /* The theme tokens ux.css reads (index.html sets the same ones
+               for signed-in pages). */
+            :root {
+                --primary-300: {{ theme_obj.primary_300|default:"#bfdbfe" }};
+                --primary-600: {{ theme_obj.primary_600|default:"#3b82f6" }};
+                --primary-700: {{ theme_obj.primary_700|default:"#0c4a6e" }};
+                --primary-800: {{ theme_obj.primary_800|default:"#1e3a8a" }};
+            }
+        </style>
+        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=1">
     </head>
     <body class="bg-primary-200 font-[Inter,_sans-serif]">
-        <div class="oh-alert-container">
+        <div class="oh-alert-container" role="status" aria-live="polite">
             {% for message in messages %}
                 <div class="oh-alert oh-alert--animated {{ message.tags }}">
                     {{ message }}
@@ -109,7 +121,7 @@
         </div>
 
         <div class="min-h-screen w-full flex items-center justify-center p-4">
-            <div class="bg-white p-[50px] rounded-2xl [box-shadow:0px_0px_25px_#a1a1a1] w-[450px] max-w-full">
+            <div class="oh-auth-card bg-white p-[50px] rounded-2xl [box-shadow:0px_0px_25px_#a1a1a1] w-[450px] max-w-full">
                 <img
                     src="{% if white_label_company.icon %}{{white_label_company.icon.url}}{% else %}{% static 'horilla_theme/assets/img/logo.svg' %}{% endif %}"
                     alt="{{ white_label_company_name }}"
@@ -136,6 +148,7 @@
 
                     const show = passwordInput.type === 'password';
                     passwordInput.type = show ? 'text' : 'password';
+                    this.setAttribute('aria-pressed', show ? 'true' : 'false');
                     ['hidden', 'd-none'].forEach(cls => {
                         showIcon.classList.toggle(cls, show);
                         hideIcon.classList.toggle(cls, !show);
