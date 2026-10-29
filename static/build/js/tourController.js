@@ -75,11 +75,11 @@
     if (!popover || !popover.wrapper) return;
     if (popover.wrapper.querySelector('.horilla-tour-optout')) return;
     var row = document.createElement('div');
+    // Looks (light and dark) live in horilla_theme's ux.css.
     row.className = 'horilla-tour-optout';
-    row.style.cssText = 'margin-top:10px;padding-top:8px;border-top:1px solid #f3f4f6;text-align:left;';
     var link = document.createElement('button');
     link.type = 'button';
-    link.style.cssText = 'background:none;border:none;padding:0;cursor:pointer;font-size:12px;color:#6b7280;text-decoration:underline;';
+    link.className = 'horilla-tour-optout__link';
     link.textContent = LABELS.dontShowAgain || "Don't show tours again";
     link.addEventListener('click', function (e) {
       e.preventDefault();
@@ -210,11 +210,10 @@
   // Panel footer checkbox: the way back in after "Don't show tours again".
   function renderPreferenceToggle(panel) {
     var label = document.createElement('label');
-    label.style.cssText = 'display:flex;align-items:center;gap:8px;margin:0;padding:9px 12px;border-top:1px solid #f3f4f6;font-size:12px;color:#4b5563;cursor:pointer;';
+    label.className = 'hx-tour-panel__pref';
     var box = document.createElement('input');
     box.type = 'checkbox';
     box.checked = !_autoStartDisabled;
-    box.style.cssText = 'cursor:pointer;margin:0;';
     box.addEventListener('change', function () {
       postPreference(!box.checked);
       if (!box.checked) setPendingDot(false);

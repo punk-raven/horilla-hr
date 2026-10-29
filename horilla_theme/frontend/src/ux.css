@@ -406,6 +406,59 @@ body.dark .oh-alert[class*="oh-alert--"] {
   background-color: var(--hx-color-green-600);
 }
 
+/* "Show tours automatically", the panel's footer (the way back in after
+   "Don't show tours again"). */
+.hx-tour-panel__pref {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 12px;
+  border-top: 1px solid var(--hx-color-gray-100);
+  color: var(--hx-color-gray-600);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.hx-tour-panel__pref input {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* "Don't show tours again", under each tour popover's buttons. */
+.horilla-tour-optout {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hx-color-gray-100);
+  text-align: left;
+}
+
+.horilla-tour-optout__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--hx-color-gray-600);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.horilla-tour-optout__link:hover {
+  color: var(--hx-color-gray-900);
+}
+
+.dark .horilla-tour-optout {
+  border-top-color: #374564;
+}
+
+.dark .horilla-tour-optout__link {
+  color: var(--hx-color-slate-300);
+}
+
+.dark .horilla-tour-optout__link:hover {
+  color: #fff;
+}
+
 /* Dark: dark.css's card palette, like the tour popover above. */
 .dark .hx-tour-panel {
   border-color: #374564;
@@ -433,6 +486,11 @@ body.dark .oh-alert[class*="oh-alert--"] {
 
 .dark .hx-tour-panel__icon {
   color: var(--hx-color-blue-400);
+}
+
+.dark .hx-tour-panel__pref {
+  border-top-color: #374564;
+  color: var(--hx-color-slate-300);
 }
 
 /* ── Sign-in pages (auth_layout.html) ─────────────────────────────────────

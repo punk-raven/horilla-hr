@@ -308,7 +308,29 @@ class TourPreferenceTests(TestCase):
         html = template.template.render(Context({"request": request}))
         self.assertIn(f'preferenceUrl: "{self.preference_url}"', html)
         self.assertIn("Don\\u0027t show tours again", html)
-        self.assertIn("tourController.js?v=2", html)
+        self.assertIn("tourController.js?v=3", html)
+
+    def test_opt_out_controls_are_styled_for_both_themes(self):
+        # The opt-out link and the launcher's checkbox used to carry inline
+        # light-only colours (grey text and a near-white rule on the dark
+        # popover and panel). Their looks live in ux.css, with dark variants.
+        from django.contrib.staticfiles import finders
+
+        with open(finders.find("build/js/tourController.js"), encoding="utf-8") as f:
+            js = f.read()
+        self.assertIn("'hx-tour-panel__pref'", js)
+        self.assertIn("'horilla-tour-optout__link'", js)
+        self.assertNotIn("style.cssText", js)
+        with open(
+            finders.find("horilla_theme/assets/css/ux.css"), encoding="utf-8"
+        ) as f:
+            css = f.read()
+        for selector in (
+            ".dark .hx-tour-panel__pref",
+            ".dark .horilla-tour-optout__link",
+            ".dark .horilla-tour-optout",
+        ):
+            self.assertIn(selector, css)
 
 
 class TourPermissionTests(TestCase):
