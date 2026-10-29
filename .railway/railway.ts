@@ -1,6 +1,5 @@
-// Railway infrastructure for PunkRaven HR. Replaces the deprecated
-// railway.toml / railway.scheduler.toml (Config as Code stops being read on
-// 2026-12-01). Variables stay in the Railway dashboard (managed: false), so no
+// Railway infrastructure for PunkRaven HR (replaces the deprecated Config as
+// Code files). Variables stay in the Railway dashboard (managed: false), so no
 // secret lives here. See docker/README.md, "Deploying on Railway".
 import { defineRailway, github, image, postgres, project, redis, service, volume } from "railway/iac";
 
