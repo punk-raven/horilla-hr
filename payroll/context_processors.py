@@ -5,6 +5,7 @@ This module is used to register context processor`
 """
 
 from employee.models import Employee
+from horilla.currency import DEFAULT_CURRENCY_SYMBOL
 from payroll.models import tax_models as models
 from payroll.models.models import Deduction
 
@@ -21,7 +22,7 @@ def default_currency(request):
         # for a brand new employee's very first request), so reuse this
         # instance directly instead of re-querying for it.
         settings = models.PayrollSettings()
-        settings.currency_symbol = "$"
+        settings.currency_symbol = DEFAULT_CURRENCY_SYMBOL
         settings.company_id = getattr(request, "selected_company_instance", None)
         settings.save()
     symbol = settings.currency_symbol
