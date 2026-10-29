@@ -10,7 +10,6 @@ import os
 import re
 import uuid
 from datetime import date, datetime, timedelta
-from email.mime.image import MIMEImage
 from typing import Any
 
 import bleach
@@ -23,7 +22,6 @@ from django.contrib.auth.forms import SetPasswordForm, _unicode_ci_compare
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.staticfiles import finders
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.core.validators import validate_ipv46_address
@@ -37,6 +35,7 @@ from django.utils.html import strip_tags
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
 
+from base.email_branding import attach_company_logo
 from base.methods import get_session_company, reload_queryset
 from base.models import (
     Announcement,
@@ -78,7 +77,6 @@ from employee.filters import EmployeeFilter
 from employee.models import Employee, EmployeeTag
 from horilla import horilla_middlewares
 from horilla.horilla_middlewares import _thread_locals
-from horilla.media import read_media
 from horilla.methods import get_horilla_model_class
 from horilla_audit.models import AuditTag
 from horilla_auth.models import HorillaUser
@@ -3329,48 +3327,30 @@ class PassWordResetForm(forms.Form):
         if html_email_template_name is not None:
             html_email = loader.render_to_string(html_email_template_name, context)
             email_message.attach_alternative(html_email, "text/html")
-            # The company logo the HTML refers to as cid:company_logo
-            logo_content = context.get("logo_content")
-            if logo_content:
-                logo = MIMEImage(logo_content)
-                logo.add_header("Content-ID", "<company_logo>")
-                logo.add_header(
-                    "Content-Disposition",
-                    "inline",
-                    filename=context.get("logo_filename"),
-                )
-                email_message.attach(logo)
+            # A white-labelled company's logo stands in for the brand logo,
+            # which is otherwise attached when the message is built.
+            attach_company_logo(email_message, context.get("logo_company"))
 
         email_message.send()
 
     @staticmethod
     def get_branding(employee):
         """
-        The name and logo (file name and bytes) the mail is sent under: the
-        employee's company when WHITE_LABELLING is on (else the headquarters
-        company), BRAND_NAME when it is off or no company logo can be read.
+        The name the mail is sent under, and the company whose logo it shows:
+        the employee's company when WHITE_LABELLING is on (else the
+        headquarters company), BRAND_NAME and the brand logo when it is off.
         """
         name = getattr(settings, "BRAND_NAME", "Horilla")
-        logo_filename, logo_content = None, None
-        logo_path = finders.find("images/ui/horilla-sticker-round.png")
-        if logo_path:
-            logo_filename = os.path.basename(logo_path)
-            with open(logo_path, "rb") as logo_file:
-                logo_content = logo_file.read()
-        if getattr(settings, "WHITE_LABELLING", False):
+        if not getattr(settings, "WHITE_LABELLING", False):
+            return name, None
+        try:
+            company = employee.get_company()
+        except Exception:
             company = None
-            try:
-                company = employee.get_company()
-            except Exception:
-                company = None
-            company = company or Company.objects.filter(hq=True).last()
-            if company:
-                name = company.company
-                icon_content = read_media(company.icon)
-                if icon_content:
-                    logo_filename = os.path.basename(company.icon.name)
-                    logo_content = icon_content
-        return name, logo_filename, logo_content
+        company = company or Company.objects.filter(hq=True).last()
+        if company:
+            name = company.company
+        return name, company
 
     def get_users(self, email):
         """
@@ -3450,7 +3430,7 @@ class PassWordResetForm(forms.Form):
             token = token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             protocol = "https" if use_https else "http"
-            company_name, logo_filename, logo_content = self.get_branding(employee)
+            company_name, logo_company = self.get_branding(employee)
             context = {
                 "email": email,
                 "domain": domain,
@@ -3466,8 +3446,7 @@ class PassWordResetForm(forms.Form):
                 ),
                 "valid_hours": settings.PASSWORD_RESET_TIMEOUT // 3600,
                 "white_label_company_name": company_name,
-                "logo_filename": logo_filename,
-                "logo_content": logo_content,
+                "logo_company": logo_company,
                 **(extra_email_context or {}),
             }
             self.send_mail(

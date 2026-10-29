@@ -603,7 +603,8 @@ def send_employee_invitation(employee, host, is_secure):
             domain_override=host,
             use_https=is_secure,
             from_email=email_backend.dynamic_from_email_with_display_name,
-            email_template_name="employee/mail_templates/invitation_email.html",
+            email_template_name="employee/mail_templates/invitation_email.txt",
+            html_email_template_name="employee/mail_templates/invitation_email.html",
             subject_template_name="employee/mail_templates/invitation_subject.txt",
         )
         return True

@@ -22,7 +22,6 @@ from urllib.parse import parse_qs
 from django import template
 from django.contrib import messages
 from django.contrib.auth import login
-from django.contrib.staticfiles import finders
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage, send_mail
 from django.core.paginator import Paginator
@@ -37,6 +36,7 @@ from django.utils.translation import gettext_noop
 from django.views.decorators.http import require_http_methods, require_POST
 
 from base.backends import ConfiguredEmailBackend
+from base.email_branding import attach_company_logo
 from base.methods import (
     closest_numbers,
     generate_pdf,
@@ -51,7 +51,6 @@ from horilla import settings
 from horilla.decorators import hx_request_required, login_required, permission_required
 from horilla.group_by import group_by_queryset as general_group_by
 from horilla.http.response import HorillaRedirect
-from horilla.media import read_media
 from horilla_auth.models import HorillaUser
 from horilla_documents.models import Document
 from notifications.signals import notify
@@ -776,7 +775,6 @@ def candidate_filter(request):
 
 
 import logging
-from email.mime.image import MIMEImage
 
 from django.core.mail import EmailMultiAlternatives
 
@@ -882,26 +880,10 @@ def email_send(request):
         for attachment in attachments:
             email.attach(*attachment)
 
-        # ✅ Attach company logo INLINE
+        # The brand logo is attached when the message is built, unless a
+        # white-labelled company's logo stands in for it.
         try:
-            company = candidate.recruitment_id.company_id
-            image_content = read_media(company.icon) if company else None
-            image_path = company.icon.name if image_content else None
-            if image_content is None:
-                image_path = finders.find("images/ui/horilla-sticker-round.png")
-                if image_path:
-                    with open(image_path, "rb") as f:
-                        image_content = f.read()
-
-            if image_content:
-                logo = MIMEImage(image_content)
-                logo.add_header("Content-ID", "<company_logo>")
-                logo.add_header(
-                    "Content-Disposition",
-                    "inline",
-                    filename=os.path.basename(image_path),
-                )
-                email.attach(logo)
+            attach_company_logo(email, candidate.recruitment_id.company_id)
         except Exception as e:
             logger.error(f"Company logo attach failed: {e}")
 

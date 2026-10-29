@@ -15,7 +15,6 @@ import os
 import threading
 import uuid
 from datetime import datetime, timedelta
-from email.mime.image import MIMEImage
 from os import path
 from urllib.parse import parse_qs, unquote, urlencode, urlparse
 
@@ -64,6 +63,7 @@ from base.decorators import (
     shift_request_change_permission,
     work_type_request_change_permission,
 )
+from base.email_branding import BRAND_BLUE, BRAND_LOGO_CID, attach_company_logo
 from base.filters import (
     CompanyLeaveFilter,
     HolidayFilter,
@@ -208,7 +208,7 @@ from horilla.decorators import (
 )
 from horilla.group_by import group_by_queryset
 from horilla.http.response import HorillaRedirect, with_bulk_result
-from horilla.media import is_remote_storage, read_media
+from horilla.media import is_remote_storage
 from horilla.menu import get_settings_menu
 from horilla.methods import get_horilla_model_class, remove_dynamic_url
 from horilla_audit.forms import HistoryTrackingFieldsForm
@@ -2192,8 +2192,7 @@ def test_email_failure_message(emailconfig, error):
 def mail_server_test_email(request):
     instance_id = request.GET.get("instance_id")
     white_labelling = getattr(settings, "WHITE_LABELLING", False)
-    image_path = path.join(settings.STATIC_ROOT, "images/ui/horilla-logo.png")
-    company_logo = None
+    company = None
     company_name = getattr(settings, "BRAND_NAME", "Horilla")
 
     if white_labelling:
@@ -2209,7 +2208,6 @@ def mail_server_test_email(request):
 
         if company:
             company_name = company.company
-            company_logo = read_media(company.icon)
 
     form = DynamicMailTestForm()
     if request.method == "POST":
@@ -2224,16 +2222,16 @@ def mail_server_test_email(request):
                 <body style="font-family: Arial, sans-serif; margin: 0; padding: 0;">
                     <table align="center" width="600" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden;">
                         <tr>
-                            <td align="center" bgcolor="#4CAF50" style="padding: 20px 0;">
+                            <td align="center" bgcolor="{BRAND_BLUE}" style="padding: 20px 0;">
                                 <h1 style="color: #ffffff; margin: 0;">{company_name}</h1>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 20px;">
-                                <h3 style="color: #4CAF50;">Email tested successfully</h3>
+                                <h3 style="color: {BRAND_BLUE};">Email tested successfully</h3>
                                 <b><p style="font-size: 14px;">Hi,<br>
                                     This email is being sent as part of mail sever testing from {company_name}.</p></b>
-                                <img src="cid:unique_image_id" alt="Test Image" style="width: 200px; height: auto; margin: 20px 0;">
+                                <img src="cid:{BRAND_LOGO_CID}" alt="{company_name}" width="96" height="96" style="display: block; border: 0; margin: 20px 0;">
                             </td>
                         </tr>
                         <tr>
@@ -2284,12 +2282,7 @@ def mail_server_test_email(request):
                 )
                 msg.attach_alternative(html_content, "text/html")
 
-                if company_logo is None:
-                    with open(image_path, "rb") as img:
-                        company_logo = img.read()
-                msg_img = MIMEImage(company_logo)
-                msg_img.add_header("Content-ID", "<unique_image_id>")
-                msg.attach(msg_img)
+                attach_company_logo(msg, company)
 
                 msg.send()
             except Exception as e:

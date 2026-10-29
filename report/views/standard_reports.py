@@ -22,7 +22,7 @@ from report.access import (
 from report.company_context import company_letterhead
 from report.delivery import compute_schedule_anchor
 from report.engine import filters_from_request
-from report.export import export_csv, export_pdf, export_xlsx
+from report.export import export_csv, export_pdf, export_xlsx, product_label
 from report.filter_schema import build_filter_options, build_filter_schema
 from report.forms import DAY_OF_MONTH_CHOICES, WEEKDAY_CHOICES
 from report.models import (
@@ -61,7 +61,7 @@ def _export_meta(request, definition, filters, slug: str) -> dict:
     company = company_letterhead(request, company_id=filters.company_id)
     filters_pairs = filters.summary_pairs()
     return {
-        "product_name": "Horilla HR · Standard Reports",
+        "product_name": product_label(),
         "company": company,
         "user": getattr(request.user, "get_full_name", lambda: "")()
         or getattr(request.user, "username", ""),

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.core.mail import EmailMessage
 from django.test import RequestFactory
 from django.utils import timezone
@@ -19,7 +20,7 @@ from django.utils.translation import gettext as _
 from base.backends import ConfiguredEmailBackend
 from report.company_context import company_letterhead
 from report.engine import filters_from_dict
-from report.export import export_pdf, export_xlsx
+from report.export import export_pdf, export_xlsx, product_label
 from report.models import ReportRunLog, ReportSubscription
 from report.registry import get_report, run_report
 
@@ -206,7 +207,7 @@ def deliver_subscription(
         )
         filters_pairs = filters.summary_pairs()
         meta = {
-            "product_name": "Horilla HR · Standard Reports",
+            "product_name": product_label(),
             "company": company,
             "user": (
                 str(subscription.owner)
@@ -248,15 +249,18 @@ def deliver_subscription(
             )
 
         report_title = str(definition.name)
+        intro = _("Attached is your scheduled %(brand)s report:") % {
+            "brand": settings.BRAND_NAME
+        }
         body = (
-            f"{_('Attached is your scheduled Horilla report:')}\n\n"
+            f"{intro}\n\n"
             f"{report_title}\n"
             f"{_('Period')}: {filters.from_date} → {filters.to_date}\n"
             f"{_('Subscription')}: {subscription.name}\n"
             f"{_('Format')}: {fmt.upper()}\n"
         )
         email = EmailMessage(
-            subject=f"[Horilla] {subscription.name}",
+            subject=f"[{settings.BRAND_NAME}] {subscription.name}",
             body=body,
             from_email=from_email,
             to=recipients,

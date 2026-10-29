@@ -76,7 +76,8 @@
             <table class="hr-table-main__header">
               <tr>
                 <td style="width: 50%">
-                  <img src="{{protocol}}://{{host}}{% static '/images/ui/horilla-logo.png' %}" height="30" width="110.4" />
+                  <img src="cid:brand_logo" alt="" height="32" width="32" style="display: inline-block; vertical-align: middle; border: 0" />
+                  <span style="display: inline-block; vertical-align: middle; margin-left: 8px; font-size: 18px; font-weight: 700; color: #111827">{{ white_label_company_name }}</span>
                 </td>
                 <td style="width: 50%; text-align: right">
                   <a href="#" class="hr-link">{% trans "View in browser" %}</a>
@@ -87,7 +88,7 @@
         </tr>
         <tr>
           <td align="center" style="padding-top:20px;padding-bottom: 20px ;">
-            <img src="{{protocol}}://{{host}}{% static '/images/ui/ticket.png' %}" style="display:block;height:auto;border:0;width:20%" width="272" />
+            <img src="cid:ticket_icon" style="display:block;height:auto;border:0;width:20%" width="272" />
           </td>
         </tr>
         <tr>
@@ -104,7 +105,7 @@
         <tr>
           <td style="padding: 15px" align="center">
             <a href="{{ link }}" style="
-                background-color: #e54f37;
+                background-color: #326ed1;
                 color: #fff;
                 border-radius: 10px;
                 display: inline-block;

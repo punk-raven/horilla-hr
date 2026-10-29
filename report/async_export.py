@@ -6,6 +6,7 @@ import logging
 import threading
 from typing import Optional
 
+from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils.translation import gettext as _
 
@@ -98,8 +99,9 @@ def queue_export_email(
                 )
                 return
 
-            subject = _("Horilla report ready: %(name)s") % {
-                "name": str(definition.name)
+            subject = _("%(brand)s report ready: %(name)s") % {
+                "brand": settings.BRAND_NAME,
+                "name": str(definition.name),
             }
             body = _(
                 "Your requested export is attached.\n\nReport: %(name)s\nFormat: %(fmt)s"
@@ -153,7 +155,8 @@ def _notify_failure(to_email: str, slug: str) -> None:
         definition = get_report(slug)
         name = str(definition.name) if definition else slug
         EmailMessage(
-            subject=_("Horilla report export failed: %(name)s") % {"name": name},
+            subject=_("%(brand)s report export failed: %(name)s")
+            % {"brand": settings.BRAND_NAME, "name": name},
             body=_(
                 "Your requested export could not be generated.\n\n"
                 "Report: %(name)s\n\n"

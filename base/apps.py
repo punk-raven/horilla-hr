@@ -16,6 +16,9 @@ class BaseConfig(AppConfig):
 
     def ready(self) -> None:
         from base import checks, sidebar, signals  # noqa: F401
+        from base.email_branding import install as install_email_branding
+
+        install_email_branding()
 
         super().ready()
         check_for_no_permissions_models()
