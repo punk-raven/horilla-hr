@@ -49,7 +49,7 @@
     <div class="oh-general__tab-target oh-profile-section" id="{{form.container_id}}">
         <div class="oh-profile-section__card row">
             <div class="row" style="padding-right: 0">
-                <div class="col-12" style="padding-right: 0">{{ form.non_field_errors }}</div>
+                <div class="col-12" style="padding-right: 0">{{ form.non_field_errors }}{% include "generic/hidden_field_errors.html" %}</div>
                 {% for field in form.visible_fields %}
                     <div
                         class="col-12 col-md-{{field|col}}"

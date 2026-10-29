@@ -2865,6 +2865,32 @@ class DynamicMailConfForm(ModelForm):
                 cleaned_data[field] = self.fields[field].to_python(None)
         return cleaned_data
 
+    def validate_unique(self):
+        # A company has one mail server. Name the existing one in place of
+        # Django's "Email Configuration with this Company already exists.", so
+        # the admin knows to edit it (e.g. to switch it to the Resend API).
+        super().validate_unique()
+        # The error already took company_id out of cleaned_data; the instance
+        # still holds it.
+        company = self.instance.company_id
+        if not company or "company_id" not in self.errors:
+            return
+        existing = (
+            DynamicEmailConfiguration.objects.filter(company_id=company)
+            .exclude(pk=self.instance.pk)
+            .first()
+        )
+        if existing:
+            self.errors["company_id"] = self.error_class(
+                [
+                    _(
+                        "%(company)s already has a mail server (%(server)s). "
+                        "Edit that server instead, or delete it first."
+                    )
+                    % {"company": company, "server": existing}
+                ]
+            )
+
     def clean_password(self):
         password = self.cleaned_data.get("password")
         if not password and self.instance.pk:

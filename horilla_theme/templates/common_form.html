@@ -19,7 +19,7 @@
     {% endif %}
     <div class="oh-profile-section__card">
         <div class="row">
-            <div class="col-12">{{ form.non_field_errors }}</div>
+            <div class="col-12">{{ form.non_field_errors }}{% include "generic/hidden_field_errors.html" %}</div>
             {% for field in form.visible_fields %}
                 <div class="col-12 {% if form.cols.employee_id %} col-md-12 {% endif %} col-md-6" id="id_{{field.name}}_parent_div">
                     <div class="oh-label__info" style="display:ruby;" for="id_{{ field.name }}">

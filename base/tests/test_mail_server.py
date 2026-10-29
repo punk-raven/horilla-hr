@@ -362,3 +362,67 @@ class ResendApiTestEmailTests(TestCase):
             "invalid. Check the Resend API key and that the sender domain is "
             "verified.",
         )
+
+
+class MailServerOneServerPerCompanyTests(TestCase):
+    """A company has one mail server. Creating a second used to come back with
+    no visible error when the company was picked from the header, because the
+    company field is then a hidden input and its error was dropped."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.company = make_company("Single Server Corp")
+        cls.user = make_user("onemailadmin", is_superuser=True)
+        make_employee(
+            company=cls.company, email="onemailadmin@example.com", user=cls.user
+        )
+        cls.existing = mail_server(company_id=cls.company, username="smtp-user")
+
+    def resend_data(self, **overrides):
+        data = {
+            "transport": DynamicEmailConfiguration.RESEND_API,
+            "password": "re_test_key",
+            "from_email": "hr@example.com",
+            "display_name": "HR",
+            "timeout": 30,
+            "company_id": self.company.pk,
+        }
+        data.update(overrides)
+        return data
+
+    def test_error_names_the_existing_server(self):
+        form = DynamicMailConfForm(self.resend_data())
+
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors["company_id"],
+            [
+                "Single Server Corp already has a mail server (smtp-user). "
+                "Edit that server instead, or delete it first."
+            ],
+        )
+
+    def test_editing_the_existing_server_to_resend_api_saves(self):
+        form = DynamicMailConfForm(self.resend_data(), instance=self.existing)
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.save().transport, DynamicEmailConfiguration.RESEND_API)
+
+    def test_error_shows_when_the_company_comes_from_the_header(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session["selected_company"] = str(self.company.pk)
+        session.save()
+
+        response = self.client.post(
+            reverse("create-mail-server"),
+            self.resend_data(),
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertContains(response, 'type="hidden" name="company_id"')
+        self.assertContains(response, "already has a mail server (smtp-user)")
+        self.assertEqual(
+            DynamicEmailConfiguration.objects.filter(company_id=self.company).count(),
+            1,
+        )

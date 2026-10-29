@@ -1,0 +1,14 @@
+{% comment %}
+Errors on hidden fields have no input to sit under, so they used to be dropped
+and the form came back without saying why (e.g. a company picked from the
+header, rendered as a hidden input). Show them with the non-field errors.
+{% endcomment %}
+{% for field in form.hidden_fields %}
+    {% if field.errors %}
+        <ul class="errorlist nonfield">
+            {% for error in field.errors %}
+                <li>{% if field.label %}{{ field.label }}: {% endif %}{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endfor %}
