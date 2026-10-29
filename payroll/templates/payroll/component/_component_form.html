@@ -191,6 +191,45 @@ and have nowhere on the form to set them.
     .oh-steps__hint { display: none; }
     .oh-steps__step { flex: 1 1 100%; }
   }
+
+  /* Dark theme (`dark` on <body>, see horilla_theme's theme_init.html): the
+     same surfaces as dark.css - cards #1c2437, wells #151b2a, borders
+     #374564, text #dde1e9 - instead of white tiles in a dark dialog. */
+  body.dark .oh-component-form__heading h3,
+  body.dark .apply-rule__and,
+  body.dark .oh-limit-note__head { color: #a3acbd; }
+  body.dark .oh-component-form__heading .rule,
+  body.dark .apply-rule__rule { background: #374564; }
+  body.dark .oh-component-form__hint,
+  body.dark .oh-steps__hint,
+  body.dark .oh-formula-row__summary.is-empty,
+  body.dark .oh-limit-note__share,
+  body.dark .oh-limit-note__muted,
+  body.dark .oh-limit-note__foot { color: #8b95a8; }
+  body.dark .oh-steps__step { background: #151b2a; border-color: #374564; }
+  body.dark .oh-steps__step:hover { border-color: #4a5a7d; }
+  body.dark .oh-steps__step.is-current { border-color: var(--primary-600, #e54f38); }
+  body.dark .oh-steps__num { background: #29334c; color: #a3acbd; }
+  body.dark .oh-steps__step.is-current .oh-steps__num { background: var(--primary-600, #e54f38); color: #fff; }
+  body.dark .oh-steps__step.is-done .oh-steps__num { background: #12392f; color: #6ee7b7; }
+  body.dark .oh-steps__label,
+  body.dark .oh-formula-popover__head h3,
+  body.dark .oh-limit-note__value { color: #dde1e9; }
+  body.dark .oh-formula-row,
+  body.dark .condition-row { background: #151b2a; }
+  body.dark .oh-formula-row__summary,
+  body.dark .oh-limit-note__label { color: #c3cad6; }
+  body.dark .oh-formula-popover { background: rgb(2 4 9 / 0.72); }
+  body.dark .oh-formula-popover__panel {
+    background: #1c2437;
+    box-shadow: 0 0 0 1px #374564, 0 24px 48px -16px rgb(0 0 0 / 0.7);
+  }
+  body.dark .oh-formula-popover__head,
+  body.dark .oh-step-nav { border-color: #374564; }
+  body.dark .oh-formula-popover__foot { background: #151b2a; border-color: #374564; }
+  body.dark .oh-formula-popover__x:hover { color: #fff; }
+  body.dark .oh-limit-note { background: #151b2a; border-color: #374564; border-left-color: var(--primary-600, #e54f38); }
+  body.dark .oh-limit-note__dots { border-bottom-color: #374564; }
 </style>
 
 {% if form.verbose_name %}
