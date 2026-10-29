@@ -31,3 +31,13 @@ class InvitationMailFailureTests(TestCase):
         )
 
         self.assertFalse(send_employee_invitation(employee, "testserver", False))
+
+    def test_the_sender_it_caches_stays_in_this_test_process(self):
+        # Building any mail caches the configured sender, and a mail built
+        # without one takes it from there. On the shared Redis this test's
+        # "None <mailer@example.com>" was left for the dev server, later runs
+        # and other --parallel workers to send mail as, until it expired.
+        from django.core.cache import caches
+        from django.core.cache.backends.locmem import LocMemCache
+
+        self.assertIsInstance(caches["default"], LocMemCache)
