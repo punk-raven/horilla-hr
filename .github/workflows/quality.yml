@@ -5,13 +5,17 @@
 name: Quality
 
 on:
-  push:
-    branches: [dev/v2.0, "2.0"]
+  # CI runs only on demand: on a pull request labelled "run-ci" (adding the
+  # label starts it, and later pushes rerun it), or by hand from the Actions
+  # tab. Pushes and pull requests without the label run nothing.
   pull_request:
     branches: [dev/v2.0, "2.0"]
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
 
 jobs:
   lint-and-check:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-ci')
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -68,6 +72,7 @@ jobs:
           python manage.py check --fail-level WARNING --tag horilla.tenancy
 
   dependency-audit:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-ci')
     # Dependency CVEs were only ever caught by the container image scan, which
     # is advisory on PRs -- so a vulnerable pin could merge and only surface at
     # release. This checks requirements.txt directly.
@@ -98,6 +103,7 @@ jobs:
           --ignore-vuln PYSEC-2026-2860
 
   secret-scan:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-ci')
     # AWS and WhatsApp credentials have reached this repo's git history before,
     # so this is a re-occurrence guard, not a hypothetical.
     runs-on: ubuntu-latest
@@ -154,6 +160,7 @@ jobs:
             }
 
   production-settings-gate:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-ci')
     runs-on: ubuntu-latest
     timeout-minutes: 10
 

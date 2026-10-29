@@ -4,13 +4,17 @@
 name: Unit Tests
 
 on:
-  push:
-    branches: [dev/v2.0, "2.0"]
+  # CI runs only on demand: on a pull request labelled "run-ci" (adding the
+  # label starts it, and later pushes rerun it), or by hand from the Actions
+  # tab. Pushes and pull requests without the label run nothing.
   pull_request:
     branches: [dev/v2.0, "2.0"]
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
 
 jobs:
   smoke:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-ci')
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
