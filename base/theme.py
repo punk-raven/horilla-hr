@@ -39,6 +39,9 @@ def get_theme_preference(request):
 
 def set_theme_cookie(request, response, theme):
     """Remember an explicit theme choice on the response."""
+    if theme not in THEMES:
+        return
+
     response.set_cookie(
         THEME_COOKIE_NAME,
         theme,
