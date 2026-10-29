@@ -130,10 +130,10 @@ def compute_yearly_tax(filing, yearly_income, employee=None):
             )
             whose = f" for {employee}" if employee is not None else ""
             logger.error(
-                "Tax computation failed for filing status %s (employee %s): %s",
-                filing.filing_status,
-                employee,
-                exc,
+                "Tax computation failed for filing status id %s (employee id %s): %s",
+                filing.pk,
+                getattr(employee, "pk", None),
+                type(exc).__name__,
             )
             raise TaxComputationError(
                 f"Filing status '{filing.filing_status}' could not compute tax"
