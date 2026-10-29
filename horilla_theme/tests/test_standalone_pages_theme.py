@@ -97,8 +97,16 @@ class ErrorPageThemeTests(StandalonePageMixin, TestCase):
                 self.assertIn(f"--primary-fill: {fill};", body)
 
     def test_the_500_page_needs_no_request_and_no_database(self):
+        # A 500 is often the database failing, so the handler renders from the
+        # files alone (the default loaders look the template up in the DB first).
+        from django.test import RequestFactory
+
+        from horilla.error_views import server_error
+
         with self.assertNumQueries(0):
-            body = render_to_string("500.html")
+            response = server_error(RequestFactory().get("/"))
+        self.assertEqual(response.status_code, 500)
+        body = response.content.decode()
         self.assert_theme_init_in_head(body)
         self.assertIn(">500</h1>", body)
         self.assertIn("Something went wrong!", body)

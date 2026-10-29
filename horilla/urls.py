@@ -135,6 +135,9 @@ def metrics(request):
     return HttpResponse(scheduler_metrics(), content_type="text/plain; version=0.0.4")
 
 
+# Renders 500.html without the database-backed template loader.
+handler500 = "horilla.error_views.server_error"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     # django.contrib.auth.urls is here for the password_reset_* routes its forms
