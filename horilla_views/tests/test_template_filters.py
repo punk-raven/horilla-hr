@@ -47,3 +47,28 @@ class EmptyCellValueTests(SimpleTestCase):
         self.assertEqual(cell_tooltip(EMPTY_VALUE), "")
         self.assertEqual(cell_tooltip(None), "")
         self.assertEqual(cell_tooltip("<b>Host</b>"), "Host")
+
+
+class TimeCellValueTests(SimpleTestCase):
+    """A manual check-in/out is stamped from datetime.now(), so without a
+    company time format its cell used to read "15:10:17.451000"."""
+
+    def test_unformatted_time_drops_microseconds(self):
+        import datetime
+
+        from horilla_views.templatetags.generic_template_filters import selected_format
+
+        value = selected_format(datetime.time(15, 10, 17, 451000))
+        self.assertEqual(str(value), "15:10:17")
+        self.assertEqual(str(selected_format(datetime.time(15, 10))), "15:10:00")
+
+    def test_company_time_format_still_applies(self):
+        import datetime
+        from types import SimpleNamespace
+
+        from horilla_views.templatetags.generic_template_filters import selected_format
+
+        company = SimpleNamespace(date_format=None, time_format="HH:mm")
+        self.assertEqual(
+            selected_format(datetime.time(15, 10, 17, 451000), company), "15:10"
+        )

@@ -82,6 +82,11 @@ def selected_format(date, company: object = None) -> str:
         elif isinstance(date, datetime.time):
             format = company.time_format if company.time_format else "hh:mm A"
             return date.strftime(time_format_mapping[format])
+    if isinstance(date, datetime.time) and date.microsecond:
+        # Without a company time format the raw value is shown, and a time
+        # stamped from datetime.now() (a manual check-in or check-out) printed
+        # as "15:10:17.451000" next to "15:10:00" for the automatic ones.
+        return date.replace(microsecond=0)
     return date
 
 
