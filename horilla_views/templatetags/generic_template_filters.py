@@ -30,6 +30,9 @@ register = template.Library()
 
 numeric_test = re.compile(r"^\d+$")
 
+# What a generic list/card/detail cell shows for a value that is not set.
+EMPTY_VALUE = "-"
+
 date_format_mapping = {
     "DD-MM-YYYY": "%d-%m-%Y",
     "DD.MM.YYYY": "%d.%m.%Y",
@@ -52,6 +55,11 @@ time_format_mapping = {
 
 @register.filter(name="selected_format")
 def selected_format(date, company: object = None) -> str:
+    # Every generic list/card/detail cell is piped through this filter, so an
+    # unset field (a NULL column, a missing relation) lands here as None and
+    # used to render as the literal word "None". Show the empty placeholder.
+    if date is None:
+        return EMPTY_VALUE
     if isinstance(date, datetime.datetime):
         if timezone.is_aware(date):
             date = timezone.localtime(date)
@@ -86,6 +94,8 @@ def cell_tooltip(value) -> str:
     """
     from django.utils.html import strip_tags
 
+    if value is None or value == EMPTY_VALUE:
+        return ""
     text = str(value)
     if re.search(r"<\s*(select|input|textarea|button|form)\b", text, re.IGNORECASE):
         return ""
