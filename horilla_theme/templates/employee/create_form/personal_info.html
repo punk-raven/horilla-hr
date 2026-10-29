@@ -58,6 +58,13 @@
                             {{ form.email|add_class:"emp-input w-full h-9 px-3 text-xs border border-secondary-200 rounded-md bg-white text-dark-500" }}
                             {{ form.email.errors }}
                         </div>
+                        {% if "username" in form.fields %}
+                        <div>
+                            <label class="block text-xs font-medium text-color-600 mb-1" for="id_username">{% trans "Username" %}{% if form.instance.employee_user_id_id %} <span class="text-primary-600">*</span>{% endif %}</label>
+                            {{ form.username|add_class:"emp-input w-full h-9 px-3 text-xs border border-secondary-200 rounded-md bg-white text-dark-500" }}
+                            {{ form.username.errors }}
+                        </div>
+                        {% endif %}
                         <div>
                             <label class="block text-xs font-medium text-color-600 mb-1" for="id_phone">
                                 {% trans "Phone" %} <span class="text-primary-600">*</span>

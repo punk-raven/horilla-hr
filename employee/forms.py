@@ -207,6 +207,16 @@ class EmployeeForm(ModelForm):
     Form for Employee model
     """
 
+    # The login username of the employee's HorillaUser. Only present for users
+    # who may manage it (see _can_manage_username); blank on create keeps the
+    # default of using the email address.
+    username = forms.CharField(
+        label=_("Username"),
+        max_length=HorillaUser._meta.get_field("username").max_length,
+        required=False,
+        validators=[HorillaUser.username_validator],
+    )
+
     class Meta:
         """
         Meta class to add the additional info
@@ -241,6 +251,73 @@ class EmployeeForm(ModelForm):
             kwargs["initial"] = initial
         else:
             self.initial = {"badge_id": self.get_next_badge_id()}
+        self._setup_username_field()
+
+    def _linked_user(self):
+        if self.instance.pk and self.instance.employee_user_id_id:
+            return self.instance.employee_user_id
+        return None
+
+    def _can_manage_username(self):
+        request = getattr(horilla_middlewares._thread_locals, "request", None)
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            return False
+        if self.instance.pk:
+            return user.has_perm("employee.change_employee")
+        return user.has_perm("employee.add_employee")
+
+    def _setup_username_field(self):
+        if not self._can_manage_username():
+            del self.fields["username"]
+            return
+        field = self.fields["username"]
+        field.widget.attrs["autocomplete"] = "off"
+        linked_user = self._linked_user()
+        if linked_user:
+            self.initial["username"] = linked_user.username
+            field.widget.attrs["required"] = "required"
+        else:
+            field.widget.attrs["placeholder"] = _("Same as email if left blank")
+        # Show it right after the email it defaults to, not at the form's end.
+        fields = list(self.fields.items())
+        fields.remove(("username", field))
+        index = [name for name, _field in fields].index("email") + 1
+        fields.insert(index, ("username", field))
+        self.fields = dict(fields)
+
+    def clean_username(self):
+        """
+        Usernames are unique case-insensitively, so "John" cannot be added
+        next to "john": the login form would match either of them.
+        """
+        username = self.cleaned_data.get("username", "")
+        linked_user = self._linked_user()
+        if not username:
+            if linked_user and self.add_prefix("username") in self.data:
+                raise forms.ValidationError(_("Username is required."))
+            # Not posted (e.g. a form that does not show the field) or a new
+            # login: keep the current username or the email default.
+            return linked_user.username if linked_user else ""
+        clashes = HorillaUser.objects.filter(username__iexact=username)
+        if linked_user:
+            clashes = clashes.exclude(pk=linked_user.pk)
+        if clashes.exists():
+            raise forms.ValidationError(
+                _('The username "%(username)s" is already taken.'),
+                params={"username": username},
+            )
+        return username
+
+    def save(self, commit=True):
+        username = (
+            self.cleaned_data.get("username") if "username" in self.fields else ""
+        )
+        if username:
+            # Applied by Employee.save(), so commit=False callers that save the
+            # instance themselves get it too.
+            self.instance.pending_username = username
+        return super().save(commit)
 
     def as_p(self, *args, **kwargs):
         context = {"form": self}

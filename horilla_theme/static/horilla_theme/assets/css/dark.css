@@ -16,6 +16,15 @@ body.dark .text-primary-600 {
 body.dark .text-color-600 {
   color: #bbbbbb !important;
 }
+/* dark-100 is the theme's muted text colour, picked to read on light
+   backgrounds; on dark panels use the same light grays as other secondary
+   text and the inputs' placeholders. */
+body.dark .text-dark-100 {
+  color: #bbbbbb !important;
+}
+body.dark .placeholder\:text-dark-100::placeholder {
+  color: #94a3b8 !important;
+}
 body.dark .bg-secondary-50 {
   background-color: #29334c !important;
 }

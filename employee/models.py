@@ -832,10 +832,13 @@ class Employee(models.Model):
             self.is_active = True
             super().save(*args, **kwargs)
         employee = self
+        # A username chosen in EmployeeForm (validated there); None keeps the
+        # current one, or the email default for a new login.
+        pending_username = self.__dict__.pop("pending_username", None)
 
         if employee.employee_user_id is None:
             # Create user if no corresponding user exists
-            username = self.email
+            username = pending_username or self.email
             password = generate_random_password()
 
             # The email is unique among Employees, but an unrelated
@@ -843,7 +846,9 @@ class Employee(models.Model):
             # orphaned account left behind by a deleted employee. Fall back
             # to a random username rather than crashing on the uniqueness
             # constraint; email stays the real address either way.
-            if HorillaUser.objects.filter(username=username).exists():
+            if not pending_username and (
+                HorillaUser.objects.filter(username=username).exists()
+            ):
                 username = generate_unique_fallback_username()
 
             user = HorillaUser.objects.create_user(
@@ -857,11 +862,20 @@ class Employee(models.Model):
                     username=username, email=self.email, password=password
                 )
             self.employee_user_id = user
+            # The row is already saved, and the recursive save below only runs
+            # for a new employee: store the link now, or an existing employee
+            # without a login gets a new, unlinked user on every save.
+            Employee._base_manager.filter(pk=self.pk).update(employee_user_id=user)
             # default permissions
             change_ownprofile = Permission.objects.get(codename="change_ownprofile")
             view_ownprofile = Permission.objects.get(codename="view_ownprofile")
             user.user_permissions.add(view_ownprofile)
             user.user_permissions.add(change_ownprofile)
+        elif (
+            pending_username and pending_username != employee.employee_user_id.username
+        ):
+            employee.employee_user_id.username = pending_username
+            employee.employee_user_id.save(update_fields=["username"])
 
         if not hasattr(self, "employee_work_info"):
             EmployeeWorkInformation.objects.get_or_create(employee_id=self)

@@ -16,6 +16,13 @@ from horilla.models import HorillaModel
 # The theme the login page falls back to when none is marked as its default.
 LOGIN_FALLBACK_THEME = "Ocean Blue Theme"
 
+# dark_100 is the muted text colour (text-dark-100 and placeholder:text-dark-100
+# are its only uses): page subtitles, hints, inactive steps, placeholders. It
+# must stay readable on white and on the light card and page backgrounds, so
+# it is #666666, 5.74:1 on white and at least 5.17:1 on #f3f3f3. Presets used
+# to set the light #E6E6E6 shade of dark_50 here, which is 1.25:1.
+MUTED_TEXT = "#666666"
+
 THEMES_DATA = [
     {
         "name": "Coral Red Theme (Default)",
@@ -31,7 +38,7 @@ THEMES_DATA = [
         "primary_800": "#AC3B2A",
         "primary_900": "#672419",
         "dark_50": "#E6E6E6",
-        "dark_100": "#A8A8A8",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#501C14",
         "dark_400": "#64748B",
@@ -64,7 +71,7 @@ THEMES_DATA = [
         "primary_800": "#1e3a8a",
         "primary_900": "#1e40af",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#1e3a5f",
@@ -95,7 +102,7 @@ THEMES_DATA = [
         "primary_800": "#15803d",
         "primary_900": "#166534",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#1e4620",
@@ -126,7 +133,7 @@ THEMES_DATA = [
         "primary_800": "#670ab8",
         "primary_900": "#450e71",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#3d1a5c",
@@ -157,7 +164,7 @@ THEMES_DATA = [
         "primary_800": "#334155",
         "primary_900": "#1e293b",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#2d3748",
@@ -188,7 +195,7 @@ THEMES_DATA = [
         "primary_800": "#4338ca",
         "primary_900": "#3730a3",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#1e1b4b",
@@ -219,7 +226,7 @@ THEMES_DATA = [
         "primary_800": "#c2410c",
         "primary_900": "#9a3412",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#4a1c08",
@@ -250,7 +257,7 @@ THEMES_DATA = [
         "primary_800": "#7d1515",
         "primary_900": "#5c0f0f",
         "dark_50": "#E6E6E6",
-        "dark_100": "#d4d4d4",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#737373",
         "dark_300": "#404040",
         "dark_400": "#262626",
@@ -281,7 +288,7 @@ THEMES_DATA = [
         "primary_800": "#0f766e",
         "primary_900": "#115e59",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#134e4a",
@@ -312,7 +319,7 @@ THEMES_DATA = [
         "primary_800": "#b45309",
         "primary_900": "#92400e",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#451a03",
@@ -343,7 +350,7 @@ THEMES_DATA = [
         "primary_800": "#0369a1",
         "primary_900": "#075985",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#1e3a5f",
@@ -374,7 +381,7 @@ THEMES_DATA = [
         "primary_800": "#be185d",
         "primary_900": "#9f1239",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#500724",
@@ -405,7 +412,7 @@ THEMES_DATA = [
         "primary_800": "#047857",
         "primary_900": "#065f46",
         "dark_50": "#E6E6E6",
-        "dark_100": "#E6E6E6",
+        "dark_100": MUTED_TEXT,
         "dark_200": "#515151",
         "dark_300": "#515151",
         "dark_400": "#064e3b",
