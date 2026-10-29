@@ -2145,7 +2145,20 @@ def test_email_failure_message(emailconfig, error):
         ) % {"host": emailconfig.host, "port": emailconfig.port}
     else:
         hint = _("Check the host, port, username, password and SSL/TLS settings.")
-    return " ".join([_("The test email was not sent:"), str(error) + ".", str(hint)])
+    detail = str(error)
+    # An API error carries the provider's JSON answer: show its message alone.
+    response = getattr(error, "response", None)
+    try:
+        api_message = response.json().get("message")
+    except Exception:
+        api_message = None
+    if api_message:
+        detail = _("the API answered %(status)s: %(message)s") % {
+            "status": response.status_code,
+            "message": api_message,
+        }
+    detail = detail.strip().rstrip(".") + "."
+    return " ".join([str(_("The test email was not sent:")), detail, str(hint)])
 
 
 @login_required
@@ -2211,29 +2224,32 @@ def mail_server_test_email(request):
             # Plain text content (fallback for email clients that do not support HTML)
             text_content = strip_tags(html_content)
 
-            email_backend = ConfiguredEmailBackend()
             emailconfig = DynamicEmailConfiguration.objects.filter(
                 id=instance_id
             ).first()
-            email_backend.configuration = emailconfig
-            # The backend took its connection settings from the company's
-            # server when it was built; test the server that was picked.
-            email_backend.host = email_backend.dynamic_host
-            email_backend.port = email_backend.dynamic_port
-            email_backend.username = email_backend.dynamic_username
-            email_backend.password = email_backend.dynamic_password
-            email_backend.use_tls = email_backend.dynamic_use_tls
-            email_backend.use_ssl = email_backend.dynamic_use_ssl
-            # The timeout applies to each address the host resolves to, and
-            # must leave the whole attempt inside the form's 60s request
-            # timeout, so cap it for this check.
-            email_backend.timeout = min(
-                email_backend.dynamic_timeout or TEST_EMAIL_TIMEOUT, TEST_EMAIL_TIMEOUT
-            )
-            # A test must report failure, whatever the company's server says.
-            email_backend.fail_silently = False
-
             try:
+                # Inside the try: a misconfigured company server fails
+                # building the backend, and that must be reported too.
+                email_backend = ConfiguredEmailBackend()
+                email_backend.configuration = emailconfig
+                # The backend took its connection settings from the company's
+                # server when it was built; test the server that was picked.
+                email_backend.host = email_backend.dynamic_host
+                email_backend.port = email_backend.dynamic_port
+                email_backend.username = email_backend.dynamic_username
+                email_backend.password = email_backend.dynamic_password
+                email_backend.use_tls = email_backend.dynamic_use_tls
+                email_backend.use_ssl = email_backend.dynamic_use_ssl
+                # The timeout applies to each address the host resolves to, and
+                # must leave the whole attempt inside the form's 60s request
+                # timeout, so cap it for this check.
+                email_backend.timeout = min(
+                    email_backend.dynamic_timeout or TEST_EMAIL_TIMEOUT,
+                    TEST_EMAIL_TIMEOUT,
+                )
+                # A test must report failure, whatever the company's server says.
+                email_backend.fail_silently = False
+
                 msg = EmailMultiAlternatives(
                     subject,
                     text_content,

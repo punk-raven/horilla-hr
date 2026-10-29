@@ -149,7 +149,17 @@ class DefaultHorillaMailBackend(EmailBackend):
         )
 
     @property
+    def smtp_settings_apply(self):
+        """TLS and SSL apply to SMTP only, and SMTP refuses both set at once."""
+        return not (
+            self.configuration
+            and self.configuration.transport == DynamicEmailConfiguration.RESEND_API
+        )
+
+    @property
     def dynamic_use_tls(self):
+        if not self.smtp_settings_apply:
+            return False
         return (
             self.configuration.use_tls
             if self.configuration
@@ -166,6 +176,8 @@ class DefaultHorillaMailBackend(EmailBackend):
 
     @property
     def dynamic_use_ssl(self):
+        if not self.smtp_settings_apply:
+            return False
         return (
             self.configuration.use_ssl
             if self.configuration

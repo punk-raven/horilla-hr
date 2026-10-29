@@ -144,6 +144,16 @@ class MailTransportSelect(forms.Select):
                 (window.jQuery ? jQuery(select) : null)?.on("change", apply);
                 select.addEventListener("change", apply);
                 apply();
+                // When the form replaces one with the same field ids (the modal
+                // reopened), htmx's settle step puts the rows' original style
+                // back after this script ran, showing the SMTP fields again.
+                document.addEventListener("htmx:afterSettle", function settle() {{
+                    if (!select.isConnected) {{
+                        document.removeEventListener("htmx:afterSettle", settle);
+                        return;
+                    }}
+                    apply();
+                }});
             }})({config});
         </script>
         """

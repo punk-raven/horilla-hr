@@ -186,6 +186,14 @@ def get_next_monthly_date(start_date, rotate_every):
     return next_change
 
 
+def title_case(label):
+    """
+    Capitalize the first letter of each word and leave the rest alone, so
+    acronyms survive: str.title() turned "Use TLS" into "Use Tls".
+    """
+    return re.sub(r"(?<![\w'])[a-z]", lambda match: match.group().upper(), str(label))
+
+
 class ModelForm(forms.ModelForm):
     """
     Override of Django ModelForm to add initial styling and defaults.
@@ -207,7 +215,7 @@ class ModelForm(forms.ModelForm):
 
         for field_name, field in self.fields.items():
             widget = field.widget
-            label = _(field.label).title() if field.label else ""
+            label = title_case(_(field.label)) if field.label else ""
             # Date field
             if isinstance(widget, forms.DateInput):
                 field.initial = today
@@ -245,6 +253,7 @@ class ModelForm(forms.ModelForm):
                     forms.NumberInput,
                     forms.EmailInput,
                     forms.TextInput,
+                    forms.PasswordInput,
                     forms.FileInput,
                     forms.URLInput,
                 ),
@@ -2828,6 +2837,8 @@ class DynamicMailConfForm(ModelForm):
         }
 
     SMTP_REQUIRED_FIELDS = ["host", "port", "username"]
+    # Still starred in the form: they are hidden while the API is picked.
+    required_fields = SMTP_REQUIRED_FIELDS
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2837,7 +2848,7 @@ class DynamicMailConfForm(ModelForm):
         if self.instance.pk and self.instance.password:
             self.fields["password"].required = False
             self.fields["password"].help_text = _(
-                "Leave blank to keep the current password."
+                "Leave blank to keep the current password or API key."
             )
 
     def clean(self):
@@ -2846,6 +2857,12 @@ class DynamicMailConfForm(ModelForm):
             for field in self.SMTP_REQUIRED_FIELDS:
                 if cleaned_data.get(field) in (None, ""):
                     self.add_error(field, _("This field is required"))
+        else:
+            # The page hides the SMTP-only fields for the API, but still posts
+            # them: drop what they held, or a hidden "Use TLS" plus "Use SSL"
+            # fails validation where the admin cannot see or fix it.
+            for field in MailTransportSelect.SMTP_ONLY_FIELDS:
+                cleaned_data[field] = self.fields[field].to_python(None)
         return cleaned_data
 
     def clean_password(self):
