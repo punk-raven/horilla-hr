@@ -1367,67 +1367,6 @@
             }
             loadConversionFunnel();
 
-            /* ===== legacy =====
-            // ─── SOURCE OF HIRE ───
-            function loadSourceOfHire() {
-                fetchP("{% url 'recruitment-dashboard-source' %}")
-                .then(r => r.json())
-                .then(data => {
-                    const hasRealSource = data.sources.some(s => s.key !== 'not_set');
-                    if (!data.sources.length || !hasRealSource) { PieLegend.clearFor(document.querySelector("#chart-source-hire")); document.querySelector("#chart-source-hire").innerHTML = emptyHtml('{% trans "No source data available yet"|escapejs %}'); return; }
-                    const sourceColors = { 'Application Form': '#3b82f6', 'Inside Software': '#E54F38', 'Referral': '#22c55e', 'Other': '#94a3b8' };
-                    renderChart('source-hire', document.querySelector("#chart-source-hire"), PieLegend.options(document.querySelector("#chart-source-hire"), () => chartInstances['source-hire'], 'sources', {
-                        series: data.sources.map(s => s.count),
-                        chart: { type: 'donut', height: 300, background: 'transparent', fontFamily: 'inherit',
-                            events: { dataPointSelection: (e, ctx, config) => {
-                                const src = data.sources[config.dataPointIndex];
-                                if (src.key === 'referral') {
-                                    window.location.href = "{% url 'candidate-view' %}?referral=true";
-                                } else if (src.key && src.key !== 'not_set') {
-                                    window.location.href = "{% url 'candidate-view' %}?source=" + src.key;
-                                } else {
-                                    window.location.href = "{% url 'candidate-view' %}";
-                                }
-                            }}
-                        },
-                        labels: data.sources.map(s => s.source),
-                        colors: data.sources.map(s => sourceColors[s.source] || COLORS[data.sources.indexOf(s) % COLORS.length]),
-                        plotOptions: { pie: { donut: { size: '65%', labels: { show: true, total: { show: true, label: '{% trans "Total"|escapejs %}', color: textColor, fontSize: '13px', fontWeight: 600, formatter: w => w.globals.seriesTotals.reduce((a,b)=>a+b,0) } } } } },
-                        stroke: { width: 2, colors: [isDark ? '#242424' : '#ffffff'] },
-                        dataLabels: { enabled: false },
-                        legend: { position: 'bottom', labels: { colors: textColor }, fontSize: '11px', markers: { width: 8, height: 8, radius: 2 } },
-                        tooltip: { theme: isDark ? 'dark' : 'light' },
-                    }));
-                });
-            }
-            loadSourceOfHire();
-
-            // ─── OPEN POSITIONS BY DEPARTMENT ───
-            function loadOpenPositionsByDept() {
-                fetchP("{% url 'recruitment-dashboard-open-dept' %}")
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.departments.length) { document.querySelector("#chart-open-dept").innerHTML = emptyHtml('{% trans "No open positions"|escapejs %}'); return; }
-                    renderChart('open-dept', document.querySelector("#chart-open-dept"), {
-                        series: [
-                            { name: '{% trans "Filled"|escapejs %}', data: data.departments.map(d => d.filled) },
-                            { name: '{% trans "Open"|escapejs %}', data: data.departments.map(d => d.open) },
-                        ],
-                        chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit', stacked: true },
-                        colors: ['#22c55e', '#f59e0b'],
-                        plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '55%' } },
-                        xaxis: { categories: data.departments.map(d => d.department), labels: { style: { colors: textColor } } },
-                        yaxis: { labels: { style: { colors: textColor, fontSize: '11px' } } },
-                        grid: { borderColor: gridColor },
-                        dataLabels: { enabled: true, style: { fontSize: '11px' } },
-                        legend: { position: 'top', horizontalAlign: 'right', labels: { colors: textColor }, fontSize: '11px', markers: { width: 8, height: 8, radius: 2 } },
-                        tooltip: { theme: isDark ? 'dark' : 'light' },
-                    });
-                });
-            }
-            loadOpenPositionsByDept();
-            */
-
             // ─── SOURCE CONVERSION ───
             // One column per candidate source ("How did you hear about us?" on the
             // application form), in that source's colour: solid for hired, faded for the
@@ -1532,36 +1471,6 @@
             }
             loadInterviews();
 
-            /* ===== legacy =====
-            // ─── CANDIDATES BY STAGE ───
-            function loadStageSummary() {
-                fetchP("{% url 'recruitment-dashboard-stage-summary' %}")
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.stages.length) { document.querySelector("#chart-stage-summary").innerHTML = emptyHtml('{% trans "No data"|escapejs %}'); return; }
-                    const stageColors = { initial: '#94a3b8', test: '#3b82f6', interview: '#f59e0b', hired: '#22c55e', cancelled: '#ef4444' };
-                    renderChart('stage-summary', document.querySelector("#chart-stage-summary"), {
-                        series: [{ name: '{% trans "Candidates"|escapejs %}', data: data.stages.map(s => s.count) }],
-                        chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit',
-                            events: { dataPointSelection: (e, ctx, config) => {
-                                const stage = data.stages[config.dataPointIndex];
-                                window.location.href = "{% url 'candidate-view' %}?stage_id__stage_type=" + stage.type;
-                            }}
-                        },
-                        colors: data.stages.map(s => stageColors[s.type] || (getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim() || '#E54F38')),
-                        plotOptions: { bar: { borderRadius: 8, columnWidth: '55%', distributed: true } },
-                        xaxis: { categories: data.stages.map(s => s.label), labels: { style: { colors: textColor, fontSize: '12px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
-                        yaxis: { labels: { style: { colors: textColor } } },
-                        grid: { borderColor: gridColor, strokeDashArray: 4 },
-                        dataLabels: { enabled: true, style: { fontSize: '12px', colors: ['#fff'] } },
-                        legend: { show: false },
-                        tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: v => v + ' candidate(s)' } },
-                    });
-                });
-            }
-            loadStageSummary();
-            */
-
             // ─── OFFER LETTER STATUS ───
             function loadOfferStatus() {
                 fetchP("{% url 'recruitment-dashboard-offer-status' %}")
@@ -1589,33 +1498,6 @@
                 });
             }
             loadOfferStatus();
-
-            /* ===== legacy =====
-            // ─── HIRING PIPELINE TABLE ───
-            function loadPipelineTable() {
-                fetchP("{% url 'recruitment-dashboard-pipeline' %}")
-                .then(r => r.json())
-                .then(data => {
-                    const el = document.getElementById('rd-pipeline-table');
-                    if (!data.pipeline.length) { el.innerHTML = emptyHtml('{% trans "No active recruitments"|escapejs %}'); return; }
-                    const types = Object.entries(data.stage_types);
-                    let html = '<table class="rd-pipeline-table"><thead><tr><th>{% trans "Recruitment"|escapejs %}</th>';
-                    types.forEach(([k, v]) => { html += `<th style="text-align:center">${v}</th>`; });
-                    html += '<th style="text-align:center">{% trans "Total"|escapejs %}</th></tr></thead><tbody>';
-                    data.pipeline.forEach(p => {
-                        html += `<tr><td><a href="{% url 'candidate-view' %}?recruitment=${encodeURIComponent(p.recruitment)}" style="color:var(--rd-indigo);text-decoration:none;font-weight:500;">${p.recruitment}</a></td>`;
-                        types.forEach(([k]) => {
-                            const count = p.stages[k] || 0;
-                            html += `<td style="text-align:center"><span class="rd-pipeline-cell rd-pipeline-cell--${k}">${count}</span></td>`;
-                        });
-                        html += `<td style="text-align:center;font-weight:700;">${p.total}</td></tr>`;
-                    });
-                    html += '</tbody></table>';
-                    el.innerHTML = html;
-                });
-            }
-            loadPipelineTable();
-            */
 
             // ─── VACANCY VS HIRED ───
             // The recruitments are the chips under the chart (same chip legend as the donuts):
@@ -1729,34 +1611,6 @@
             }
             loadHireRate();
 
-            /* ===== legacy =====
-            // ─── TIME TO HIRE ───
-            function loadTimeToHire() {
-                fetchP("{% url 'recruitment-dashboard-time-to-hire' %}")
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.data.length) { document.querySelector("#chart-time-to-hire").innerHTML = emptyHtml('{% trans "No hire date data available"|escapejs %}'); return; }
-                    renderChart('time-to-hire', document.querySelector("#chart-time-to-hire"), {
-                        series: [{ name: '{% trans "Avg Days"|escapejs %}', data: data.data.map(d => d.avg_days) }],
-                        chart: { type: 'bar', height: 300, toolbar: { show: false }, background: 'transparent', fontFamily: 'inherit',
-                            events: { dataPointSelection: (e, ctx, config) => {
-                                const rec = data.data[config.dataPointIndex]?.recruitment || '';
-                                window.location.href = "{% url 'candidate-view' %}?recruitment=" + encodeURIComponent(rec) + "&hired=true";
-                            }}
-                        },
-                        colors: [(getComputedStyle(document.documentElement).getPropertyValue('--primary-600').trim() || '#E54F38')],
-                        plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
-                        xaxis: { categories: data.data.map(d => d.recruitment), labels: { style: { colors: textColor, fontSize: '11px' }, rotate: -45 }, axisBorder: { show: false }, axisTicks: { show: false } },
-                        yaxis: { labels: { style: { colors: textColor }, formatter: v => v + 'd' } },
-                        grid: { borderColor: gridColor, strokeDashArray: 4 },
-                        dataLabels: { enabled: true, formatter: v => (v === null ? '{% trans "N/A"|escapejs %}' : v + ' {% trans "days"|escapejs %}'), style: { fontSize: '11px', colors: ['#fff'] } },
-                        tooltip: { theme: isDark ? 'dark' : 'light', y: { formatter: (v, { dataPointIndex: i }) => v === null ? '{% trans "No joining date recorded"|escapejs %}' : `${v} days (${data.data[i].hired_count} hired)` } },
-                    });
-                });
-            }
-            loadTimeToHire();
-            */
-
             // ─── JOININGS PER MONTH (period-driven) ───
             const joinFrom = document.getElementById('rd-join-from');
             const joinTo = document.getElementById('rd-join-to');
@@ -1861,31 +1715,6 @@
                 .catch(() => { el.innerHTML = emptyHtml('{% trans "Unable to load"|escapejs %}'); });
             }
             loadRejectionReasons();
-
-            /* ===== legacy =====
-            // ─── ONGOING RECRUITMENTS & MANAGERS ───
-            function loadManagersTable() {
-                fetchP("{% url 'recruitment-dashboard-managers' %}")
-                .then(r => r.json())
-                .then(data => {
-                    const el = document.getElementById('rd-managers-table');
-                    if (!data.recruitments.length) { el.innerHTML = emptyHtml('{% trans "No ongoing recruitments"|escapejs %}'); return; }
-                    let html = '<table class="rd-pipeline-table"><thead><tr><th>{% trans "Recruitment"|escapejs %}</th><th style="text-align:center">{% trans "Vacancy"|escapejs %}</th><th style="text-align:center">{% trans "Candidates"|escapejs %}</th><th>{% trans "Managers"|escapejs %}</th></tr></thead><tbody>';
-                    data.recruitments.forEach(r => {
-                        const chips = r.managers.map(m => `<span class="rd-chip">${m}</span>`).join('');
-                        html += `<tr>
-                    <td><a href="{% url 'candidate-view' %}?recruitment=${encodeURIComponent(r.recruitment)}" style="color:var(--rd-indigo);text-decoration:none;font-weight:500;">${r.recruitment}</a></td>
-                    <td style="text-align:center;font-weight:600;">${r.vacancy}</td>
-                    <td style="text-align:center;font-weight:600;">${r.candidates}</td>
-                    <td>${chips || '<span style="opacity:0.4">—</span>'}</td>
-                </tr>`;
-                    });
-                    html += '</tbody></table>';
-                    el.innerHTML = html;
-                });
-            }
-            loadManagersTable();
-            */
 
             // ── Refresh all data ──
             function refreshAllData() {
