@@ -272,6 +272,58 @@ body.dark .oh-alert[class*="oh-alert--"] {
   color: var(--hx-color-slate-800);
 }
 
+/* ── Product tour (driver.js) ─────────────────────────────────────────────
+   driver.css only has a white popover, which sat as a bright box over the
+   dimmed dark app. Colours only: its size and placement are driver.js's. */
+.dark .driver-popover {
+  background-color: #1c2437;
+  color: #dde1e9;
+  box-shadow: 0 0 0 1px #374564, var(--hx-elevation-lg);
+}
+
+.dark .driver-popover-close-btn {
+  color: var(--hx-color-slate-400);
+}
+
+.dark .driver-popover-close-btn:hover {
+  color: #fff;
+}
+
+.dark .driver-popover-progress-text {
+  color: var(--hx-color-slate-400);
+}
+
+.dark .driver-popover-footer button {
+  background-color: #151b2a;
+  color: #dde1e9;
+  border-color: #374564;
+  text-shadow: none;
+}
+
+.dark .driver-popover-footer button:hover {
+  background-color: #29334c;
+}
+
+.dark .driver-popover-footer .driver-popover-btn-disabled {
+  color: var(--hx-color-slate-500);
+}
+
+.dark .driver-popover-arrow-side-left {
+  border-left-color: #1c2437;
+}
+
+.dark .driver-popover-arrow-side-right {
+  border-right-color: #1c2437;
+}
+
+.dark .driver-popover-arrow-side-top {
+  border-top-color: #1c2437;
+}
+
+.dark .driver-popover-arrow-side-bottom {
+  border-bottom-color: #1c2437;
+}
+
 /* ── Sign-in pages (auth_layout.html) ─────────────────────────────────────
    Text contrast (skill: color-contrast 4.5:1, priority 1). The light theme
    shades are calibrated as fills: Ocean Blue's primary-600 (#3b82f6) is

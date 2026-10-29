@@ -85,8 +85,6 @@ body.dark
   .select2-container--default
   .select2-search--dropdown
   .select2-search__field,
-body.dark .fixed-table th,
-body.dark .fixed-table td,
 body.dark input,
 body.dark .border-primary-500,
 body.dark .oh-btn-group > *,
@@ -127,6 +125,13 @@ body.dark .ansbox,
 body.dark .ansbox .oh-main__titlebar,
 body.dark .oh-activity-sidebar__qa-item {
   border-color: #374564 !important;
+}
+/* Not !important, unlike the group above: list rows mark their status with
+   a coloured `border-left: 4px solid ... !important` (e.g. .rejected-rejected
+   on leave requests), which an !important border-color here painted over. */
+body.dark .fixed-table th,
+body.dark .fixed-table td {
+  border-color: #374564;
 }
 body.dark .oh-input,
 body.dark .oh-select,
