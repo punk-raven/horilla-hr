@@ -128,10 +128,10 @@ def tour_active(request):
             continue
         progress = progress_map.get(tour.id)
         status = progress.status if progress else None
-        auto_start = tour.trigger == "auto_once" and status not in (
-            "completed",
-            "skipped",
-        )
+        # "Auto-start once": a tour the user has been shown (any progress row:
+        # finished, skipped, or left mid-way by navigating away) never starts
+        # by itself again. It stays listed in the Help launcher for replay.
+        auto_start = tour.trigger == "auto_once" and progress is None
         payload.append(
             {
                 "id": tour.id,
@@ -171,6 +171,10 @@ def tour_progress(request):
         tour=tour, user=request.user
     )
     step_index = int(last_step) if (last_step and str(last_step).isdigit()) else None
+    if status == "in_progress" and progress.status in ("completed", "skipped"):
+        # Replaying a finished tour (or a late "started" beacon landing after
+        # the close) must not turn it back into an unfinished one.
+        status = progress.status
     progress.mark(status, step_index)
     return JsonResponse({"ok": True, "status": progress.status})
 

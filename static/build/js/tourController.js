@@ -40,7 +40,14 @@
     fd.append('status', status);
     if (lastStep !== undefined) fd.append('last_step', lastStep);
     fd.append('csrfmiddlewaretoken', csrfToken());
-    fetch(CFG.progressUrl, { method: 'POST', body: fd }).catch(function () {});
+    // keepalive: the close is often followed at once by a navigation, which
+    // would otherwise cancel the request and leave the tour unrecorded.
+    fetch(CFG.progressUrl, {
+      method: 'POST',
+      body: fd,
+      credentials: 'same-origin',
+      keepalive: true,
+    }).catch(function () {});
   }
 
   // ── Run a tour ────────────────────────────────────────────────────────────
@@ -131,20 +138,9 @@
 
     _panel = document.createElement('div');
     _panel.id = 'tourLauncherPanel';
-    _panel.style.cssText = [
-      'display:none',
-      'position:absolute',
-      'right:0',
-      'top:calc(100% + 8px)',
-      'min-width:220px',
-      'max-width:280px',
-      'background:#fff',
-      'border:1px solid #e5e7eb',
-      'border-radius:8px',
-      'box-shadow:0 10px 25px rgba(0,0,0,.12)',
-      'z-index:9999',
-      'overflow:hidden',
-    ].join(';');
+    // Looks (light and dark) live in horilla_theme's ux.css (.hx-tour-panel).
+    _panel.className = 'hx-tour-panel';
+    _panel.style.display = 'none';
 
     wrapper.style.position = 'relative';
     wrapper.appendChild(_panel);
@@ -166,48 +162,33 @@
 
     // Header
     var hdr = document.createElement('div');
-    hdr.style.cssText = 'padding:10px 12px 8px;border-bottom:1px solid #f3f4f6;font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;';
+    hdr.className = 'hx-tour-panel__header';
     hdr.textContent = 'Product Tours';
     panel.appendChild(hdr);
 
     if (!tours.length) {
       var empty = document.createElement('div');
-      empty.style.cssText = 'padding:20px 16px;font-size:12px;color:#9ca3af;text-align:center;';
+      empty.className = 'hx-tour-panel__empty';
       empty.textContent = 'No tours available for this page.';
       panel.appendChild(empty);
       return;
     }
 
     var list = document.createElement('ul');
-    list.style.cssText = 'list-style:none;margin:0;padding:4px 0;';
+    list.className = 'hx-tour-panel__list';
 
     tours.forEach(function (tour) {
       var li = document.createElement('li');
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.style.cssText = [
-        'width:100%',
-        'text-align:left',
-        'display:flex',
-        'align-items:center',
-        'gap:10px',
-        'padding:9px 12px',
-        'background:none',
-        'border:none',
-        'cursor:pointer',
-        'font-size:13px',
-        'color:#374151',
-        'transition:background .15s',
-      ].join(';');
-      btn.onmouseover = function () { btn.style.background = '#f0f9ff'; };
-      btn.onmouseout = function () { btn.style.background = 'none'; };
+      btn.className = 'hx-tour-panel__item';
 
       var iconEl = document.createElement('ion-icon');
       iconEl.setAttribute('name', tour.icon || 'map-outline');
-      iconEl.style.cssText = 'font-size:16px;color:#2563eb;flex-shrink:0;';
+      iconEl.className = 'hx-tour-panel__icon';
 
       var labelEl = document.createElement('span');
-      labelEl.style.cssText = 'line-height:1.3;';
+      labelEl.className = 'hx-tour-panel__label';
       labelEl.textContent = tour.title;
 
       btn.appendChild(iconEl);
@@ -216,7 +197,7 @@
       // Pending dot
       if (tour.auto_start && tour.status !== 'completed' && tour.status !== 'skipped') {
         var dot = document.createElement('span');
-        dot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:#16a34a;margin-left:auto;flex-shrink:0;';
+        dot.className = 'hx-tour-panel__dot';
         btn.appendChild(dot);
       }
 
@@ -233,7 +214,7 @@
     if (!panel) return;
     panel.style.display = 'block';
     // Always re-fetch: path may have changed via HTMX since last open
-    panel.innerHTML = '<div style="padding:16px;font-size:12px;color:#9ca3af;text-align:center;">Loading…</div>';
+    panel.innerHTML = '<div class="hx-tour-panel__empty">Loading…</div>';
     fetchTours().then(function (tours) { renderPanel(tours); });
   }
 

@@ -69,7 +69,16 @@ class TourApiTests(TestCase):
         self.employee = HorillaUser.objects.create_user(
             username="tour_emp", email="emp@t.com", password="pass12345"
         )
-        attach_employee(self.employee, "Emp", "User")
+        employee = attach_employee(self.employee, "Emp", "User")
+        # A non-superuser only sees records of their companies (plus global
+        # ones) once the company middleware scopes the request: give the
+        # employee a home company, as every real employee has.
+        from employee.models import EmployeeWorkInformation
+
+        EmployeeWorkInformation.objects.update_or_create(
+            employee_id=employee,
+            defaults={"company_id": make_company("Tour Co", "addr-tour")},
+        )
         self.active_url = reverse("tour-active")
         self.progress_url = reverse("tour-progress")
 
@@ -129,6 +138,73 @@ class TourApiTests(TestCase):
         again = self._active("dashboard")["getting-started"]
         self.assertFalse(again["auto_start"])
         self.assertEqual(again["status"], "completed")
+
+    def test_skip_suppresses_autostart(self):
+        self.client.force_login(self.admin)
+        gs = Tour.objects.get(slug="getting-started")
+        self.client.post(self.progress_url, {"tour_id": gs.id, "status": "skipped"})
+        again = self._active("dashboard")["getting-started"]
+        self.assertFalse(again["auto_start"])
+        self.assertEqual(again["status"], "skipped")
+
+    def test_tour_left_mid_way_does_not_autostart_again(self):
+        # The controller records "in_progress" as the tour starts. A user who
+        # then navigates away (reload, link) has seen it: it must not start by
+        # itself on every later page load until finished.
+        self.client.force_login(self.admin)
+        gs = Tour.objects.get(slug="getting-started")
+        self.client.post(
+            self.progress_url,
+            {"tour_id": gs.id, "status": "in_progress", "last_step": 0},
+        )
+        again = self._active("dashboard")["getting-started"]
+        self.assertFalse(again["auto_start"])
+        self.assertEqual(again["status"], "in_progress")
+        # Still listed (with its steps) so the Help launcher can replay it.
+        self.assertGreater(len(again["steps"]), 0)
+
+    def test_autostart_is_per_tour(self):
+        # Dismissing one page's tour leaves the others to auto-start once.
+        self.client.force_login(self.admin)
+        gs = Tour.objects.get(slug="getting-started")
+        other = make_tour("other-dashboard-tour")
+        self.client.post(self.progress_url, {"tour_id": gs.id, "status": "skipped"})
+        tours = self._active("dashboard")
+        self.assertFalse(tours["getting-started"]["auto_start"])
+        self.assertTrue(tours[other.slug]["auto_start"])
+
+    def test_autostart_is_per_user(self):
+        tour = make_tour("everyone-tour")
+        self.client.force_login(self.admin)
+        self.client.post(self.progress_url, {"tour_id": tour.id, "status": "skipped"})
+        self.client.force_login(self.employee)
+        self.assertTrue(self._active("dashboard")["everyone-tour"]["auto_start"])
+
+    def test_late_start_report_does_not_reopen_a_dismissed_tour(self):
+        # The "started" and "closed" requests can arrive out of order.
+        self.client.force_login(self.admin)
+        gs = Tour.objects.get(slug="getting-started")
+        self.client.post(self.progress_url, {"tour_id": gs.id, "status": "skipped"})
+        resp = self.client.post(
+            self.progress_url,
+            {"tour_id": gs.id, "status": "in_progress", "last_step": 0},
+        )
+        self.assertEqual(json.loads(resp.content)["status"], "skipped")
+        self.assertEqual(
+            TourProgress.objects.get(tour=gs, user=self.admin).status, "skipped"
+        )
+
+    def test_pending_flag_ignores_tours_already_shown(self):
+        from types import SimpleNamespace
+
+        from horilla_tour.context_processors import pending_tours_flag
+
+        Tour.objects.exclude(slug="getting-started").update(is_published=False)
+        gs = Tour.objects.get(slug="getting-started")
+        request = SimpleNamespace(user=self.admin)
+        self.assertTrue(pending_tours_flag(request)["tour_has_pending"])
+        TourProgress.objects.create(tour=gs, user=self.admin, status="in_progress")
+        self.assertFalse(pending_tours_flag(request)["tour_has_pending"])
 
 
 class TourPermissionTests(TestCase):

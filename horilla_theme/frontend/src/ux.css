@@ -324,6 +324,117 @@ body.dark .oh-alert[class*="oh-alert--"] {
   border-bottom-color: #1c2437;
 }
 
+/* ── Product tour launcher (tourController.js) ────────────────────────────
+   The "?" button's panel is built by tourController.js, which used to style
+   it inline in light colours only (a white box over the dark header). Its
+   whole look lives here now, with the same geometry as before; it is this
+   layer's own element, so the "visual polish only" rule above does not
+   apply to it. */
+.hx-tour-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 9999;
+  min-width: 220px;
+  max-width: 280px;
+  overflow: hidden;
+  border: 1px solid var(--hx-color-gray-200);
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 10px 25px rgb(0 0 0 / 0.12);
+}
+
+.hx-tour-panel__header {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--hx-color-gray-100);
+  color: var(--hx-color-gray-500);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hx-tour-panel__empty {
+  padding: 20px 16px;
+  color: var(--hx-color-gray-500);
+  font-size: 12px;
+  text-align: center;
+}
+
+.hx-tour-panel__list {
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.hx-tour-panel__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  background: none;
+  color: var(--hx-color-gray-700);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--hx-duration-fast) var(--hx-ease-out);
+}
+
+.hx-tour-panel__item:hover,
+.hx-tour-panel__item:focus-visible {
+  background-color: var(--hx-color-sky-50);
+}
+
+.hx-tour-panel__icon {
+  flex-shrink: 0;
+  color: var(--hx-color-blue-600);
+  font-size: 16px;
+}
+
+.hx-tour-panel__label {
+  line-height: 1.3;
+}
+
+.hx-tour-panel__dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  margin-left: auto;
+  border-radius: 50%;
+  background-color: var(--hx-color-green-600);
+}
+
+/* Dark: dark.css's card palette, like the tour popover above. */
+.dark .hx-tour-panel {
+  border-color: #374564;
+  background-color: #1c2437;
+  box-shadow: 0 0 0 1px #374564, var(--hx-elevation-lg);
+}
+
+.dark .hx-tour-panel__header {
+  border-bottom-color: #374564;
+  color: var(--hx-color-slate-400);
+}
+
+.dark .hx-tour-panel__empty {
+  color: var(--hx-color-slate-400);
+}
+
+.dark .hx-tour-panel__item {
+  color: #dde1e9;
+}
+
+.dark .hx-tour-panel__item:hover,
+.dark .hx-tour-panel__item:focus-visible {
+  background-color: #29334c;
+}
+
+.dark .hx-tour-panel__icon {
+  color: var(--hx-color-blue-400);
+}
+
 /* ── Sign-in pages (auth_layout.html) ─────────────────────────────────────
    Text contrast (skill: color-contrast 4.5:1, priority 1). The light theme
    shades are calibrated as fills: Ocean Blue's primary-600 (#3b82f6) is
