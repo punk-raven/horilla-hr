@@ -1509,13 +1509,16 @@ def paginator_qry(queryset, page_number):
     return queryset
 
 
-def is_holiday(date, employee=None):
+def is_holiday(date, employee=None, company=None):
     """
     Check if the given date is a holiday.
     Args:
         date (datetime.date): The date to check.
         employee: Optional Employee instance. When provided, only non-specific holidays
                   or specific holidays that include this employee are matched.
+        company: Optional Company instance. When provided, only holidays of that
+                 company or of no company are matched, without relying on the
+                 request's selected company (background jobs have no request).
     Returns:
         Holidays or bool: The Holidays object if the date is a holiday, otherwise False.
     """
@@ -1525,15 +1528,19 @@ def is_holiday(date, employee=None):
     )
     if employee is not None:
         holidays = holidays.filter(Q(is_specific=False) | Q(employees=employee))
+    if company is not None:
+        holidays = holidays.filter(Q(company_id__isnull=True) | Q(company_id=company))
     holiday = holidays.first()
     return holiday if holiday else False
 
 
-def is_company_leave(input_date):
+def is_company_leave(input_date, company=None):
     """
     Check if the given date is a company leave.
     Args:
         input_date (datetime.date): The date to check.
+        company: Optional Company instance. When provided, only weekly offs of
+                 that company or of no company are matched.
     Returns:
         CompanyLeaves or bool: The CompanyLeaves object if the date is a company leave, otherwise False.
     """
@@ -1553,7 +1560,12 @@ def is_company_leave(input_date):
         | Q(
             based_on_week=date_week_no, based_on_week_day=date_week_day
         )  # Match specific week and weekday
-    ).first()
+    )
+    if company is not None:
+        company_leave = company_leave.filter(
+            Q(company_id__isnull=True) | Q(company_id=company)
+        ).distinct()
+    company_leave = company_leave.first()
 
     return company_leave if company_leave else False
 
