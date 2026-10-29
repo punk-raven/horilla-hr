@@ -615,6 +615,30 @@ class SubscriptionClaimTests(TestCase):
         # Not "skipped": force skips both the due check and the claim.
         self.assertNotEqual(result.status, "skipped")
 
+    def test_delivery_mail_carries_the_brand_name(self):
+        """The subject and body name the product from BRAND_NAME, not Horilla."""
+        from unittest.mock import patch
+
+        from django.core.mail import EmailMessage
+        from django.test import override_settings
+
+        from report.delivery import deliver_subscription
+        from report.models import ReportSubscription
+
+        sub = self._subscription()
+        with override_settings(
+            BRAND_NAME="Acme HR"
+        ), self._mail_configured(), patch.object(
+            EmailMessage, "send", autospec=True, return_value=1
+        ) as send:
+            result = deliver_subscription(ReportSubscription.objects.get(pk=sub.pk))
+
+        self.assertTrue(result.ok, result.detail)
+        message = send.call_args.args[0]
+        self.assertEqual(message.subject, "[Acme HR] Weekly workforce")
+        self.assertIn("Attached is your scheduled Acme HR report:", message.body)
+        self.assertNotIn("Horilla", message.subject + message.body)
+
 
 class AsyncExportScopingTests(TestCase):
     """The export worker runs outside the request, so tenant scope and the
@@ -1484,3 +1508,24 @@ class ExportPolishTests(TestCase):
         from report.chart_render import render_chart_png
 
         self.assertIsNone(render_chart_png({"categories": [], "series": []}))
+
+
+class AsyncExportBrandingTests(TestCase):
+    def test_failure_mail_carries_the_brand_name(self):
+        from unittest.mock import patch
+
+        from django.core.mail import EmailMessage
+        from django.test import override_settings
+
+        from report import async_export
+
+        with override_settings(BRAND_NAME="Acme HR"), patch(
+            "base.backends.ConfiguredEmailBackend.dynamic_from_email_with_display_name",
+            "HR <hr@example.com>",
+            create=True,
+        ), patch.object(EmailMessage, "send", autospec=True, return_value=1) as send:
+            async_export._notify_failure("owner@example.com", "workforce-composition")
+
+        message = send.call_args.args[0]
+        self.assertTrue(message.subject.startswith("Acme HR report export failed: "))
+        self.assertNotIn("Horilla", message.subject)
