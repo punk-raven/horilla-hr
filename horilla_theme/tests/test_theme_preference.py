@@ -113,6 +113,27 @@ class ThemeMarkupMixin:
         self.assert_theme(body, "")
 
 
+class SignInPageThemeTests(ThemeMarkupMixin, TestCase):
+    def get_page(self):
+        response = self.client.get(reverse("login"))
+        self.assertEqual(response.status_code, 200)
+        return response.content.decode()
+
+    def test_every_sign_in_page_gets_the_theme(self):
+        self.client.cookies[THEME_COOKIE_NAME] = "dark"
+        for name in ("login", "forgot-password", "reset-send-success"):
+            with self.subTest(page=name):
+                body = self.client.get(reverse(name)).content.decode()
+                self.assertIn("dark", self.classes(body, "html"))
+                self.assertIn('var preference = "dark" || null;', body)
+
+    def test_sign_in_pages_have_a_theme_switch(self):
+        body = self.get_page()
+        self.assertIn("data-theme-toggle", body)
+        self.assertIn('name="moon-outline"', body)
+        self.assertIn('name="bulb-outline"', body)
+
+
 class SignedInPageThemeTests(ThemeMarkupMixin, TestCase):
     def setUp(self):
         company = make_company()
@@ -144,3 +165,8 @@ class SignedInPageThemeTests(ThemeMarkupMixin, TestCase):
         self.assertEqual(response.cookies[THEME_COOKIE_NAME].value, "dark")
         self.assertNotIn("theme", self.client.session)
 
+        # And it survives signing out (the test client's own logout() would
+        # drop every cookie, which a browser does not).
+        self.client.get(reverse("logout"))
+        body = self.client.get(reverse("login")).content.decode()
+        self.assertIn('var preference = "dark" || null;', body)

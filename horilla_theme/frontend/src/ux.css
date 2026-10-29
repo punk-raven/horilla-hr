@@ -55,6 +55,19 @@
   --hx-elevation-lg: 0 10px 30px -8px rgb(15 23 42 / 0.18), 0 2px 6px -2px rgb(15 23 42 / 0.08);
 }
 
+/* The same tokens for the dark theme (`dark` on <html>, set by
+   theme_init.html). Borders match dark.css; muted text and placeholders are
+   a step lighter so they keep 4.5:1 on the dark panels. */
+:root.dark {
+  --hx-muted-fg: var(--hx-color-slate-400);
+  --hx-placeholder: var(--hx-color-slate-400);
+  --hx-border: #374564;
+  --hx-border-strong: #52628a;
+  --hx-ring-soft: color-mix(in srgb, var(--hx-brand) 35%, transparent);
+  --hx-row-hover: color-mix(in srgb, var(--hx-brand) 12%, transparent);
+  --hx-elevation-lg: 0 10px 30px -8px rgb(0 0 0 / 0.6), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+}
+
 /* ── Typography ───────────────────────────────────────────────────────────
    Body copy at 1.5 line height (skill: line-height), crisper glyphs, and
    tabular figures wherever numbers line up in columns (number-tabular). */
@@ -268,7 +281,8 @@ body.dark .oh-alert[class*="oh-alert--"] {
   color: color-mix(in srgb, var(--primary-600) 78%, black);
 }
 
-.oh-auth-card button[type="submit"].bg-brand-600:not(:hover) {
+/* Buttons and button-styled links ("Request a new link", "Back to Login"). */
+.oh-auth-card .bg-brand-600:not(:hover) {
   background-color: color-mix(in srgb, var(--primary-600) 85%, black);
 }
 
@@ -279,6 +293,75 @@ body.dark .oh-alert[class*="oh-alert--"] {
 .oh-auth-card .oh-password-input--toggle:hover {
   color: var(--hx-color-slate-700);
   background-color: transparent;
+}
+
+/* The theme switch in the corner of the sign-in pages. Fixed, so it takes
+   no space in the centred layout. */
+.oh-auth-theme-toggle {
+  color: var(--hx-color-slate-600);
+  background-color: rgb(255 255 255 / 0.65);
+  transition: background-color var(--hx-duration-base) var(--hx-ease-out),
+    color var(--hx-duration-base) var(--hx-ease-out);
+}
+
+.oh-auth-theme-toggle:hover {
+  color: var(--hx-color-slate-900);
+  background-color: #fff;
+}
+
+.dark .oh-auth-theme-toggle {
+  color: var(--hx-color-slate-300);
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+.dark .oh-auth-theme-toggle:hover {
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.12);
+}
+
+/* Sign-in pages in the dark theme, on dark.css's palette: card #1c2437
+   (set in auth_layout.html), fields #151b2a, borders #374564, text
+   #dde1e9, secondary text #bbbbbb (8.2:1). Low specificity on purpose, so
+   the hover and focus states above still win. */
+.dark .oh-auth-card .text-color-600 {
+  color: #bbbbbb;
+}
+
+.dark .oh-auth-card input:not([type="checkbox"]):not([type="radio"]) {
+  background-color: #151b2a;
+  border-color: var(--hx-border);
+  color: #dde1e9;
+}
+
+/* Links: the light theme deepens the brand hue for contrast on white; on the
+   dark card lift it towards white instead (Ocean Blue: 7.4:1), and brighten
+   further on hover rather than darken into the card. */
+.dark .oh-auth-card a.text-brand-600:not(:hover) {
+  color: color-mix(in srgb, var(--primary-600) 60%, white);
+}
+
+.dark .oh-auth-card a.text-brand-600:hover {
+  color: color-mix(in srgb, var(--primary-600) 40%, white);
+}
+
+/* The primary button keeps its light-theme fill (white label 4.9:1 on
+   Ocean Blue); its hover goes deeper instead of to the theme's 800, which
+   all but vanishes into the dark card. */
+.dark .oh-auth-card .bg-brand-600:hover {
+  background-color: color-mix(in srgb, var(--primary-600) 70%, black);
+}
+
+/* A field with an error (reset_password.html) keeps a red border. */
+.dark .oh-auth-card input.border-danger:not([type="checkbox"]):not([type="radio"]) {
+  border-color: #f87171;
+}
+
+.dark .oh-auth-card .text-danger-dark {
+  color: #fca5a5;
+}
+
+.dark .oh-auth-card .oh-password-input--toggle:hover {
+  color: var(--hx-color-slate-200);
 }
 
 /* The show-password toggle sits flush inside its input: keep the ring
