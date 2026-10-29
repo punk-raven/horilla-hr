@@ -1,0 +1,17 @@
+{
+  "name": "horilla-theme-frontend",
+  "private": true,
+  "description": "Build for the horilla_theme UX polish layer (Tailwind CSS + Motion). See README.md.",
+  "scripts": {
+    "build:css": "tailwindcss -i src/ux.css -o ../static/horilla_theme/assets/css/ux.css --minify",
+    "build:js": "esbuild src/ux-motion.js --bundle --minify --format=iife --target=es2019 --outfile=../static/horilla_theme/assets/js/ux-motion.js",
+    "build": "npm run build:css && npm run build:js",
+    "watch:css": "tailwindcss -i src/ux.css -o ../static/horilla_theme/assets/css/ux.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.3",
+    "esbuild": "0.28.2",
+    "motion": "14.7.1",
+    "tailwindcss": "4.3.3"
+  }
+}

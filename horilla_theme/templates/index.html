@@ -283,6 +283,11 @@
                 }
             </style>
         {% endwith %}
+        {% comment %} UX polish layer (focus rings, control states, toasts,
+           row hover, loading bar). Built from horilla_theme/frontend - see
+           the README there. Loads after the theme tokens above, which it
+           reads, and before page-specific styles. {% endcomment %}
+        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=1">
 
         {% block styles %}
             <!-- Page-specific styles (optional) -->

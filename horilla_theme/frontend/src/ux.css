@@ -1,0 +1,365 @@
+/*
+ * horilla_theme UX polish layer.
+ *
+ * Source of static/horilla_theme/assets/css/ux.css (built, minified, and
+ * committed like the rest of the theme's static files). Rebuild with
+ * `npm run build:css` in horilla_theme/frontend - see README.md there.
+ *
+ * Ground rules, so this layer can sit on top of the existing stylesheets
+ * (tailwind.css, the Tailwind v3 runtime, global.css, v1_styles.css, dark.css)
+ * without breaking them:
+ *
+ * - Visual polish only. Nothing here sets display, position, width/height,
+ *   margin or padding on an existing component, so no page region moves.
+ * - It hooks into the existing class names (.oh-btn, .oh-input, .oh-modal,
+ *   .oh-alert, .fixed-table, ...) and never renames or requires new ones.
+ * - No preflight and no generated utility classes: Tailwind v4 is used for
+ *   its design tokens (namespaced --hx-*, emitted only when used) and for
+ *   @apply of plain property utilities. Do not @apply ring-*, shadow-*,
+ *   scale-*, translate-* or transition-* here: those register global
+ *   --tw-* @property rules that the v3 runtime on the same page also uses.
+ *   Write those properties by hand from the tokens below instead.
+ * - Rules are unlayered on purpose: the stylesheets underneath are
+ *   unlayered too, and a layered rule would lose to every one of them.
+ * - Colours derive from the company theme's --primary-* custom properties
+ *   (set per request in index.html / auth_layout.html), so every theme -
+ *   Ocean Blue on the login page included - gets matching rings and tints.
+ */
+@import "tailwindcss/theme.css" layer(theme) prefix(hx);
+
+@theme {
+  /* Motion tokens: one rhythm for the whole app (skill: motion-consistency).
+     Exits run at ~65% of the enter duration (exit-faster-than-enter). */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-enter: 220ms;
+  --duration-exit: 140ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+:root {
+  /* shadcn/ui-style semantic tokens, mapped onto the company theme. */
+  --hx-brand: var(--primary-600, #3b82f6);
+  /* Solid brand for outlines: a focus indicator needs 3:1 against its
+     background (WCAG 1.4.11), which a translucent ring does not reach. */
+  --hx-ring: var(--hx-brand);
+  --hx-ring-soft: color-mix(in srgb, var(--hx-brand) 22%, transparent);
+  --hx-ring-width: 3px;
+  --hx-row-hover: color-mix(in srgb, var(--hx-brand) 6%, transparent);
+  --hx-muted-fg: var(--hx-color-slate-500);
+  --hx-placeholder: var(--hx-color-slate-500);
+  --hx-border: var(--hx-color-slate-200);
+  --hx-border-strong: var(--hx-color-slate-300);
+  --hx-danger: var(--hx-color-red-600);
+  --hx-elevation-lg: 0 10px 30px -8px rgb(15 23 42 / 0.18), 0 2px 6px -2px rgb(15 23 42 / 0.08);
+}
+
+/* ── Typography ───────────────────────────────────────────────────────────
+   Body copy at 1.5 line height (skill: line-height), crisper glyphs, and
+   tabular figures wherever numbers line up in columns (number-tabular). */
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.fixed-table td,
+.oh-sticky-table__td,
+.oh-card-dashboard__count,
+.time-runner {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Focus ────────────────────────────────────────────────────────────────
+   A visible, theme-coloured ring for keyboard users on every interactive
+   control (skill: focus-states, priority 1), and no ring for mouse clicks:
+   .oh-btn used to draw a black 2px outline on every click because it styled
+   :focus rather than :focus-visible. */
+:where(a, button, summary, [role="button"], [role="tab"], [role="menuitem"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--hx-ring);
+  outline-offset: 2px;
+}
+
+.oh-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.oh-btn:focus-visible {
+  outline: 2px solid var(--hx-ring);
+  outline-offset: 2px;
+}
+
+/* ── Form controls ────────────────────────────────────────────────────────
+   shadcn input states: a soft 3px ring with the brand border on focus, a
+   stronger border on hover, clear disabled and invalid states. The ring is a
+   box-shadow, so it takes no space and cannot shift the layout. */
+.oh-input,
+.oh-select,
+.oh-textarea,
+.myform input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.myform select,
+.myform textarea,
+.oh-auth-card input:not([type="checkbox"]):not([type="radio"]) {
+  transition:
+    border-color var(--hx-duration-fast) var(--hx-ease-out),
+    box-shadow var(--hx-duration-fast) var(--hx-ease-out);
+}
+
+.oh-input:not(:disabled):not([readonly]):hover,
+.oh-select:not(:disabled):hover,
+.oh-textarea:not(:disabled):hover,
+.oh-auth-card input:not([type="checkbox"]):not([type="radio"]):hover {
+  border-color: var(--hx-border-strong);
+}
+
+.oh-input:focus,
+.oh-input:focus-visible,
+.oh-select:focus,
+.oh-select:focus-visible,
+.oh-textarea:focus,
+.oh-textarea:focus-visible,
+.myform input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+.myform select:focus,
+.myform textarea:focus,
+.oh-auth-card input:not([type="checkbox"]):not([type="radio"]):focus,
+.select2-container--focus .select2-selection,
+.select2-container--open .select2-selection {
+  outline: none;
+  border-color: var(--hx-brand) !important;
+  box-shadow: 0 0 0 var(--hx-ring-width) var(--hx-ring-soft);
+}
+
+.oh-input::placeholder,
+.oh-select::placeholder,
+.oh-textarea::placeholder,
+.oh-auth-card input::placeholder {
+  color: var(--hx-placeholder);
+  opacity: 1;
+}
+
+.oh-input:disabled,
+.oh-select:disabled,
+.oh-textarea:disabled {
+  @apply hx:bg-slate-50 hx:text-slate-500;
+  cursor: not-allowed;
+}
+
+.oh-input[aria-invalid="true"],
+.oh-select[aria-invalid="true"],
+.oh-input.is-invalid,
+.oh-select.is-invalid {
+  border-color: var(--hx-danger) !important;
+}
+
+.oh-input[aria-invalid="true"]:focus,
+.oh-select[aria-invalid="true"]:focus,
+.oh-input.is-invalid:focus,
+.oh-select.is-invalid:focus {
+  box-shadow: 0 0 0 var(--hx-ring-width) color-mix(in srgb, var(--hx-danger) 20%, transparent);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────
+   Animate only what changes (colours, shadow, transform) instead of
+   `transition: all .3s`, and give presses immediate feedback (skill:
+   active-states). transform does not affect layout. */
+.oh-btn {
+  transition:
+    background-color var(--hx-duration-base) var(--hx-ease-out),
+    border-color var(--hx-duration-base) var(--hx-ease-out),
+    color var(--hx-duration-base) var(--hx-ease-out),
+    box-shadow var(--hx-duration-base) var(--hx-ease-out),
+    transform var(--hx-duration-fast) var(--hx-ease-out);
+}
+
+.oh-btn:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.oh-btn:disabled,
+.oh-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* ── Tables (generic horilla_views list) ──────────────────────────────────
+   Row hover highlight (skill: data-dense dashboard "row highlighting on
+   hover"). An inset box-shadow tints over whatever the cell already paints -
+   the opaque sticky columns, the dark theme's cell colours, inline row
+   tints - so every column of the row lights up evenly, and the selected-row
+   tint still shows through. The sticky header gets a hairline shadow so it
+   reads as separate from the rows scrolling under it. */
+.fixed-table > tbody > tr > td {
+  transition: box-shadow var(--hx-duration-fast) var(--hx-ease-out);
+}
+
+.fixed-table > tbody > tr:hover > td {
+  box-shadow: inset 0 0 0 100vmax var(--hx-row-hover);
+}
+
+.fixed-table > thead.sticky {
+  box-shadow: 0 1px 0 var(--hx-border);
+}
+
+body.dark .fixed-table > thead.sticky {
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.oh-sticky-table__tr {
+  transition: background-color var(--hx-duration-fast) var(--hx-ease-out);
+}
+
+/* Modals: the dialog's entrance is animated by ux-motion.js (Motion). No
+   backdrop blur: a full-screen backdrop-filter over long list pages costs
+   more frame time than it is worth. */
+
+/* ── Toasts (Django messages) ─────────────────────────────────────────────
+   Rounded, elevated cards. The old timeline showed a message for barely
+   1.75s of its 3.5s; it now stays readable for ~4.5s (skill: toasts
+   auto-dismiss after 3-5s), enters with a short slide and leaves faster
+   than it came in. Hover still pauses it. */
+.oh-alert {
+  border-radius: var(--hx-radius-lg);
+  box-shadow: var(--hx-elevation-lg);
+  line-height: 1.45;
+  color: var(--hx-color-slate-800);
+}
+
+.oh-alert--animated {
+  animation: hx-toast 5.2s var(--hx-ease-out) forwards;
+}
+
+@keyframes hx-toast {
+  0% {
+    transform: translate3d(24px, 0, 0);
+    opacity: 0;
+    visibility: visible;
+  }
+  5% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+    visibility: visible;
+  }
+  95% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    transform: translate3d(8px, 0, 0);
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Toasts stay light cards in the dark theme too; dark.css tinted their text
+   with the status hue, which sits near 3:1 on those light fills. Keep the
+   hue on the left border and icon, and the text dark. */
+body.dark .oh-alert[class*="oh-alert--"] {
+  color: var(--hx-color-slate-800);
+}
+
+/* ── Sign-in pages (auth_layout.html) ─────────────────────────────────────
+   Text contrast (skill: color-contrast 4.5:1, priority 1). The light theme
+   shades are calibrated as fills: Ocean Blue's primary-600 (#3b82f6) is
+   only 3.7:1 under white text and as link text on white. Deepen the same
+   hue just enough to pass AA, keeping the theme's darker hover shade. */
+.oh-auth-card a.text-brand-600:not(:hover) {
+  color: color-mix(in srgb, var(--primary-600) 78%, black);
+}
+
+.oh-auth-card button[type="submit"].bg-brand-600:not(:hover) {
+  background-color: color-mix(in srgb, var(--primary-600) 85%, black);
+}
+
+.oh-auth-card .oh-password-input--toggle {
+  color: var(--hx-muted-fg);
+}
+
+.oh-auth-card .oh-password-input--toggle:hover {
+  color: var(--hx-color-slate-700);
+  background-color: transparent;
+}
+
+/* The show-password toggle sits flush inside its input: keep the ring
+   inside too, so it doesn't poke past the field's edge. */
+.oh-password-input--toggle:focus-visible {
+  outline-offset: -4px;
+}
+
+/* ── HTMX request feedback ────────────────────────────────────────────────
+   A thin progress bar along the top edge while any request is in flight
+   (skill: loading-indicators). ux-motion.js shows it only after ~150ms so
+   near-instant swaps don't flash it. Fixed and 2px tall: it overlays the
+   page and takes no space. */
+#hx-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 10000;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  opacity: 0;
+  background: var(--hx-brand);
+  box-shadow: 0 0 8px var(--hx-ring-soft);
+}
+
+[aria-busy="true"] {
+  cursor: progress;
+}
+
+/* ── Skeleton ─────────────────────────────────────────────────────────────
+   shadcn's skeleton, for placeholders that wait on a lazy HTMX load. */
+.hx-skeleton {
+  @apply hx:rounded-md hx:bg-slate-200;
+  animation: hx-pulse 1.6s ease-in-out infinite;
+}
+
+body.dark .hx-skeleton {
+  @apply hx:bg-slate-700;
+}
+
+@keyframes hx-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────
+   Respect the OS setting (skill: reduced-motion, priority 7): no slides or
+   scaling, only fades. Toasts keep their timeline (it is what hides them)
+   but drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .oh-btn:not(:disabled):active {
+    transform: none;
+  }
+
+  .oh-alert--animated {
+    animation-name: hx-toast-fade;
+  }
+
+  @keyframes hx-toast-fade {
+    0%,
+    100% {
+      opacity: 0;
+      visibility: hidden;
+    }
+    5%,
+    95% {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  .hx-skeleton {
+    animation: none;
+  }
+}
