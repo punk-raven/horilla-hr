@@ -197,18 +197,14 @@ body.dark .interview-interviewer {
 
 body.dark .sidebox ul li a:hover,
 body.dark .oh-btn--light-bkg,
-body.dark .oh-modal__dialog-header,
-body.dark .oh-modal__dialog-body,
 body.dark .bg-\[\#f4f7fe\],
 body.dark .oh-btn-group,
 body.dark .oh-profile-section,
-body.dark .swal2-popup,
 body.dark .bg-\[\#e9edf0\],
 body.dark .oh-tabs__tab--active,
 body.dark .oh-tabs__movable-header,
 body.dark .oh-tabs__movable,
 body.dark .oh-sticky-table__thead,
-body.dark .oh-modal__dialog,
 body.dark select,
 body.dark .bg-primary-300,
 body.dark .sidebarItemActive,
@@ -331,8 +327,33 @@ body.dark .selection:focus-visible {
   outline: unset;
 }
 
-body.dark .oh-modal__dialog {
+/* Modals sit on the card colour, a step above the page (#05080f), not on
+   the page colour itself: on the page colour a dialog read as a hole under
+   the dimmed cards around it. Covers the horilla .oh-modal dialogs (the
+   containers in index.html and generic/components.html that HTMX fills),
+   their header/body/footer, and SweetAlert2 confirms. */
+body.dark .oh-modal__dialog,
+body.dark .oh-modal__dialog-header,
+body.dark .oh-modal__dialog-body,
+body.dark .oh-modal__dialog-footer,
+body.dark .swal2-popup {
+  background-color: #1c2437 !important;
+}
+body.dark .oh-modal__dialog,
+body.dark .swal2-popup {
   border: 1px solid #374564;
+  box-shadow: 0 24px 48px -16px rgb(0 0 0 / 0.7);
+}
+/* A form section that fills the dialog (e.g. the salary component form)
+   would put the page colour back inside the card. */
+body.dark .oh-modal__dialog .oh-profile-section {
+  background-color: #1c2437 !important;
+}
+/* The light theme's backdrop (a 20% grey) barely dims a dark page, so the
+   dialog did not stand out from it. */
+body.dark .oh-modal,
+body.dark .swal2-container.swal2-backdrop-show {
+  background-color: rgb(2 4 9 / 0.72) !important;
 }
 body.dark .oh-btn-group > * {
   border-right: unset;
