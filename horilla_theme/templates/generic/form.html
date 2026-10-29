@@ -59,6 +59,7 @@
             <div class="row">
                 <div class="col-12 js-non-field-errors" style="padding-right: 0">
                     {{ form.non_field_errors }}
+                    {% include "generic/hidden_field_errors.html" %}
                 </div>
                 {% for field in form.visible_fields %}
                     <div
