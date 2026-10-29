@@ -660,8 +660,9 @@ AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=5)
 AXES_COOLOFF_TIME = timedelta(minutes=env.int("AXES_COOLOFF_MINUTES", default=30))
 AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_RESET_ON_SUCCESS = True
-# Count only real failures; a lockout response is not itself a new attempt.
-AXES_LOCKOUT_TEMPLATE = None
+# The lockout is shown on the sign-in card (horilla_theme), with axes' 429
+# status. XHR posts still get axes' JSON body.
+AXES_LOCKOUT_TEMPLATE = "account_lockout.html"
 AXES_ENABLE_ADMIN = True
 # Behind nginx/ELB the client IP is in X-Forwarded-For. Only trust it when the
 # deployment actually sets a proxy count, otherwise a client can spoof the

@@ -885,6 +885,11 @@ def login_user(request):
 
         user = authenticate(request, username=username, password=password)
 
+        if not user and getattr(request, "axes_locked_out", False):
+            # AxesMiddleware swaps this response for its lockout page, which
+            # says why; a queued "invalid" toast would contradict it there.
+            return redirect("login")
+
         if not user:
             # One message for every failure mode. Distinguishing "blocked" from
             # "invalid" told an unauthenticated caller which usernames exist,

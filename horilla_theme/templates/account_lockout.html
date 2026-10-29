@@ -1,0 +1,36 @@
+{% extends "auth_layout.html" %}
+{% load i18n auth_extras %}
+{% comment %}
+    django-axes' lockout page (AXES_LOCKOUT_TEMPLATE), shown with its 429
+    status after AXES_FAILURE_LIMIT failed sign-ins from one username and IP.
+    Axes passes failure_limit, username and, while a cool-off is configured,
+    cooloff_timedelta. The lock runs from the last counted failure; attempts
+    made while locked do not extend it, so the wait is stated from there.
+{% endcomment %}
+{% block title %}{% trans "Too many login attempts" %} - {{ white_label_company_name }}{% endblock %}
+{% block card %}
+    <h1 class="text-3xl font-bold mb-2 text-center [text-wrap:balance]">
+        {% trans "Too many login attempts" %}
+    </h1>
+    <p class="mb-5 text-center text-sm text-color-600">
+        {% if cooloff_timedelta %}
+            {% blocktrans with duration=cooloff_timedelta|duration_words %}For your security, signing in is paused after several failed attempts. You can try again {{ duration }} after your last attempt.{% endblocktrans %}
+        {% else %}
+            {% trans "For your security, signing in is paused after several failed attempts. Ask your administrator to unlock your account." %}
+        {% endif %}
+    </p>
+    <a
+        href="{% url 'login' %}"
+        class="p-3 mt-3 bg-brand-600 hover:bg-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 w-full flex gap-3 justify-center rounded-md text-[white] [transition:.3s]"
+    >
+        {% trans "Back to Login" %}
+    </a>
+    <div class="flex justify-center">
+        <a
+            href="{% url 'forgot-password' %}"
+            class="text-sm font-medium text-brand-600 hover:text-brand-800 hover:underline focus-visible:underline focus-visible:outline-0 mt-4"
+        >
+            {% trans "Forgot password" %}?
+        </a>
+    </div>
+{% endblock %}
