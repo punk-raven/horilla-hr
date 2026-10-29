@@ -145,6 +145,7 @@
             });
         </script>
     </div> {% endcomment %}
-    {% include "employee/update_form/form_view_fragment.html" %}
+    {# index.html already shows the messages on a full page load #}
+    {% include "employee/update_form/form_view_fragment.html" with full_page=True %}
 </div>
 {% endblock content %}
