@@ -27,10 +27,17 @@ env = environ.Env(
 # Existing process environment (Compose, systemd, CI) wins over .env values.
 env.read_env(os.path.join(BASE_DIR, ".env"), overwrite=False)
 
+from horilla.settings.security import resolve_secret_key  # noqa: E402
+
 # ========================================
 # CORE DJANGO SETTINGS
 # ========================================
-SECRET_KEY = env("SECRET_KEY")
+# The Docker entrypoint persists a generated key here when SECRET_KEY is unset
+# or a public default; see horilla.settings.security.resolve_secret_key.
+SECRET_KEY_FILE = env(
+    "SECRET_KEY_FILE", default=str(BASE_DIR / "media" / ".generated_secret_key")
+)
+SECRET_KEY = resolve_secret_key(env("SECRET_KEY"), SECRET_KEY_FILE)
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
