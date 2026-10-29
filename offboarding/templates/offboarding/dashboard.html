@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --ob-indigo: var(--primary-600, #e54f38);
+            --ob-indigo: var(--primary-600, #e54f38); --ob-fill: var(--primary-fill, #ce4732); --ob-fill-hover: var(--primary-fill-hover, #af3c2a);
             --ob-green: #22c55e;
             --ob-amber: #f59e0b;
             --ob-red: #ef4444;
@@ -317,7 +317,7 @@
             height: 24px;
             padding: 0 6px;
             border-radius: 999px;
-            background: var(--ob-indigo);
+            background: var(--ob-fill);
             color: #fff;
             font-size: 12px;
             font-weight: 600;
@@ -522,12 +522,10 @@
             transition: all 0.15s;
         }
         .ob-cust-btn--primary {
-            background: var(--ob-indigo);
+            background: var(--ob-fill);
             color: #fff;
         }
-        .ob-cust-btn--primary:hover {
-            opacity: 0.9;
-        }
+        .ob-cust-btn--primary:hover { background: var(--ob-fill-hover); }
         .ob-cust-btn--ghost {
             background: none;
             color: inherit;
@@ -597,10 +595,10 @@
             transition: transform 0.2s;
         }
         .ob-cust-item__toggle--on {
-            background: var(--ob-indigo);
+            background: var(--ob-fill);
         }
         .dark .ob-cust-item__toggle--on {
-            background: var(--ob-indigo);
+            background: var(--ob-fill);
         }
         .ob-cust-item__toggle--on::after {
             transform: translateX(16px);
@@ -658,13 +656,13 @@
             color: var(--ob-indigo);
         }
         .ob-period-preset--active {
-            border-color: var(--ob-indigo);
-            background: var(--ob-indigo);
+            border-color: var(--ob-fill);
+            background: var(--ob-fill);
             color: #fff;
         }
         .ob-period-preset--active:hover {
-            border-color: var(--ob-indigo);
-            background: var(--ob-indigo);
+            border-color: var(--ob-fill);
+            background: var(--ob-fill);
             color: #fff;
         }
         .dark .ob-period-picker input[type='date'] {

@@ -1,6 +1,6 @@
 {% load static %}
 {% load i18n %}
-{% load horillafilters %}
+{% load horillafilters theme_colors %}
 {% get_company as theme_obj %}
 <!DOCTYPE html>
 <html class="{% if theme_preference == 'dark' %}dark{% endif %}">
@@ -45,7 +45,7 @@
         >
         <link
             rel="stylesheet"
-            href="{% static 'horilla_theme/assets/css/dark.css' %}?v=4"
+            href="{% static 'horilla_theme/assets/css/dark.css' %}?v=5"
         >
         <link
             href="{% static 'cdn/googleapi/css/inter-font-style.css' %}"
@@ -87,16 +87,23 @@
                     --primary-600: {{ theme.primary_600|default:"#E54F38" }};
                     --primary-700: {{ theme.primary_700|default:"#ce4732" }};
                     --primary-800: {{ theme.primary_800|default:"#AC3B2A" }};
+                    /* Fill of primary buttons, badges and other controls with
+                       a white label: primary-600 deepened just enough for
+                       WCAG AA (4.5:1), and its hover/active shade. See
+                       horilla_theme/colors.py. Use these, not primary-600,
+                       behind white text. */
+                    --primary-fill: {{ theme.primary_600|default:"#E54F38"|button_fill }};
+                    --primary-fill-hover: {{ theme.primary_600|default:"#E54F38"|button_fill_hover }};
                     --secondary-100: {{ theme.secondary_100|default:"#F0F0F0" }};
                     /* Shared semantic tokens (previously hardcoded across components) */
                     --status-success: limegreen;
                     --gender-male: rgb(32, 128, 218);
                     --gender-female: pink;
                     --text-muted: #4d4a4a;
-                    --btn-add-another: {{ theme.primary_500|default:"#F7C8C1" }};
+                    --btn-add-another: var(--primary-fill);
                 }
 
-                /* Primary 600 background */
+                /* Primary fills (white labels and ticks on top) */
                 .btn,
                 .oh-btn--secondary,
                 .toggle-input:checked + .toggle-switch,
@@ -109,12 +116,12 @@
                 .select2-container--default
                 .select2-selection--multiple
                 .select2-selection__choice {
-                    background-color: {{ theme.primary_600|default:"#E54F38" }};
+                    background-color: var(--primary-fill);
                 }
 
                 .oh-titlebar__tag--custom{
-                    background-color: {{ theme.primary_600|default:"#E54F38" }} !important;
-                    color: {{ theme_obj.secondary_100|default:"#F0F0F0" }} !important;
+                    background-color: var(--primary-fill) !important;
+                    color: #fff !important;
                 }
 
                 .usertablist li button.active,
@@ -138,7 +145,7 @@
                 .oh-btn--secondary:focus-visible,
                 .oh-switch .oh-switch__checkbox:checked:hover
                 {
-                    background-color: {{ theme_obj.primary_800 | default:"#AC3B2A" }};
+                    background-color: var(--primary-fill-hover);
                 }
 
                 /* Primary 300 background */
@@ -176,7 +183,7 @@
                 }
 
                 .mytab .tab-button.active {
-                    background: {{ theme.primary_600|default:"#E54F38" }};
+                    background: var(--primary-fill);
                 }
 
                 /* ── Theme-aware Tailwind primary-* utilities ─────────────────────
@@ -195,13 +202,13 @@
                 .bg-primary-200 { background-color: {{ theme.primary_200|default:"#FEF6F5" }}; }
                 .bg-primary-300 { background-color: {{ theme.primary_300|default:"#FCEDEB" }}; }
                 .bg-primary-500 { background-color: {{ theme.primary_500|default:"#F7C8C1" }}; }
-                .bg-primary-600 { background-color: {{ theme.primary_600|default:"#E54F38" }}; }
+                .bg-primary-600 { background-color: var(--primary-fill); }
                 .text-primary-600 { color: {{ theme.primary_600|default:"#E54F38" }}; }
                 .hover\:border-primary-600:hover { border-color: {{ theme.primary_600|default:"#E54F38" }}; }
                 .hover\:bg-primary-200:hover { background-color: {{ theme.primary_200|default:"#FEF6F5" }}; }
-                .hover\:bg-primary-600:hover { background-color: {{ theme.primary_600|default:"#E54F38" }}; }
-                .hover\:bg-primary-700:hover { background-color: {{ theme.primary_700|default:"#ce4732" }}; }
-                .hover\:bg-primary-800:hover { background-color: {{ theme.primary_800|default:"#AC3B2A" }}; }
+                .hover\:bg-primary-600:hover { background-color: var(--primary-fill); }
+                .hover\:bg-primary-700:hover { background-color: var(--primary-fill-hover); }
+                .hover\:bg-primary-800:hover { background-color: var(--primary-fill-hover); }
                 .hover\:text-primary-600:hover { color: {{ theme.primary_600|default:"#E54F38" }}; }
                 .focus\:border-primary-600:focus { border-color: {{ theme.primary_600|default:"#E54F38" }}; }
 
@@ -278,8 +285,8 @@
                     background-color: color-mix(in srgb, rgb(255, 166, 0) 15.8%, #444444);
                 }
                 input[type="checkbox"].custom-checkbox:checked {
-                    background-color: {{ theme.primary_600|default:"#E54F38" }} !important;
-                    border-color: {{ theme.primary_600|default:"#E54F38" }} !important;
+                    background-color: var(--primary-fill) !important;
+                    border-color: var(--primary-fill) !important;
                 }
                 input[type="checkbox"].custom-checkbox:hover {
                     border-color: {{ theme.primary_600|default:"#E54F38" }} !important;
@@ -301,7 +308,7 @@
            row hover, loading bar). Built from horilla_theme/frontend - see
            the README there. Loads after the theme tokens above, which it
            reads, and before page-specific styles. {% endcomment %}
-        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=5">
+        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=6">
 
         {% block styles %}
             <!-- Page-specific styles (optional) -->

@@ -95,9 +95,9 @@
 .crp-foot { flex: 0 0 auto; display: flex; justify-content: flex-end; padding: 10px 16px; background: #fff; border-top: 1px solid #f1f5f9; }
 .crp-apply {
   flex: 0 0 auto; height: 38px; padding: 0 20px; border: 0; border-radius: 10px; cursor: pointer;
-  background: var(--primary-600, #e54f38); color: #fff; font-size: .82rem; font-weight: 700; white-space: nowrap;
+  background: var(--primary-fill, #ce4732); color: #fff; font-size: .82rem; font-weight: 700; white-space: nowrap;
 }
-.crp-apply:hover:not([disabled]) { background: #ce4732; }
+.crp-apply:hover:not([disabled]) { background: var(--primary-fill-hover, #af3c2a); }
 .crp-apply[disabled] { opacity: .4; cursor: not-allowed; }
 .crp-mark-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .crp-mark-btn {
@@ -129,7 +129,7 @@
 .crp-split-bar { grid-column: 1 / -1; height: 8px; border-radius: 999px; border: 1px solid #e5e7eb; }
 .crp-split-go {
   grid-column: 1 / -1; height: 34px; border-radius: 8px; border: 0; cursor: pointer;
-  background: var(--primary-600, #e54f38); color: #fff; font-size: .8rem; font-weight: 700;
+  background: var(--primary-fill, #ce4732); color: #fff; font-size: .8rem; font-weight: 700;
 }
 .crp-split-go:hover { filter: brightness(.95); }
 .crp-split-hint { grid-column: 1 / -1; font-size: .68rem; color: #9ca3af; margin: -2px 0 0; }

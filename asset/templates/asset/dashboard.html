@@ -6,7 +6,7 @@
     {% include "components/legend_prefs.html" %}
     <style>
         :root {
-            --as-indigo: var(--primary-600, #E54F38);
+            --as-indigo: var(--primary-600, #E54F38); --as-fill: var(--primary-fill, #ce4732); --as-fill-hover: var(--primary-fill-hover, #af3c2a);
             --as-green: #22c55e;
             --as-amber: #f59e0b;
             --as-red: #ef4444;
@@ -311,7 +311,7 @@
             height: 24px;
             padding: 0 6px;
             border-radius: 999px;
-            background: var(--as-indigo);
+            background: var(--as-fill);
             color: #fff;
             font-size: 12px;
             font-weight: 600;
@@ -487,12 +487,10 @@
             transition: all 0.15s;
         }
         .as-cust-btn--primary {
-            background: var(--as-indigo);
+            background: var(--as-fill);
             color: #fff;
         }
-        .as-cust-btn--primary:hover {
-            opacity: 0.9;
-        }
+        .as-cust-btn--primary:hover { background: var(--as-fill-hover); }
         .as-cust-btn--ghost {
             background: none;
             color: inherit;
@@ -562,10 +560,10 @@
             transition: transform 0.2s;
         }
         .as-cust-item__toggle--on {
-            background: var(--as-indigo);
+            background: var(--as-fill);
         }
         .dark .as-cust-item__toggle--on {
-            background: var(--as-indigo);
+            background: var(--as-fill);
         }
         .as-cust-item__toggle--on::after {
             transform: translateX(16px);
@@ -622,13 +620,13 @@
             color: var(--as-indigo);
         }
         .as-period-preset--active {
-            border-color: var(--as-indigo);
-            background: var(--as-indigo);
+            border-color: var(--as-fill);
+            background: var(--as-fill);
             color: #fff;
         }
         .as-period-preset--active:hover {
-            border-color: var(--as-indigo);
-            background: var(--as-indigo);
+            border-color: var(--as-fill);
+            background: var(--as-fill);
             color: #fff;
         }
         .dark .as-period-picker input[type='date'] {

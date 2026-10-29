@@ -5,7 +5,7 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
 <style>
     :root {
-        --pr-indigo: var(--primary-600, #E54F38);
+        --pr-indigo: var(--primary-600, #E54F38); --pr-fill: var(--primary-fill, #ce4732); --pr-fill-hover: var(--primary-fill-hover, #af3c2a);
         --pr-green: #22c55e;
         --pr-amber: #f59e0b;
         --pr-red: #ef4444;
@@ -70,7 +70,7 @@
     }
     .pr-period-preset:hover { border-color: var(--primary-600, #E54F38); color: var(--primary-600, #E54F38); }
     .pr-period-preset--active,
-    .pr-period-preset--active:hover { background: var(--primary-600, #E54F38) !important; color: #ffffff !important; border-color: var(--primary-600, #E54F38) !important; }
+    .pr-period-preset--active:hover { background: var(--primary-fill, #ce4732) !important; color: #ffffff !important; border-color: var(--primary-fill, #ce4732) !important; }
 
     /* Customize button + slide-over panel (same as the other dashboards) */
     .pr-customize-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 1050; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
@@ -85,8 +85,8 @@
     .pr-customize-panel__body { flex: 1; overflow-y: auto; padding: 12px 20px; }
     .pr-customize-panel__footer { padding: 14px 20px; border-top: 1px solid rgba(128,128,128,0.12); display: flex; justify-content: space-between; flex-shrink: 0; }
     .pr-cust-btn { padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
-    .pr-cust-btn--primary { background: var(--primary-600, #E54F38); color: #fff; }
-    .pr-cust-btn--primary:hover { opacity: 0.9; }
+    .pr-cust-btn--primary { background: var(--primary-fill, #ce4732); color: #fff; }
+    .pr-cust-btn--primary:hover { background: var(--primary-fill-hover, #af3c2a); }
     .pr-cust-btn--ghost { background: none; color: inherit; opacity: 0.6; }
     .pr-cust-btn--ghost:hover { opacity: 1; }
     .pr-cust-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; border: 1px solid rgba(128,128,128,0.1); background: rgba(128,128,128,0.02); cursor: grab; user-select: none; }
@@ -166,7 +166,7 @@
     .pr-info-panel__title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     /* How many records the card holds, beside its title. Hidden at zero. */
     .pr-count-badge[hidden] { display: none; }
-    .pr-count-badge { min-width: 24px; height: 24px; padding: 0 6px; border-radius: 999px; background: var(--pr-indigo); color: #fff; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+    .pr-count-badge { min-width: 24px; height: 24px; padding: 0 6px; border-radius: 999px; background: var(--pr-fill); color: #fff; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
     /* Title on top, the date period / basis the card lists on the line below. */
     .pr-info-panel__heading { min-width: 0; }
     .pr-info-panel__sub { font-size: 11px; opacity: 0.5; margin-top: 2px; }

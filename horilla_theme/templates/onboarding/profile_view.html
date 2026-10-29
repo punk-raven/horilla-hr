@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load static i18n %}
 {% load i18n horillafilters%}
+{% load theme_colors %}
 {% get_company as theme_obj %}
 
 <!DOCTYPE html>
@@ -75,7 +76,7 @@
                             <span class="oh-onboarding-card__subtitle mb-3 text-center">({{candidate.email}})</span>
 
                             <a href="{% url 'employee-creation' token %}"
-                                style="background-color:{{theme_obj.primary_600}}; color:{{theme_obj.secondary_100}}"
+                                style="background-color:{{theme_obj.primary_600|button_fill}}; color:#fff"
                                 class="oh-btn oh-onboarding-card__button mt-4 oh-btn--shadow w-100 mb-4"
                                 role="button">
                                 {% trans "Next Step" %}
@@ -108,7 +109,7 @@
                                     data-target=".oh-upload-photo" name="profile" />
 
 
-                                <button type="submit" class="oh-btn oh-btn--shadow" style="background-color:{{theme_obj.primary_600}}; color:{{theme_obj.secondary_100}}">
+                                <button type="submit" class="oh-btn oh-btn--shadow" style="background-color:{{theme_obj.primary_600|button_fill}}; color:#fff">
                                     {% trans "Update Image" %}
                                 </button>
 

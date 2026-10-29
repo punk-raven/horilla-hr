@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --ess-indigo: var(--primary-600, #e54f38);
+            --ess-indigo: var(--primary-600, #e54f38); --ess-fill: var(--primary-fill, #ce4732); --ess-fill-hover: var(--primary-fill-hover, #af3c2a);
             --ess-green: #22c55e;
             --ess-amber: #f59e0b;
             --ess-red: #ef4444;
@@ -92,13 +92,13 @@
             color: var(--ess-indigo);
         }
         .ess-period-preset--active {
-            border-color: var(--ess-indigo);
-            background: var(--ess-indigo);
+            border-color: var(--ess-fill);
+            background: var(--ess-fill);
             color: #fff;
         }
         .ess-period-preset--active:hover {
-            border-color: var(--ess-indigo);
-            background: var(--ess-indigo);
+            border-color: var(--ess-fill);
+            background: var(--ess-fill);
             color: #fff;
         }
         .dark .ess-period-picker input[type="date"] {
@@ -536,7 +536,7 @@
         .ess-progress__bar {
             height: 100%;
             border-radius: 3px;
-            background: var(--ess-indigo);
+            background: var(--ess-fill);
             transition: width 0.4s;
         }
 
@@ -658,7 +658,7 @@
             height: 24px;
             padding: 0 6px;
             border-radius: 999px;
-            background: var(--ess-indigo);
+            background: var(--ess-fill);
             color: #fff;
             font-size: 12px;
             font-weight: 600;

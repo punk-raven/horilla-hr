@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --rd-indigo: var(--primary-600, #E54F38);
+            --rd-indigo: var(--primary-600, #E54F38); --rd-fill: var(--primary-fill, #ce4732); --rd-fill-hover: var(--primary-fill-hover, #af3c2a);
             --rd-green: #22c55e;
             --rd-amber: #f59e0b;
             --rd-red: #ef4444;
@@ -186,7 +186,7 @@
             color: #6b21a8;
         }
         .rd-badge--primary {
-            background: var(--primary-600, #E54F38);
+            background: var(--primary-fill, #ce4732);
             color: #ffffff;
         }
         .dark .rd-badge--green {
@@ -717,12 +717,10 @@
             transition: all 0.15s;
         }
         .rd-cust-btn--primary {
-            background: var(--rd-indigo);
+            background: var(--rd-fill);
             color: #fff;
         }
-        .rd-cust-btn--primary:hover {
-            opacity: 0.9;
-        }
+        .rd-cust-btn--primary:hover { background: var(--rd-fill-hover); }
         .rd-cust-btn--ghost {
             background: none;
             color: inherit;
@@ -792,10 +790,10 @@
             transition: transform 0.2s;
         }
         .rd-cust-item__toggle--on {
-            background: var(--rd-indigo);
+            background: var(--rd-fill);
         }
         .dark .rd-cust-item__toggle--on {
-            background: var(--rd-indigo);
+            background: var(--rd-fill);
         }
         .rd-cust-item__toggle--on::after {
             transform: translateX(16px);
@@ -853,8 +851,8 @@
         }
         .rd-period-preset--active,
         .rd-period-preset--active:hover {
-            border-color: var(--primary-600, #E54F38) !important;
-            background: var(--primary-600, #E54F38) !important;
+            border-color: var(--primary-fill, #ce4732) !important;
+            background: var(--primary-fill, #ce4732) !important;
             color: #ffffff !important;
         }
         .dark .rd-period-picker input[type='month'] {

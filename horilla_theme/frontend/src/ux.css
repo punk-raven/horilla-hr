@@ -436,17 +436,14 @@ body.dark .oh-alert[class*="oh-alert--"] {
 }
 
 /* ── Sign-in pages (auth_layout.html) ─────────────────────────────────────
-   Text contrast (skill: color-contrast 4.5:1, priority 1). The light theme
-   shades are calibrated as fills: Ocean Blue's primary-600 (#3b82f6) is
-   only 3.7:1 under white text and as link text on white. Deepen the same
-   hue just enough to pass AA, keeping the theme's darker hover shade. */
+   Text contrast (skill: color-contrast 4.5:1, priority 1). Ocean Blue's
+   primary-600 (#3b82f6) is only 3.7:1 as link text on white: deepen the
+   same hue just enough to pass AA, keeping the theme's darker hover shade.
+   Buttons and button-styled links need nothing here: their bg-brand-600
+   is already the theme's AA button fill (--primary-fill, see
+   horilla_theme/colors.py), in the light and the dark theme. */
 .oh-auth-card a.text-brand-600:not(:hover) {
   color: color-mix(in srgb, var(--primary-600) 78%, black);
-}
-
-/* Buttons and button-styled links ("Request a new link", "Back to Login"). */
-.oh-auth-card .bg-brand-600:not(:hover) {
-  background-color: color-mix(in srgb, var(--primary-600) 85%, black);
 }
 
 .oh-auth-card .oh-password-input--toggle {
@@ -525,13 +522,6 @@ body.dark .oh-alert[class*="oh-alert--"] {
 
 .dark .oh-auth-card a.text-brand-600:hover {
   color: color-mix(in srgb, var(--primary-600) 40%, white);
-}
-
-/* The primary button keeps its light-theme fill (white label 4.9:1 on
-   Ocean Blue); its hover goes deeper instead of to the theme's 800, which
-   all but vanishes into the dark card. */
-.dark .oh-auth-card .bg-brand-600:hover {
-  background-color: color-mix(in srgb, var(--primary-600) 70%, black);
 }
 
 /* A field with an error (reset_password.html) keeps a red border. */

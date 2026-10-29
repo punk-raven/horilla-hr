@@ -5,7 +5,7 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
 {% include "components/legend_prefs.html" %}
 <style>
-    :root { --hd-indigo: var(--primary-600, #E54F38); --hd-green: #22c55e; --hd-amber: #f59e0b; --hd-red: #ef4444; --hd-blue: #3b82f6; --hd-purple: #a855f7; }
+    :root { --hd-indigo: var(--primary-600, #E54F38); --hd-fill: var(--primary-fill, #ce4732); --hd-fill-hover: var(--primary-fill-hover, #af3c2a); --hd-green: #22c55e; --hd-amber: #f59e0b; --hd-red: #ef4444; --hd-blue: #3b82f6; --hd-purple: #a855f7; }
     .hd-dashboard { font-family: inherit; background: #ffffff; margin: -24px; padding: 24px; min-height: calc(100vh - 80px); }
     .dark .hd-dashboard { background: #05080f; }
     .hd-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -55,7 +55,7 @@
     .hd-info-panel__title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     /* How many records the card holds, beside its title. Hidden at zero. */
     .hd-count-badge[hidden] { display: none; }
-    .hd-count-badge { min-width: 24px; height: 24px; padding: 0 6px; border-radius: 999px; background: var(--hd-indigo); color: #fff; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+    .hd-count-badge { min-width: 24px; height: 24px; padding: 0 6px; border-radius: 999px; background: var(--hd-fill); color: #fff; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
     /* "View all" in a card header: same look on every dashboard. */
     .hd-panel__link {
         flex-shrink: 0;
@@ -95,8 +95,8 @@
     .hd-customize-panel__body { flex: 1; overflow-y: auto; padding: 12px 20px; }
     .hd-customize-panel__footer { padding: 14px 20px; border-top: 1px solid rgba(128,128,128,0.12); display: flex; justify-content: space-between; flex-shrink: 0; }
     .hd-cust-btn { padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
-    .hd-cust-btn--primary { background: var(--hd-indigo); color: #fff; }
-    .hd-cust-btn--primary:hover { opacity: 0.9; }
+    .hd-cust-btn--primary { background: var(--hd-fill); color: #fff; }
+    .hd-cust-btn--primary:hover { background: var(--hd-fill-hover); }
     .hd-cust-btn--ghost { background: none; color: inherit; opacity: 0.6; }
     .hd-cust-btn--ghost:hover { opacity: 1; }
     .hd-cust-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; border: 1px solid rgba(128,128,128,0.1); background: rgba(128,128,128,0.02); cursor: grab; user-select: none; }
@@ -108,8 +108,8 @@
     .hd-cust-item__toggle { width: 36px; height: 20px; border-radius: 12px; background: #e2e8f0; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; border: none; }
     .dark .hd-cust-item__toggle { background: #334155; }
     .hd-cust-item__toggle::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; top: 2px; left: 2px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
-    .hd-cust-item__toggle--on { background: var(--hd-indigo); }
-    .dark .hd-cust-item__toggle--on { background: var(--hd-indigo); }
+    .hd-cust-item__toggle--on { background: var(--hd-fill); }
+    .dark .hd-cust-item__toggle--on { background: var(--hd-fill); }
     .hd-cust-item__toggle--on::after { transform: translateX(16px); }
     @media (max-width: 1024px) { .hd-customize-panel { width: 320px; right: -340px; } }
     @media (max-width: 640px) { .hd-customize-panel { width: 100%; right: -100%; } }
@@ -121,8 +121,8 @@
     .hd-period-picker__sep { opacity: 0.4; font-size: 11px; }
     .hd-period-preset { padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(128,128,128,0.15); font-size: 11px; cursor: pointer; background: none; color: inherit; transition: all 0.15s; }
     .hd-period-preset:hover { border-color: var(--hd-indigo); color: var(--hd-indigo); }
-    .hd-period-preset--active { background: var(--hd-indigo); color: #fff; border-color: var(--hd-indigo); }
-    .hd-period-preset--active:hover { background: var(--hd-indigo); color: #fff; border-color: var(--hd-indigo); }
+    .hd-period-preset--active { background: var(--hd-fill); color: #fff; border-color: var(--hd-fill); }
+    .hd-period-preset--active:hover { background: var(--hd-fill); color: #fff; border-color: var(--hd-fill); }
     .dark .hd-period-picker input[type="date"] { color-scheme: dark; }
 
     /* Auto-refresh */

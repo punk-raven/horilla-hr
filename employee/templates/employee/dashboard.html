@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --em-indigo: var(--primary-600, #E54F38);
+            --em-indigo: var(--primary-600, #E54F38); --em-fill: var(--primary-fill, #ce4732); --em-fill-hover: var(--primary-fill-hover, #af3c2a);
             --em-green: #22c55e;
             --em-amber: #f59e0b;
             --em-red: #ef4444;
@@ -303,7 +303,7 @@
         }
         .em-seg__btn:hover { opacity: 1; }
         .em-seg__btn.is-active {
-            background: var(--primary-600, #e54f38);
+            background: var(--primary-fill, #ce4732);
             color: #fff;
             opacity: 1;
         }
@@ -371,7 +371,7 @@
             height: 24px;
             padding: 0 6px;
             border-radius: 999px;
-            background: var(--primary-600, #e54f38);
+            background: var(--primary-fill, #ce4732);
             color: #fff;
             font-size: 12px;
             font-weight: 600;
@@ -638,12 +638,10 @@
             transition: all 0.15s;
         }
         .em-cust-btn--primary {
-            background: var(--em-indigo);
+            background: var(--em-fill);
             color: #fff;
         }
-        .em-cust-btn--primary:hover {
-            opacity: 0.9;
-        }
+        .em-cust-btn--primary:hover { background: var(--em-fill-hover); }
         .em-cust-btn--ghost {
             background: none;
             color: inherit;
@@ -712,7 +710,7 @@
             transition: transform 0.2s;
         }
         .em-cust-item__toggle--on {
-            background: var(--em-indigo);
+            background: var(--em-fill);
         }
         .em-cust-item__toggle--on::after {
             transform: translateX(16px);

@@ -1,15 +1,19 @@
 {% load static %}
-{% load horillafilters %}
+{% load horillafilters theme_colors %}
 {% get_company as theme_obj %}
+{% comment %} Filled controls with a white label use the theme's button fill
+   (primary-600 deepened to WCAG AA, see horilla_theme/colors.py), not
+   primary-600 itself, which is too light under white text in most themes. {% endcomment %}
+{% with fill=theme_obj.primary_600|default:"#E54F38"|button_fill fill_hover=theme_obj.primary_600|default:"#E54F38"|button_fill_hover %}
 <style>
     .oh-btn--secondary,
     .oh-btn--secondary:disabled {
-        background-color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
+        background-color: {{ fill }} !important;
     }
     .oh-btn--secondary:hover,
     .oh-btn--secondary:focus,
     .oh-btn--secondary:focus-visible {
-        background-color: {{ theme_obj.primary_700|default:"#ce4732" }} !important;
+        background-color: {{ fill_hover }} !important;
     }
     .oh-btn--secondary-outline,
     .oh-btn--secondary-link {
@@ -25,28 +29,40 @@
     }
 
     .oh-titlebar__tag--custom {
-        background-color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
+        background-color: {{ fill }} !important;
     }
     .oh-titlebar__tag-close {
-        background-color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
+        background-color: {{ fill }} !important;
     }
     .oh-titlebar__tag-close:hover {
-        background-color: {{ theme_obj.primary_700|default:"#ce4732" }} !important;
+        background-color: {{ fill_hover }} !important;
     }
     .oh-titlebar__tag.filter-field {
         border-color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
     }
 
+    /* "Save And Add Another", next to the solid Save: an outline in the
+       button fill (it was white on primary-500, 1.5:1 to 2.6:1), filled on
+       hover. In the dark theme the label is lifted towards white, like the
+       sign-in links, to stay readable on the dark modal. */
     .oh-btn--add-another {
-        background-color: {{ theme_obj.primary_500|default:"#F7C8C1" }} !important;
-        color: #ffffff !important;
-        border: 1px solid {{ theme_obj.primary_500|default:"#F7C8C1" }} !important;
+        background-color: transparent !important;
+        color: {{ fill }} !important;
+        border: 1px solid {{ fill }} !important;
+    }
+    body.dark .oh-btn--add-another {
+        color: color-mix(in srgb, {{ fill }} 45%, white) !important;
+        border-color: color-mix(in srgb, {{ fill }} 70%, white) !important;
     }
     .oh-btn--add-another:hover,
     .oh-btn--add-another:focus,
-    .oh-btn--add-another:focus-visible {
-        background-color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
-        border-color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
+    .oh-btn--add-another:focus-visible,
+    body.dark .oh-btn--add-another:hover,
+    body.dark .oh-btn--add-another:focus,
+    body.dark .oh-btn--add-another:focus-visible {
+        background-color: {{ fill }} !important;
+        border-color: {{ fill }} !important;
+        color: #ffffff !important;
     }
 
     .list-checked li:before {
@@ -63,8 +79,8 @@
     }
 
     .oh-modal__dialog--custom .oh-general__tab .oh-general__tab-link--active {
-        background-color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
-        border-color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
+        background-color: {{ fill }} !important;
+        border-color: {{ fill }} !important;
     }
 
     .oh-tabs__content .heightContainer,
@@ -191,6 +207,14 @@
                         dark: "#b91c1c",
                     },
                 },
+                // bg-primary-600 / bg-brand-600 are the fills of primary buttons
+                // and badges, under white text: the AA button fill, not the raw
+                // 600 (text-, border- and ring- keep it). bg-*-700 and 800 are
+                // their hover shades. Merged into the colours above, per shade.
+                backgroundColor: {
+                    primary: { 600: '{{ fill }}', 700: '{{ fill_hover }}', 800: '{{ fill_hover }}' },
+                    brand: { 600: '{{ fill }}', 700: '{{ fill_hover }}', 800: '{{ fill_hover }}' },
+                },
                 boxShadow: {
                     card: "0px 0px 10px rgba(0, 0, 0, 0.05)",
                 },
@@ -215,6 +239,7 @@
         },
     };
 </script>
+{% endwith %}
 <script src="{% static '/jquery/ajax.js' %}"></script>
 <script src="{% static '/jquery/jquery.min.js' %}"></script>
 <script src="{% static '/jquery/jqueryui.js' %}"></script>
