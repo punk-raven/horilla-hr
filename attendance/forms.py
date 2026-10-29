@@ -36,6 +36,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
 from django.forms import DateInput, DateTimeInput, TimeInput
 from django.template.loader import render_to_string
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
 from attendance.filters import AttendanceFilters
@@ -186,16 +187,7 @@ class AttendanceUpdateForm(BaseModelForm):
             )
         ):
             del self.fields["attendance_overtime_approve"]
-        self.fields["batch_attendance_id"].choices = list(
-            self.fields["batch_attendance_id"].choices
-        ) + [
-            ("dynamic_create", _("Create %(label)s") % {"label": _("Batch Attendance")})
-        ]
-        self.fields["batch_attendance_id"].widget.attrs.update(
-            {
-                "onchange": "dynamicBatchAttendance($(this))",
-            }
-        )
+        add_batch_create_option(self.fields["batch_attendance_id"])
 
     def as_p(self, *args, **kwargs):
         """
@@ -337,16 +329,7 @@ class AttendanceForm(BaseModelForm):
             }
         )
         self.fields["work_type_id"].widget.attrs.update({"id": str(uuid.uuid4())})
-        self.fields["batch_attendance_id"].choices = list(
-            self.fields["batch_attendance_id"].choices
-        ) + [
-            ("dynamic_create", _("Create %(label)s") % {"label": _("Batch Attendance")})
-        ]
-        self.fields["batch_attendance_id"].widget.attrs.update(
-            {
-                "onchange": "dynamicBatchAttendance($(this))",
-            }
-        )
+        add_batch_create_option(self.fields["batch_attendance_id"])
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -730,16 +713,7 @@ class AttendanceRequestForm(BaseModelForm):
             }
         )
         self.fields["work_type_id"].widget.attrs.update({"id": str(uuid.uuid4())})
-        self.fields["batch_attendance_id"].choices = list(
-            self.fields["batch_attendance_id"].choices
-        ) + [
-            ("dynamic_create", _("Create %(label)s") % {"label": _("Batch Attendance")})
-        ]
-        self.fields["batch_attendance_id"].widget.attrs.update(
-            {
-                "onchange": "dynamicBatchAttendance($(this))",
-            }
-        )
+        add_batch_create_option(self.fields["batch_attendance_id"])
 
     class Meta:
         """
@@ -1137,6 +1111,23 @@ class AttendanceRequestCommentForm(BaseModelForm):
         fields = ("comment",)
 
 
+def add_batch_create_option(field):
+    """
+    Offer "Create Batch Attendance" at the end of a batch select. Picking it
+    opens the batch form in the shared create modal (dynamicBatchAttendance in
+    attendance/actions.js), which then selects the new batch here.
+    """
+    field.choices = list(field.choices) + [
+        ("dynamic_create", _("Create %(label)s") % {"label": _("Batch Attendance")})
+    ]
+    field.widget.attrs.update(
+        {
+            "onchange": "dynamicBatchAttendance($(this))",
+            "data-create-url": reverse_lazy("create-batch-attendance"),
+        }
+    )
+
+
 def get_date_list(employee_id, from_date, to_date):
     """
     This method will return a list of company working dates
@@ -1234,7 +1225,6 @@ class BulkAttendanceRequestForm(BaseModelForm):
         queryset=BatchAttendance.objects.all(),
         required=False,
         label="Batch",
-        widget=forms.Select(attrs={"onchange": "dynamicBatchAttendance($(this))"}),
     )
 
     class Meta:
@@ -1301,11 +1291,7 @@ class BulkAttendanceRequestForm(BaseModelForm):
             self.fields["employee_id"].queryset = Employee.objects.filter(
                 employee_user_id=request.user
             )
-        self.fields["batch_attendance_id"].choices = list(
-            self.fields["batch_attendance_id"].choices
-        ) + [
-            ("dynamic_create", _("Create %(label)s") % {"label": _("Batch Attendance")})
-        ]
+        add_batch_create_option(self.fields["batch_attendance_id"])
 
     def clean(self):
         cleaned_data = self.cleaned_data

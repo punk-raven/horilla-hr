@@ -13,6 +13,11 @@
         ></span>
     {% endif %}
 {% endif %}
+{% if created_batch and not previous_url %}
+    <script>
+        batchAttendanceCreated("{{ created_batch.id }}", "{{ created_batch|escapejs }}");
+    </script>
+{% endif %}
 <div class="oh-modal__dialog">
     <div class="oh-modal__dialog-header">
         <button

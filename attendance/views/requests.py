@@ -235,12 +235,13 @@ def create_batch_attendance(request):
             hx_target = "#objectCreateModalTarget"
     else:
         hx_target = "#objectCreateModalTarget"
+    created_batch = None
     if request.method == "POST":
         form = BatchAttendanceForm(request.POST)
         if form.is_valid():
-            batch = form.save()
+            created_batch = form.save()
             messages.success(request, _("Attendance batch created successfully."))
-            previous_form_data += f"&batch_attendance_id={batch.id}"
+            previous_form_data += f"&batch_attendance_id={created_batch.id}"
     return render(
         request,
         "attendance/attendance/batch_attendance_form.html",
@@ -249,6 +250,7 @@ def create_batch_attendance(request):
             "previous_form_data": previous_form_data,
             "previous_url": previous_url,
             "hx_target": hx_target,
+            "created_batch": created_batch,
         },
     )
 
