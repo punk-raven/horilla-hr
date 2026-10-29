@@ -608,3 +608,18 @@ body.dark .oh-sticky-dropdown_btn.is-column-config-trigger {
   border-color: #29334c;
   color: #bbbbbb;
 }
+
+/* Switches: `body.dark input` above paints every input #141a29 with
+   !important, which also hid the checked state - an "on" switch looked
+   off. Give the track the border colour when off (so it shows on a card)
+   and the theme colour when on. */
+body.dark .oh-switch .oh-switch__checkbox {
+  background-color: #374564 !important;
+}
+body.dark .oh-switch .oh-switch__checkbox:hover {
+  background-color: #4a5a7d !important;
+}
+body.dark .oh-switch .oh-switch__checkbox:checked,
+body.dark .oh-switch .oh-switch__checkbox:checked:hover {
+  background-color: var(--primary-600, #3b82f6) !important;
+}
