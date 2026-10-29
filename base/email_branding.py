@@ -1,28 +1,32 @@
 """
-The brand mark every HTML email carries, embedded in the message itself.
+The images every HTML email shows, embedded in the message itself.
 
-Templates show the logo with ``<img src="cid:brand_logo">``. Any message whose
-HTML refers to that Content-ID gets the PNG attached inline when it is built,
-so no sender has to attach it. It is never linked: the production host sits
-behind Cloudflare Access, which answers a mail client's image request with its
-login page, and Gmail and Outlook block data: URIs.
+Templates show an image with ``<img src="cid:<name>">``, where ``<name>`` is
+registered in ``INLINE_IMAGES`` (the brand logo, the leave, ticket and payslip
+illustrations). Any message whose HTML refers to a registered Content-ID gets
+that PNG attached inline when it is built, once, so no sender has to attach
+it; an image the HTML does not show is not attached. Images are never linked:
+the production host sits behind Cloudflare Access, which answers a mail
+client's image request with its login page, third-party hosts come and go,
+and Gmail and Outlook block data: URIs.
 
 Two hooks cover every way mail leaves the app:
 
 * ``EmailMessage._create_attachments`` (patched by ``install()``) attaches the
-  logo and puts the inline images in a ``multipart/related`` part with the HTML
-  they belong to, files staying in ``multipart/mixed`` around it. Everything
-  that serialises the MIME message goes through it: SMTP, the console, file and
-  locmem backends, Outlook.
-* ``ConfiguredEmailBackend`` calls ``attach_brand_logo()`` before handing mail
-  to the Resend API, which never builds MIME: Anymail sends each inline image
-  as an attachment with a ``content_id``.
+  images and puts the inline parts in a ``multipart/related`` part with the
+  HTML they belong to, files staying in ``multipart/mixed`` around it.
+  Everything that serialises the MIME message goes through it: SMTP, the
+  console, file and locmem backends, Outlook.
+* ``ConfiguredEmailBackend`` calls ``attach_inline_images()`` before handing
+  mail to the Resend API, which never builds MIME: Anymail sends each inline
+  image as an attachment with a ``content_id``.
 """
 
 from __future__ import annotations
 
 import mimetypes
 import os
+import re
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from functools import lru_cache
@@ -35,6 +39,16 @@ from django.core.mail.message import SafeMIMEMultipart
 
 BRAND_LOGO_CID = "brand_logo"
 BRAND_LOGO_STATIC = "images/ui/punkraven-mail-logo.png"
+PAYSLIP_HERO_CID = "payslip_hero"
+# Content-ID -> static image. A message whose HTML shows cid:<name> gets the
+# image attached inline.
+INLINE_IMAGES = {
+    BRAND_LOGO_CID: BRAND_LOGO_STATIC,
+    "leave_icon": "images/ui/leave_types.png",
+    "ticket_icon": "images/ui/ticket.png",
+    PAYSLIP_HERO_CID: "images/ui/payslip-mail-hero.png",
+}
+CID_REFERENCE = re.compile(r"""cid:([^\s"'<>)]+)""")
 # The sign-in button's fill (Ocean Blue's primary #3b82f6 mixed 85% with
 # black): white text on it is 4.9:1, AA for normal text. The theme's own
 # #3b82f6 is 3.7:1.
@@ -85,25 +99,37 @@ def _html_parts(message: EmailMessage):
             yield str(content)
 
 
-def attach_brand_logo(message: EmailMessage) -> bool:
+def referenced_cids(message: EmailMessage) -> list[str]:
+    """The Content-IDs the message's HTML shows, in order, each once."""
+    cids = []
+    for html in _html_parts(message):
+        for cid in CID_REFERENCE.findall(html):
+            if cid not in cids:
+                cids.append(cid)
+    return cids
+
+
+def attach_inline_images(message: EmailMessage) -> list[str]:
     """
-    Attach the brand logo inline when the HTML shows it and no part has its
-    Content-ID yet (a white-labelled company logo may already stand in).
-    Safe to call more than once. Returns whether it attached the logo.
+    Attach inline every registered image the HTML shows that no part carries
+    yet (a white-labelled company logo may already stand in for the brand
+    logo). Safe to call more than once. Returns the Content-IDs it attached.
     """
-    reference = f"cid:{BRAND_LOGO_CID}"
-    if not any(reference in html for html in _html_parts(message)):
-        return False
-    content_id = f"<{BRAND_LOGO_CID}>"
-    if any(
-        is_inline_part(part) and part["Content-ID"].strip() == content_id
+    present = {
+        part["Content-ID"].strip().strip("<>")
         for part in message.attachments
-    ):
-        return False
-    message.attach(
-        inline_image(brand_logo_bytes(), os.path.basename(BRAND_LOGO_STATIC))
-    )
-    return True
+        if is_inline_part(part)
+    }
+    attached = []
+    for cid in referenced_cids(message):
+        static_path = INLINE_IMAGES.get(cid)
+        if static_path is None or cid in present:
+            continue
+        message.attach(
+            inline_image(static_bytes(static_path), os.path.basename(static_path), cid)
+        )
+        attached.append(cid)
+    return attached
 
 
 def attach_company_logo(message: EmailMessage, company) -> bool:
@@ -133,13 +159,6 @@ def attach_company_logo(message: EmailMessage, company) -> bool:
     return True
 
 
-def attach_static_image(message: EmailMessage, static_path: str, cid: str):
-    """Attach a static image inline, for HTML that shows it as cid:<cid>."""
-    message.attach(
-        inline_image(static_bytes(static_path), os.path.basename(static_path), cid)
-    )
-
-
 def _related(root, inline_parts, encoding):
     related = SafeMIMEMultipart(_subtype="related", encoding=encoding)
     # RFC 2387: the type parameter names the root part's type.
@@ -151,7 +170,7 @@ def _related(root, inline_parts, encoding):
 
 
 def _create_attachments(self, msg):
-    attach_brand_logo(self)
+    attach_inline_images(self)
     inline_parts = [a for a in self.attachments if is_inline_part(a)]
     if not inline_parts:
         return _django_create_attachments(self, msg)
@@ -187,6 +206,6 @@ _django_create_attachments = EmailMessage._create_attachments
 
 
 def install():
-    """Build every EmailMessage with the brand logo and related inline parts."""
+    """Build every EmailMessage with its inline images in a related part."""
     if EmailMessage._create_attachments is not _create_attachments:
         EmailMessage._create_attachments = _create_attachments

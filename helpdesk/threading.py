@@ -13,7 +13,6 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
 from base.backends import ConfiguredEmailBackend
-from base.email_branding import attach_static_image
 from base.models import Department
 from employee.models import EmployeeWorkInformation
 from helpdesk.models import Ticket
@@ -77,7 +76,6 @@ class TicketSendThread(Thread):
                 reply_to=[display_email_name],
             )
             email.content_subtype = "html"
-            attach_static_image(email, "images/ui/ticket.png", "ticket_icon")
             try:
                 email.send()
             except:
@@ -188,7 +186,6 @@ class AddAssigneeThread(Thread):
                 reply_to=[display_email_name],
             )
             email.content_subtype = "html"
-            attach_static_image(email, "images/ui/ticket.png", "ticket_icon")
             try:
                 email.send()
             except:
@@ -250,7 +247,6 @@ class RemoveAssigneeThread(Thread):
                 reply_to=[display_email_name],
             )
             email.content_subtype = "html"
-            attach_static_image(email, "images/ui/ticket.png", "ticket_icon")
             try:
                 email.send()
             except:
