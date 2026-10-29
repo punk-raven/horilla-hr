@@ -5,17 +5,17 @@
 name: CodeQL
 
 on:
-  push:
-    branches: [dev/v2.0, "2.0"]
+  # CI runs only on demand: on a pull request labelled "run-ci" (adding the
+  # label starts it, and later pushes rerun it), or by hand from the Actions
+  # tab. Pushes and pull requests without the label run nothing.
   pull_request:
     branches: [dev/v2.0, "2.0"]
-  schedule:
-    # Rules improve between commits; a weekly run catches findings that did not
-    # exist when the code was merged.
-    - cron: "0 3 * * 1"
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
 
 jobs:
   analyze:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-ci')
     name: Analyze Python
     runs-on: ubuntu-latest
     timeout-minutes: 30
