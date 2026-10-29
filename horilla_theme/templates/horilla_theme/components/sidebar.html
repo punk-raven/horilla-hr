@@ -976,13 +976,29 @@
           }, true);
         }
 
-        // Highlight active module button based on current URL (no accordion to open)
-        function ohAccordionInit() {
-          var path = window.location.pathname;
+        // Highlight the module the current URL belongs to (no accordion to open).
+        //
+        // 1. A submenu link (or one of its data-match-prefixes) or a top-level
+        //    link (Dashboard) the path starts with: that link and its module.
+        // 2. Otherwise a module with a link in the same URL section (first path
+        //    segment, e.g. /leave/...), so detail pages keep their module lit;
+        //    the last module used wins when several share the section.
+        // 3. Otherwise none. Restoring the last module regardless used to light
+        //    Dashboard up on every Settings page (/settings/... is not a sidebar
+        //    module at all).
+        function sidebarPathSection(path) {
+          var parts = (path || "").split("/").filter(Boolean);
+          return parts.length ? parts[0] : "";
+        }
+
+        function highlightSidebarForPath(path) {
+          document.querySelectorAll(".sidebar-subnav-link.oh-sidebar-active-link").forEach(function (l) {
+            l.classList.remove("oh-sidebar-active-link");
+          });
           var matchedBtn = null;
           document.querySelectorAll(".sidebar-subnav-link").forEach(function (link) {
             // Strip any query string (e.g. Hours Balance's ?year=2026) before
-            // comparing — location.pathname never includes one.
+            // comparing - location.pathname never includes one.
             var href = (link.getAttribute("href") || "").split("?")[0];
             var extraPrefixes = (link.dataset.matchPrefixes || "").split(",").filter(Boolean);
             var matches = (href && href !== "/" && href !== "#" && path.startsWith(href)) ||
@@ -996,26 +1012,49 @@
             }
           });
           // Top-level links with no submenu (e.g. Dashboard) aren't covered by
-          // the subnav-link scan above — check them directly against the URL
-          // so a fresh load on /dashboard/ highlights Dashboard, not whatever
-          // module was last active in localStorage.
+          // the subnav-link scan above - check them directly against the URL.
+          // Dashboard also covers /my-dashboard/, where /dashboard/ sends
+          // employees (its data-match-prefixes).
           if (!matchedBtn) {
             document.querySelectorAll("a.sideboxmain[href]").forEach(function (link) {
               if (matchedBtn) return;
               var href = (link.getAttribute("href") || "").split("?")[0];
-              if (href && href !== "/" && href !== "#" && path.startsWith(href)) matchedBtn = link;
+              var extraPrefixes = (link.dataset.matchPrefixes || "").split(",").filter(Boolean);
+              if ((href && href !== "/" && href !== "#" && path.startsWith(href)) ||
+                  extraPrefixes.some(function (p) { return path.startsWith(p); })) matchedBtn = link;
             });
+          }
+          if (!matchedBtn) {
+            var section = sidebarPathSection(path);
+            var candidates = [];
+            if (section) {
+              document.querySelectorAll(".sidebar-item").forEach(function (item) {
+                var btn = item.querySelector(".sideboxmain");
+                var sameSection = Array.prototype.some.call(
+                  item.querySelectorAll(".sidebar-subnav-link"),
+                  function (link) {
+                    return sidebarPathSection((link.getAttribute("href") || "").split("?")[0]) === section;
+                  }
+                );
+                if (btn && sameSection) candidates.push(btn);
+              });
+            }
+            var lastMenu = null;
+            try { lastMenu = localStorage.getItem("activeSidebarMenu"); } catch (_) {}
+            matchedBtn = candidates.filter(function (btn) { return btn.dataset.menu === lastMenu; })[0] ||
+              candidates[0] || null;
           }
           if (matchedBtn) {
             setActiveSidebarMenu(matchedBtn);
           } else {
-            var lastMenu = null;
-            try { lastMenu = localStorage.getItem("activeSidebarMenu"); } catch (_) {}
-            if (lastMenu) {
-              var btn = document.querySelector('.sideboxmain[data-menu="' + lastMenu.replace(/"/g, '\\"') + '"]');
-              if (btn) setActiveSidebarMenu(btn);
-            }
+            document.querySelectorAll(".sideboxmain.sidebox-current").forEach(function (b) {
+              b.classList.remove("sidebox-current");
+            });
           }
+        }
+
+        function ohAccordionInit() {
+          highlightSidebarForPath(window.location.pathname);
         }
 
         ohAccordionInit();
@@ -1073,31 +1112,7 @@
 
         // Re-highlight active module + link after any URL change (HTMX or browser back/forward)
         function syncSidebarToUrl() {
-          document.querySelectorAll(".sidebar-subnav-link").forEach(function (l) {
-            l.classList.remove("oh-sidebar-active-link");
-          });
-          var path = window.location.pathname;
-          var matchedBtn = null;
-          document.querySelectorAll(".sidebar-subnav-link").forEach(function (link) {
-            // Strip any query string (e.g. Hours Balance's ?year=2026) before
-            // comparing — location.pathname never includes one.
-            var href = (link.getAttribute("href") || "").split("?")[0];
-            if (href && href !== "/" && path.startsWith(href)) {
-              link.classList.add("oh-sidebar-active-link");
-              if (!matchedBtn) {
-                var item = link.closest(".sidebar-item");
-                matchedBtn = item && item.querySelector(".sideboxmain");
-              }
-            }
-          });
-          if (!matchedBtn) {
-            document.querySelectorAll("a.sideboxmain[href]").forEach(function (link) {
-              if (matchedBtn) return;
-              var href = (link.getAttribute("href") || "").split("?")[0];
-              if (href && href !== "/" && href !== "#" && path.startsWith(href)) matchedBtn = link;
-            });
-          }
-          if (matchedBtn) setActiveSidebarMenu(matchedBtn);
+          highlightSidebarForPath(window.location.pathname);
         }
         document.addEventListener("htmx:pushUrl", syncSidebarToUrl);
         document.addEventListener("htmx:afterSettle", syncSidebarToUrl);
