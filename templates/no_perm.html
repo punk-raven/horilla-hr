@@ -1,11 +1,12 @@
 {% load static i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{% if theme_preference == 'dark' %}dark{% endif %}">
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Page Not Found - {{ white_label_company_name }}</title>
+        {% include "horilla_theme/components/error_page_theme.html" %}
+        <title>{% trans "Access Denied" %} - {{ white_label_company_name }}</title>
         <link
             rel="apple-touch-icon"
             sizes="180x180"
@@ -26,7 +27,7 @@
         <link rel="stylesheet" href='{% static "/build/css/style.min.css" %}'>
     </head>
 
-    <body>
+    <body class="hx-error-page{% if theme_preference == 'dark' %} dark{% endif %}">
         <div class="oh-wrapper-main">
             <div id="sidebar"></div>
             <div id="main">

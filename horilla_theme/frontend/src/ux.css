@@ -543,6 +543,198 @@ body.dark .oh-alert[class*="oh-alert--"] {
   outline-offset: -4px;
 }
 
+/* ── First-run setup (initialize_database) ────────────────────────────────
+   The setup pages run on the old stylesheet (style.min.css, v1_styles.css),
+   which hardcodes the default coral and only has a light theme. Like the
+   sign-in pages they take the login page's theme (tokens set in
+   initialize_database/horilla_user.html) and follow the light or dark
+   choice. Colours only, apart from the theme switch, which is this layer's
+   own element. */
+.oh-setup-page .oh-onboarding-card__count {
+  background-color: color-mix(in srgb, var(--primary-fill) 10%, transparent);
+  color: var(--primary-fill);
+}
+
+/* Buttons: the AA button fill (white label 4.5:1 or more in every theme;
+   the coral was 3.8:1), and the same colour as outline text. */
+.oh-setup-page .oh-btn--secondary {
+  background-color: var(--primary-fill);
+  color: #fff;
+}
+
+.oh-setup-page .oh-btn--secondary:hover,
+.oh-setup-page .oh-btn--secondary:focus-visible {
+  background-color: var(--primary-fill-hover);
+  color: #fff;
+}
+
+.oh-setup-page .oh-btn--secondary-outline {
+  border-color: var(--primary-fill);
+  color: var(--primary-fill);
+}
+
+.oh-setup-page .oh-btn--secondary-outline:hover,
+.oh-setup-page .oh-btn--secondary-outline:focus-visible {
+  border-color: var(--primary-fill);
+  background-color: var(--primary-fill);
+  color: #fff;
+}
+
+.oh-setup-page .oh-switch__checkbox:checked,
+.oh-setup-page .oh-switch__checkbox:checked:hover {
+  background-color: var(--primary-fill);
+}
+
+.oh-setup-page .oh-password-input--toggle {
+  color: var(--hx-muted-fg);
+}
+
+/* The theme switch, as on the sign-in pages (fixed, so it takes no space;
+   the toasts are laid out from it by .oh-auth-alerts above). */
+.oh-setup-theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Dark: the signed-in app's palette, as on the sign-in pages: page
+   #05080f, card #1c2437, fields #151b2a, borders #374564, text #dde1e9,
+   secondary text #bbbbbb. */
+.dark .oh-setup-page {
+  background-color: #05080f;
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .oh-onboarding-card {
+  background-color: #1c2437;
+  color: #dde1e9;
+  box-shadow: 0 0 0 1px #374564, 0 24px 48px -16px rgb(0 0 0 / 0.7);
+}
+
+.dark .oh-setup-page .oh-onboarding-card__header {
+  border-bottom-color: #374564;
+}
+
+/* The step forms are white panels of their own (.oh-profile-section). */
+.dark .oh-setup-page .oh-profile-section {
+  background-color: transparent;
+}
+
+.dark .oh-setup-page .oh-onboarding-card__company-name,
+.dark .oh-setup-page .oh-onboarding-card__title,
+.dark .oh-setup-page .oh-onboarding-card__step--active .oh-onboarding-card__text,
+.dark .oh-setup-page .oh-label {
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .oh-onboarding-card__text,
+.dark .oh-setup-page .text-muted {
+  color: #bbbbbb !important;
+}
+
+.dark .oh-setup-page .oh-onboarding-card__count {
+  background-color: color-mix(in srgb, var(--primary-600) 22%, transparent);
+  color: color-mix(in srgb, var(--primary-600) 50%, white);
+}
+
+.dark .oh-setup-page .oh-input,
+.dark .oh-setup-page textarea,
+.dark .oh-setup-page select,
+.dark .oh-setup-page .select2-container--default .select2-selection--single,
+.dark .oh-setup-page .select2-container--default .select2-selection--multiple {
+  background-color: #151b2a;
+  border-color: var(--hx-border) !important;
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .select2-container--default .select2-selection__rendered {
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .select2-container--default .select2-selection__placeholder {
+  color: var(--hx-placeholder);
+}
+
+.dark .oh-setup-page .select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: #29334c;
+  border-color: #374564;
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .select2-dropdown {
+  background-color: #1c2437;
+  border-color: #374564;
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .select2-search--dropdown .select2-search__field {
+  background-color: #151b2a;
+  border-color: #374564;
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .select2-results__option--highlighted {
+  background-color: var(--primary-fill) !important;
+  color: #fff !important;
+}
+
+.dark .oh-setup-page .select2-results__option[aria-selected="true"]:not(.select2-results__option--highlighted) {
+  background-color: #29334c;
+}
+
+.dark .oh-setup-page input[type="file"] {
+  background-color: transparent;
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page input[type="file"]::file-selector-button {
+  border: 1px solid #374564;
+  border-radius: 4px;
+  background-color: #29334c;
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .oh-filter-tag {
+  background-color: #151b2a;
+  border-color: #374564;
+  color: #dde1e9;
+}
+
+.dark .oh-setup-page .oh-filter-tag__close::before {
+  background-color: #374564;
+}
+
+/* Lift the brand hue towards white on the dark card, like the sign-in
+   links; the solid buttons keep their AA fill. */
+.dark .oh-setup-page .oh-btn--secondary-outline:not(:hover):not(:focus-visible) {
+  border-color: color-mix(in srgb, var(--primary-600) 70%, white);
+  color: color-mix(in srgb, var(--primary-600) 50%, white);
+}
+
+.dark .oh-setup-page .oh-switch__checkbox:not(:checked) {
+  background-color: #374564;
+}
+
+.dark .oh-setup-page .oh-password-input--toggle:hover {
+  color: var(--hx-color-slate-200);
+  background-color: transparent;
+}
+
+.dark .oh-setup-page .errorlist {
+  color: #fca5a5;
+}
+
 /* ── HTMX request feedback ────────────────────────────────────────────────
    A thin progress bar along the top edge while any request is in flight
    (skill: loading-indicators). ux-motion.js shows it only after ~150ms so

@@ -1,11 +1,19 @@
 {% load static %}
-{% load i18n %}
+{% load i18n horillafilters theme_colors %}
+{% comment %}
+    The first-run setup (initialize_database): this shell, and the steps
+    swapped into #ohAuthCard. Light and dark like the sign-in pages: the
+    same theme (the login page's default), theme_init.html, the theme
+    switch in the corner, and their dark palette (ux.css, First-run setup).
+{% endcomment %}
+{% get_def_theme as theme_obj %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{% if theme_preference == 'dark' %}dark{% endif %}">
     <head>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% include "horilla_theme/components/theme_init.html" %}
         <title>Login - {{ white_label_company_name }} Dashboard</title>
         <link
             rel="apple-touch-icon"
@@ -30,9 +38,31 @@
         <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/global.css' %}">
         <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/v1_styles.css' %}">
         <link rel="manifest" href="{% static 'build/manifest.json' %}" crossorigin="use-credentials">
+        <style>
+            /* The theme tokens ux.css reads (auth_layout.html sets the same). */
+            :root {
+                --primary-600: {{ theme_obj.primary_600|default:"#3b82f6" }};
+                --primary-fill: {{ theme_obj.primary_600|default:"#3b82f6"|button_fill }};
+                --primary-fill-hover: {{ theme_obj.primary_600|default:"#3b82f6"|button_fill_hover }};
+            }
+        </style>
+        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=7">
     </head>
 
-    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' style="font-family: Inter, sans-serif;">
+    <body
+        class="oh-setup-page{% if theme_preference == 'dark' %} dark{% endif %}"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        style="font-family: Inter, sans-serif;"
+    >
+        <button
+            type="button"
+            data-theme-toggle
+            aria-label="{% trans 'Toggle theme' %}"
+            class="oh-auth-theme-toggle oh-setup-theme-toggle"
+        >
+            <ion-icon class="hx-theme-when-light" name="moon-outline" aria-hidden="true"></ion-icon>
+            <ion-icon class="hx-theme-when-dark" name="bulb-outline" aria-hidden="true"></ion-icon>
+        </button>
         <style>
             .select2-selection.select2-selection--multiple {
                 height: 46px !important;
@@ -71,9 +101,22 @@
             .oh-profile-section {
                 border: none;
             }
+            /* Keep the logo clear of a card taller than the screen
+               (space-evenly leaves no gap then). */
+            .oh-auth {
+                gap: 1.5rem;
+            }
+            /* Where the card reaches the corner, start it below the fixed
+               theme switch (16px + 40px + a 16px gap), as on the sign-in
+               pages. */
+            @media (max-width: 1100px) {
+                .oh-auth {
+                    margin-top: 72px;
+                }
+            }
         </style>
         <div id="main">
-            <div class="oh-alert-container">
+            <div class="oh-alert-container oh-auth-alerts" role="status" aria-live="polite">
                 {% for message in messages %}
                     <div class="oh-alert oh-alert--animated {{ message.tags }}">
                         {{ message }}
@@ -81,7 +124,10 @@
                 {% endfor %}
             </div>
             <main class="oh-auth">
-                <div class="oh-onboarding-card" style="max-height: 790px; max-width: 975px" id="ohAuthCard">
+                {% comment %} No max-height: the Company step is taller than the
+                   790px it had, and its form ran out of the card and over the
+                   logo below. {% endcomment %}
+                <div class="oh-onboarding-card" style="max-width: 975px" id="ohAuthCard">
                     <div class="oh-onboarding-card__header">
                         <span class="oh-onboarding-card__company-name">{% trans "Horilla HRMS" %}</span>
                         <ul class="oh-onboarding-card__steps">

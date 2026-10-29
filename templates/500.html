@@ -1,0 +1,9 @@
+{% load i18n %}
+{% comment %}
+    Django's handler500 renders this without a request or context
+    processors, and the database may be what failed: 404.html's layout with
+    the 500 texts, and static_theme so its theme needs no database query.
+{% endcomment %}
+{% trans "Something went wrong!" as error_title %}
+{% trans "Sorry, an unexpected error occurred on our side. Please try again in a moment." as error_message %}
+{% include "404.html" with error_code="500" error_title=error_title error_message=error_message static_theme=True %}

@@ -222,10 +222,11 @@
 </style>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{% if theme_preference == 'dark' %}dark{% endif %}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% include "horilla_theme/components/error_page_theme.html" with static_theme=static_theme %}
         <title>{% trans "Horilla" %}</title>
         <link
             rel="icon"
@@ -241,7 +242,7 @@
         >
     </head>
 
-    <body>
+    <body class="hx-error-page{% if theme_preference == 'dark' %} dark{% endif %}">
         {% if messages %}
             <div class="oh-wrapper">
                 {% for message in messages %}
@@ -259,9 +260,9 @@
                     <img src='{% static "/images/ui/404_error_image.png" %}'>
                 </div>
                 <div>
-                    <h1 class="hr-404">404</h1>
-                    <p class="hr-error_msg">{% trans "Page not found!" %}</p>
-                    <p>{% trans "Oops! The page you are looking for could not be found." %}</p>
+                    <h1 class="hr-404">{{ error_code|default:"404" }}</h1>
+                    <p class="hr-error_msg">{% if error_title %}{{ error_title }}{% else %}{% trans "Page not found!" %}{% endif %}</p>
+                    <p>{% if error_message %}{{ error_message }}{% else %}{% trans "Oops! The page you are looking for could not be found." %}{% endif %}</p>
                     <a href="/" class="hr-error_btn"><ion-icon
                             name="arrow-back-outline"
                         ></ion-icon>{% trans "Return to the main page" %}</a>

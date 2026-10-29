@@ -1,0 +1,85 @@
+{% load horillafilters theme_colors %}
+{% comment %}
+    Light and dark theme for the standalone error pages (403, 404, 405, 500,
+    no_perm). Include it in their <head>, and give their <body> the
+    hx-error-page class.
+
+    - theme_init.html: the stored choice, or the OS, before the first paint
+    - The company theme's tokens the pages read (index.html sets the same
+      ones for signed-in pages): the brand colour, and the AA fill for the
+      button's white label (horilla_theme/colors.py). static_theme skips the
+      database lookup, for the 500 page: the database may be what failed.
+    - The dark palette of the signed-in app and the sign-in pages: page
+      #05080f, text #dde1e9, secondary text #bbbbbb (8.2:1).
+
+    Every rule is scoped to body.hx-error-page. no_perm.html and 404.html
+    are also returned to htmx requests and swapped into a page; there the
+    <body> class is dropped, so none of this restyles the page around them.
+{% endcomment %}
+{% include "horilla_theme/components/theme_init.html" %}
+{% if not static_theme %}{% get_company as theme_obj %}{% endif %}
+<style>
+    :root {
+        --primary-600: {{ theme_obj.primary_600|default:"#3b82f6" }};
+        --primary-fill: {{ theme_obj.primary_600|default:"#3b82f6"|button_fill }};
+        --primary-fill-hover: {{ theme_obj.primary_600|default:"#3b82f6"|button_fill_hover }};
+    }
+
+    /* The headline under the code, in the brand colour: large text, but
+       the raw 600 of the lighter themes is under 3:1 on white, so it uses
+       the fill, which is 4.5:1 or more in every theme. */
+    body.hx-error-page .hr-error_msg {
+        color: var(--primary-fill);
+    }
+
+    body.hx-error-page .hr-error_btn {
+        border-color: var(--primary-fill);
+        background-color: var(--primary-fill);
+        color: #fff;
+    }
+
+    body.hx-error-page .hr-error_btn:hover,
+    body.hx-error-page .hr-error_btn:focus-visible {
+        border-color: var(--primary-fill-hover);
+        background-color: var(--primary-fill-hover);
+        color: #fff;
+    }
+
+    body.hx-error-page .hr-error_btn:focus-visible {
+        outline: 2px solid var(--primary-fill);
+        outline-offset: 2px;
+    }
+
+    html.dark body.hx-error-page {
+        background-color: #05080f;
+        color: #dde1e9;
+    }
+
+    html.dark body.hx-error-page .hr-404,
+    html.dark body.hx-error-page .oh-404__title {
+        color: #fff;
+    }
+
+    /* Lift the brand hue towards white on the dark page, like the sign-in
+       links (Ocean Blue 7.4:1). */
+    html.dark body.hx-error-page .hr-error_msg {
+        color: color-mix(in srgb, var(--primary-600) 60%, white);
+    }
+
+    html.dark body.hx-error-page .hr-error_btn:focus-visible {
+        outline-color: color-mix(in srgb, var(--primary-600) 60%, white);
+    }
+
+    html.dark body.hx-error-page .hr-error_bg {
+        box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 12px 32px -8px rgb(0 0 0 / 0.7);
+    }
+
+    html.dark body.hx-error-page .oh-404__subtitle {
+        color: #bbbbbb;
+    }
+
+    /* Messages stay light cards, as in the app: keep their text dark. */
+    html.dark body.hx-error-page .oh-alert {
+        color: #1c1c1c;
+    }
+</style>
