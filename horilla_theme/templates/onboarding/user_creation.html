@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n horillafilters %}
+{% load theme_colors %}
 {% get_company as theme_obj %}
 <!DOCTYPE html>
 <html lang="en">
@@ -161,7 +162,7 @@
                             </div>
                             <button
                                 href="#"
-                                style="background-color: {{ theme_obj.primary_600 }}; color: {{ theme_obj.secondary_100 }}"
+                                style="background-color: {{ theme_obj.primary_600|button_fill }}; color: #fff"
                                 class="oh-btn oh-onboarding-card__button mt-4 oh-btn--shadow w-100 mb-4"
                                 role="button"
                             >

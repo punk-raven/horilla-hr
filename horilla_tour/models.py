@@ -256,3 +256,30 @@ class TourProgress(HorillaModel):
         if status in ("completed", "skipped"):
             self.completed_at = timezone.now()
         self.save()
+
+
+class TourPreference(models.Model):
+    """Per-user opt-out from auto-started tours (manual launch still works)."""
+
+    user = models.OneToOneField(
+        HorillaUser,
+        on_delete=models.CASCADE,
+        related_name="tour_preference",
+        verbose_name=_("User"),
+    )
+    auto_start_disabled = models.BooleanField(
+        default=False,
+        verbose_name=_("Don't show product tours automatically"),
+    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated at"))
+
+    class Meta:
+        verbose_name = _("Tour preference")
+        verbose_name_plural = _("Tour preferences")
+
+    def __str__(self):
+        return f"{self.user} · {'off' if self.auto_start_disabled else 'on'}"
+
+    @classmethod
+    def auto_start_disabled_for(cls, user):
+        return cls.objects.filter(user=user, auto_start_disabled=True).exists()

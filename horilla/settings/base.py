@@ -287,6 +287,24 @@ if REDIS_URL:
         }
     }
 
+# The test suite gets a cache of its own. Redis is shared state: the dev
+# server, every earlier test run and every --parallel worker read and write
+# the same keys, and what they leave behind expires on a clock. Mail is where
+# it showed: a mail built without a sender takes the one cached under
+# "dynamic_display_name" by whichever test, run or dev request wrote it last
+# within the last five minutes, and a test fixture's sender was found there
+# in the dev server's cache.
+# Django rolls the database back after each test but never the cache, so a
+# per-process LocMem cache is what keeps a run independent of everything
+# outside it.
+if "test" in sys.argv:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "horilla-tests",
+        }
+    }
+
 # ========================================
 # STATIC & MEDIA FILES
 # ========================================

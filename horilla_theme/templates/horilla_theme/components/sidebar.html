@@ -1,10 +1,14 @@
-{% load static i18n horillafilters %}
+{% load static i18n horillafilters theme_colors %}
 {% get_company as theme_obj %}
 <style>
     #sidebar,
     #sidebarFlyout {
         --sidebar-accent: {{ theme_obj.primary_600|default:'#E54F38' }};
-        --sidebar-accent-dark: {{ theme_obj.primary_700|default:'#c73f2a' }};
+        /* Solid fills behind the white label of the current page and the
+           active link: the theme's shades deepened to WCAG AA where needed
+           (horilla_theme/colors.py). */
+        --sidebar-fill: {{ theme_obj.primary_600|default:'#E54F38'|button_fill }};
+        --sidebar-accent-dark: {{ theme_obj.primary_700|default:'#c73f2a'|button_fill }};
         --sidebar-accent-soft: {{ theme_obj.primary_100|default:'#FEF6F5' }};
     }
     /* === Sidebar collapse / expand === */
@@ -199,7 +203,7 @@
     }
     /* Current page (persistent): solid accent fill + subtle elevation. */
     .sideboxmain.sidebox-current {
-        background-color: var(--sidebar-accent) !important;
+        background-color: var(--sidebar-fill) !important;
         box-shadow: 0 4px 14px -4px rgba(20, 20, 30, 0.25);
     }
     body.dark .sideboxmain.sidebox-current {
@@ -220,7 +224,7 @@
        parent item's .sidebox-current weight so the active submenu reads
        as clearly "selected" rather than a faint tint. */
     .oh-sidebar-active-link {
-        background-color: var(--sidebar-accent) !important;
+        background-color: var(--sidebar-fill) !important;
         color: #ffffff !important;
         font-weight: 600;
         box-shadow: 0 4px 14px -4px rgba(20, 20, 30, 0.25);
@@ -382,7 +386,7 @@
         color: {{ theme_obj.primary_600|default:"#E54F38" }} !important;
     }
     #sidebarFlyout a.sidebar-subnav-link.oh-sidebar-active-link {
-        background-color: var(--sidebar-accent) !important;
+        background-color: var(--sidebar-fill) !important;
         color: #ffffff !important;
         font-weight: 600;
         box-shadow: 0 4px 14px -4px rgba(20, 20, 30, 0.25);

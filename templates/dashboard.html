@@ -7,6 +7,9 @@
     <style>
         :root {
             --md-indigo: var(--primary-600, #e54f38);
+            /* Fill behind white labels: AA in every theme (index.html). */
+            --md-fill: var(--primary-fill, #ce4732);
+            --md-fill-hover: var(--primary-fill-hover, #af3c2a);
             --md-green: #22c55e;
             --md-amber: #f59e0b;
             --md-red: #ef4444;
@@ -447,7 +450,7 @@
         .md-seg[hidden], .md-pie-legend[hidden] { display: none; }
         .md-seg__btn:hover { opacity: 1; }
         .md-seg__btn.is-active {
-            background: var(--md-indigo);
+            background: var(--md-fill);
             color: #fff;
             opacity: 1;
         }
@@ -616,7 +619,7 @@
             height: 24px;
             padding: 0 6px;
             border-radius: 999px;
-            background: var(--md-indigo);
+            background: var(--md-fill);
             color: #fff;
             font-size: 12px;
             font-weight: 600;
@@ -1074,7 +1077,7 @@
             transition: background 0.15s, color 0.15s, transform 0.15s;
         }
         .md-card-link:hover {
-            background: var(--md-indigo);
+            background: var(--md-fill);
             color: #fff;
             transform: translate(1px, -1px);
         }
@@ -1129,8 +1132,8 @@
             transition: all 0.15s;
         }
         .md-btn-add:hover {
-            border-color: var(--md-indigo);
-            background: var(--md-indigo);
+            border-color: var(--md-fill);
+            background: var(--md-fill);
             color: #fff;
         }
 
@@ -1347,11 +1350,11 @@
             transition: all 0.15s;
         }
         .md-cust-btn--primary {
-            background: var(--md-indigo);
+            background: var(--md-fill);
             color: #fff;
         }
         .md-cust-btn--primary:hover {
-            background: #4f46e5;
+            background: var(--md-fill-hover);
         }
         .md-cust-btn--ghost {
             background: none;
@@ -1573,6 +1576,20 @@
         .md-pending-card--purple {
             background: #faf5ff;
         }
+        /* Shift and Work Type set these inline, so the dark theme's tints
+           never applied: light cards with light text in the dark theme. */
+        .md-pending-card--teal {
+            background: #f0fdfa;
+        }
+        .md-pending-card--teal .md-pending-card__count {
+            color: #0d9488;
+        }
+        .md-pending-card--indigo {
+            background: #eef2ff;
+        }
+        .md-pending-card--indigo .md-pending-card__count {
+            color: #4f46e5;
+        }
         .dark .md-pending-card--amber {
             background: rgba(245, 158, 11, 0.1);
         }
@@ -1584,6 +1601,18 @@
         }
         .dark .md-pending-card--purple {
             background: rgba(168, 85, 247, 0.1);
+        }
+        .dark .md-pending-card--teal {
+            background: rgba(20, 184, 166, 0.1);
+        }
+        .dark .md-pending-card--teal .md-pending-card__count {
+            color: #2dd4bf;
+        }
+        .dark .md-pending-card--indigo {
+            background: rgba(99, 102, 241, 0.12);
+        }
+        .dark .md-pending-card--indigo .md-pending-card__count {
+            color: #a5b4fc;
         }
 
         /* Payroll summary card */
@@ -1654,13 +1683,13 @@
             color: var(--md-indigo);
         }
         .md-period-preset--active {
-            border-color: var(--md-indigo);
-            background: var(--md-indigo);
+            border-color: var(--md-fill);
+            background: var(--md-fill);
             color: #fff;
         }
         .md-period-preset--active:hover {
-            border-color: var(--md-indigo);
-            background: var(--md-indigo);
+            border-color: var(--md-fill-hover);
+            background: var(--md-fill-hover);
             color: #fff;
         }
         .dark .md-period-picker input[type='date'] {
@@ -3813,12 +3842,12 @@
                         <div class="md-pending-card__count">${p.asset_requests}</div>
                         <div class="md-pending-card__label">{% trans "Assets"|escapejs %}</div>
                     </a>
-                    <a href="{% url 'shift-request-view' %}?open_tab=1&status=requested&filter_applied=1" class="md-pending-card" style="background:#f0fdfa;">
-                        <div class="md-pending-card__count" style="color:#0d9488;">${p.shift_requests}</div>
+                    <a href="{% url 'shift-request-view' %}?open_tab=1&status=requested&filter_applied=1" class="md-pending-card md-pending-card--teal">
+                        <div class="md-pending-card__count">${p.shift_requests}</div>
                         <div class="md-pending-card__label">{% trans "Shift"|escapejs %}</div>
                     </a>
-                    <a href="{% url 'work-type-request-view' %}?status=requested&filter_applied=1" class="md-pending-card" style="background:#eef2ff;">
-                        <div class="md-pending-card__count" style="color:#4f46e5;">${p.work_type_requests}</div>
+                    <a href="{% url 'work-type-request-view' %}?status=requested&filter_applied=1" class="md-pending-card md-pending-card--indigo">
+                        <div class="md-pending-card__count">${p.work_type_requests}</div>
                         <div class="md-pending-card__label">{% trans "Work Type"|escapejs %}</div>
                     </a>
                     <a href="{% url 'view-reimbursement' %}?open_tab=1&status=requested&type=reimbursement&filter_applied=1" class="md-pending-card md-pending-card--purple">

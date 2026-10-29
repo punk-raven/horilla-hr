@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts@7.8.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
-            --pm-indigo: var(--primary-600, #E54F38);
+            --pm-indigo: var(--primary-600, #E54F38); --pm-fill: var(--primary-fill, #ce4732); --pm-fill-hover: var(--primary-fill-hover, #af3c2a);
             --pm-green: #22c55e;
             --pm-amber: #f59e0b;
             --pm-red: #ef4444;
@@ -477,7 +477,7 @@
             height: 24px;
             padding: 0 6px;
             border-radius: 999px;
-            background: var(--pm-indigo);
+            background: var(--pm-fill);
             color: #fff;
             font-size: 12px;
             font-weight: 600;
@@ -771,12 +771,10 @@
             transition: all 0.15s;
         }
         .pm-cust-btn--primary {
-            background: var(--pm-indigo);
+            background: var(--pm-fill);
             color: #fff;
         }
-        .pm-cust-btn--primary:hover {
-            opacity: 0.9;
-        }
+        .pm-cust-btn--primary:hover { background: var(--pm-fill-hover); }
         .pm-cust-btn--ghost {
             background: none;
             color: inherit;
@@ -846,10 +844,10 @@
             transition: transform 0.2s;
         }
         .pm-cust-item__toggle--on {
-            background: var(--pm-indigo);
+            background: var(--pm-fill);
         }
         .dark .pm-cust-item__toggle--on {
-            background: var(--pm-indigo);
+            background: var(--pm-fill);
         }
         .pm-cust-item__toggle--on::after {
             transform: translateX(16px);
@@ -907,13 +905,13 @@
             color: var(--pm-indigo);
         }
         .pm-period-preset--active {
-            border-color: var(--pm-indigo);
-            background: var(--pm-indigo);
+            border-color: var(--pm-fill);
+            background: var(--pm-fill);
             color: #fff;
         }
         .pm-period-preset--active:hover {
-            border-color: var(--pm-indigo);
-            background: var(--pm-indigo);
+            border-color: var(--pm-fill);
+            background: var(--pm-fill);
             color: #fff;
         }
         .dark .pm-period-picker input[type='date'] {

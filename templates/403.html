@@ -107,10 +107,11 @@
 </style>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{% if theme_preference == 'dark' %}dark{% endif %}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% include "horilla_theme/components/error_page_theme.html" %}
         <title>{% trans "Horilla" %}</title>
         <link
             rel="icon"
@@ -126,7 +127,7 @@
         >
     </head>
 
-    <body>
+    <body class="hx-error-page{% if theme_preference == 'dark' %} dark{% endif %}">
         <section class="hr-error_container">
             <div class="hr-error">
                 <div class="hr-error_img hr-error_bg">

@@ -8,7 +8,7 @@
         height: 40px;
         border-radius: 0 30px 30px 0;
         {% comment %} box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.16), 0px 3px 10px rgba(0, 0, 0, 0.16); {% endcomment %}
-        background-color: {{ theme_obj.primary_600|default:"#ff3b38" }};
+        background-color: var(--primary-fill);
         position: fixed;
         bottom: 40px;
         /* left is synced to sidebar width in sidebar.html */
@@ -35,7 +35,7 @@
     .fab {
         width: 40px;
         height: 40px;
-        background-color: {{ theme_obj.primary_600|default:"#ff3b38" }};
+        background-color: var(--primary-fill);
         border-radius: 50%;
         display: flex;
         align-items: center;

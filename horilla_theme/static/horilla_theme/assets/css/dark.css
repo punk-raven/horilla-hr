@@ -632,3 +632,14 @@ body.dark .oh-switch .oh-switch__checkbox:checked,
 body.dark .oh-switch .oh-switch__checkbox:checked:hover {
   background-color: var(--primary-600, #3b82f6) !important;
 }
+
+/* Slide-over panels (All Notifications and the like): global.css paints
+   them near-white, which left the dark theme's light text invisible. */
+body.dark .sidebarModal {
+  background-color: rgba(28, 36, 55, 0.98);
+  color: #dde1e9;
+  box-shadow: 0 0 0 1px #374564;
+}
+body.dark .sidebarModal.active {
+  box-shadow: 0 0 0 1px #374564, rgba(0, 0, 0, 0.5) -15px 5px 20px;
+}

@@ -8,7 +8,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
 from base.backends import ConfiguredEmailBackend
-from base.email_branding import attach_company_logo, attach_static_image
+from base.email_branding import attach_company_logo
 
 logger = logging.getLogger(__name__)
 
@@ -101,10 +101,9 @@ class LeaveMailSendThread(Thread):
 
             email.attach_alternative(html_message, "text/html")
 
-            # The brand logo is attached when the message is built, unless a
-            # white-labelled company's logo stands in for it.
+            # The images the HTML shows are attached when the message is built;
+            # a white-labelled company's logo stands in for the brand logo.
             attach_company_logo(email, company)
-            attach_static_image(email, "images/ui/leave_types.png", "leave_icon")
 
             email.send()
 

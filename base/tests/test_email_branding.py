@@ -1,5 +1,8 @@
 """Every HTML email carries the PunkRaven logo inline, and the brand blue.
 
+Every other image a mail shows (the leave, ticket and payslip illustrations)
+travels the same way, so no mail template links a remote image.
+
 The production host sits behind Cloudflare Access, so a logo linked from it
 reaches a mail client as the Access login page, and Gmail and Outlook block
 data: URIs. The logo therefore travels in the message as a multipart/related
@@ -34,7 +37,11 @@ from base.email_branding import (
     BRAND_BLUE,
     BRAND_LOGO_CID,
     BRAND_LOGO_STATIC,
+    INLINE_IMAGES,
+    PAYSLIP_HERO_CID,
+    attach_inline_images,
     brand_logo_bytes,
+    static_bytes,
 )
 from base.models import DynamicEmailConfiguration
 from horilla.testkit import make_company, make_employee, make_user
@@ -52,6 +59,13 @@ MAIL_TEMPLATES = [
     "helpdesk/templates/helpdesk/mail_templates/ticket_mail.html",
 ]
 HOSTS = ["hr.punkraven.test", "testserver", "localhost"]
+# An image or background fetched from anywhere when the mail is opened.
+REMOTE_IMAGE = re.compile(
+    r"""<img\b[^>]*\bsrc\s*=\s*["']?\s*(?:https?:)?//"""
+    r"""|\bbackground\s*=\s*["']?\s*(?:https?:)?//"""
+    r"""|url\(\s*["']?\s*(?:https?:)?//""",
+    re.IGNORECASE,
+)
 
 
 def received(message):
@@ -69,6 +83,21 @@ def inline_parts(parsed):
         for part in parsed.walk()
         if part["Content-ID"]
     }
+
+
+def all_mail_templates():
+    """Every mail template in the project, relative to BASE_DIR."""
+    base = Path(settings.BASE_DIR)
+    found = set()
+    for pattern in (
+        "*/templates/**/mail_templates/**/*.html",
+        "templates/**/mail_templates/**/*.html",
+    ):
+        for path in base.glob(pattern):
+            relative = path.relative_to(base).as_posix()
+            if not relative.startswith(("static/", "staticfiles/", "media/")):
+                found.add(relative)
+    return sorted(found)
 
 
 def a_request(user, host="hr.punkraven.test"):
@@ -102,10 +131,14 @@ class BrandedMailAssertions:
         self.assertNotIn("horilla-logo", html)
         self.assertNotIn("horilla-sticker", html)
         self.assertNotIn("Horilla", html)
-        # No image is linked from the app's own host (behind Cloudflare Access).
+        # No image is linked, from the app's own host (behind Cloudflare
+        # Access) or anywhere else: every one travels in the message.
         for src in re.findall(r'<img[^>]+src="([^"]+)"', html):
             self.assertFalse(any(host in src for host in HOSTS), f"remote image {src}")
             self.assertFalse(src.startswith("data:"), "data: URI image")
+            self.assertTrue(src.startswith("cid:"), f"remote image {src}")
+            self.assertIn(src[len("cid:") :], parts, f"{src} is not attached")
+        self.assertNotRegex(html, REMOTE_IMAGE)
         if structure:
             self.assertEqual(shape(parsed), structure)
         return parsed, html
@@ -128,6 +161,23 @@ class MailTemplateSourceTests(TestCase):
                 self.assertNotIn("cid:company_logo", source)
                 self.assertIn(f"cid:{BRAND_LOGO_CID}", source)
 
+    def test_no_mail_template_links_a_remote_image(self):
+        templates = all_mail_templates()
+        # The scan finds the templates the senders above render.
+        self.assertTrue(set(MAIL_TEMPLATES) <= set(templates), templates)
+        for name in templates:
+            source = (Path(settings.BASE_DIR) / name).read_text()
+            with self.subTest(template=name):
+                self.assertNotRegex(source, REMOTE_IMAGE)
+                self.assertNotIn("googleusercontent", source)
+
+    def test_every_image_a_mail_template_shows_is_registered(self):
+        for name in all_mail_templates():
+            source = (Path(settings.BASE_DIR) / name).read_text()
+            for cid in re.findall(r"""cid:([^\s"'<>)]+)""", source):
+                with self.subTest(template=name, cid=cid):
+                    self.assertIn(cid, INLINE_IMAGES)
+
     def test_brand_blue_meets_aa_for_white_text(self):
         def luminance(hex_colour):
             channels = [int(hex_colour[i : i + 2], 16) / 255 for i in (1, 3, 5)]
@@ -144,6 +194,14 @@ class MailTemplateSourceTests(TestCase):
         with Image.open(path) as logo:
             self.assertEqual(logo.format, "PNG")
             self.assertEqual(logo.size, (256, 256))
+        self.assertLess(path.stat().st_size, 8 * 1024)
+
+    def test_payslip_hero_is_a_small_png_at_twice_its_display_size(self):
+        path = Path(settings.BASE_DIR) / "static" / INLINE_IMAGES[PAYSLIP_HERO_CID]
+        with Image.open(path) as hero:
+            self.assertEqual(hero.format, "PNG")
+            # Shown 20% of the 650px mail, about 130px wide.
+            self.assertEqual(hero.width, 256)
         self.assertLess(path.stat().st_size, 8 * 1024)
 
 
@@ -217,11 +275,20 @@ class BrandedSenderTests(BrandedMailAssertions, TestCase):
         parsed, html = self.assert_branded(
             message,
             structure=(
-                "multipart/mixed[multipart/related[text/html, image/png], "
-                "application/pdf]"
+                "multipart/mixed[multipart/related[text/html, image/png, "
+                "image/png], application/pdf]"
             ),
         )
         self.assertIn(f"background-color: {BRAND_BLUE}", html)
+        self.assertIn(f'src="cid:{PAYSLIP_HERO_CID}"', html)
+        hero = inline_parts(parsed)[PAYSLIP_HERO_CID]
+        self.assertEqual(hero["Content-ID"], f"<{PAYSLIP_HERO_CID}>")
+        self.assertEqual(hero.get_content_type(), "image/png")
+        self.assertEqual(hero.get_content_disposition(), "inline")
+        self.assertEqual(
+            hero.get_content(), static_bytes(INLINE_IMAGES[PAYSLIP_HERO_CID])
+        )
+        self.assertIn(hero, list(parsed.get_body(("related",)).iter_parts()))
         [pdf_part] = list(parsed.iter_attachments())
         self.assertEqual(pdf_part.get_content(), b"%PDF-1.4 test")
 
@@ -251,7 +318,10 @@ class BrandedSenderTests(BrandedMailAssertions, TestCase):
         [message] = mail.outbox
         parsed, html = self.assert_branded(message)
         self.assertIn(f"background-color: {BRAND_BLUE}", html)
-        self.assertIn("leave_icon", inline_parts(parsed))
+        self.assertEqual(
+            sorted(part["Content-ID"] for part in parsed.walk() if part["Content-ID"]),
+            [f"<{BRAND_LOGO_CID}>", "<leave_icon>"],
+        )
 
     def test_helpdesk_ticket_mail(self):
         from helpdesk.threading import TicketSendThread
@@ -265,7 +335,10 @@ class BrandedSenderTests(BrandedMailAssertions, TestCase):
         parsed, html = self.assert_branded(message)
         self.assertIn(f"background-color: {BRAND_BLUE}", html)
         self.assertIn('src="cid:ticket_icon"', html)
-        self.assertIn("ticket_icon", inline_parts(parsed))
+        self.assertEqual(
+            sorted(part["Content-ID"] for part in parsed.walk() if part["Content-ID"]),
+            [f"<{BRAND_LOGO_CID}>", "<ticket_icon>"],
+        )
 
     @override_settings(WHITE_LABELLING=True)
     def test_white_labelled_company_logo_stands_in_for_the_brand_logo(self):
@@ -328,6 +401,32 @@ class BrandLogoAttachmentTests(TestCase):
         self.assertEqual(len(message.attachments), 1)
         self.assertEqual(len(inline_parts(parsed)), 1)
 
+    def test_each_image_the_html_shows_is_attached_once(self):
+        message = self.html_message(
+            f'<img src="cid:{BRAND_LOGO_CID}"><img src="cid:{PAYSLIP_HERO_CID}">'
+            f'<img src="cid:{BRAND_LOGO_CID}">'
+        )
+
+        self.assertEqual(
+            attach_inline_images(message), [BRAND_LOGO_CID, PAYSLIP_HERO_CID]
+        )
+        self.assertEqual(attach_inline_images(message), [])
+        parsed = received(message)
+        self.assertEqual(
+            [part["Content-ID"] for part in parsed.walk() if part["Content-ID"]],
+            [f"<{BRAND_LOGO_CID}>", f"<{PAYSLIP_HERO_CID}>"],
+        )
+
+    def test_only_the_images_the_html_shows_are_attached(self):
+        message = self.html_message('<img src="cid:ticket_icon"><img src="cid:other">')
+
+        parsed = received(message)
+        self.assertEqual(list(inline_parts(parsed)), ["ticket_icon"])
+        self.assertEqual(
+            inline_parts(parsed)["ticket_icon"].get_content(),
+            static_bytes(INLINE_IMAGES["ticket_icon"]),
+        )
+
     def test_html_only_body_is_related_to_the_logo(self):
         message = EmailMessage(
             "Hi", f'<img src="cid:{BRAND_LOGO_CID}">', "a@x.com", ["b@x.com"]
@@ -381,6 +480,37 @@ class ConfiguredBackendTransportTests(TestCase):
         self.assertEqual(attachment["filename"], "punkraven-mail-logo.png")
         self.assertEqual(attachment["content_type"], "image/png")
         self.assertEqual(base64.b64decode(attachment["content"]), brand_logo_bytes())
+
+    def test_resend_api_sends_every_image_the_html_shows_once(self):
+        DynamicEmailConfiguration.objects.create(
+            transport=DynamicEmailConfiguration.RESEND_API,
+            password="re_test_key",
+            from_email="hr@example.com",
+            is_primary=True,
+        )
+        message = EmailMessage(
+            "Payslips",
+            f'<img src="cid:{BRAND_LOGO_CID}"><img src="cid:{PAYSLIP_HERO_CID}">',
+            "HR <hr@example.com>",
+            ["someone@example.com"],
+        )
+        message.content_subtype = "html"
+        with mock.patch(
+            "requests.Session.request", side_effect=resend_response
+        ) as request:
+            ConfiguredEmailBackend().send_messages([message])
+
+        payload = json.loads(request.call_args.kwargs["data"])
+        self.assertEqual(
+            [a["content_id"] for a in payload["attachments"]],
+            [BRAND_LOGO_CID, PAYSLIP_HERO_CID],
+        )
+        hero = payload["attachments"][1]
+        self.assertEqual(hero["filename"], "payslip-mail-hero.png")
+        self.assertEqual(
+            base64.b64decode(hero["content"]),
+            static_bytes(INLINE_IMAGES[PAYSLIP_HERO_CID]),
+        )
 
     def test_smtp_sends_the_logo_in_a_related_part(self):
         DynamicEmailConfiguration.objects.create(

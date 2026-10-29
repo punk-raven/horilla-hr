@@ -3,7 +3,9 @@
  *
  * Loads tours from the server for the current page, auto-starts any pending
  * auto-start tour, and exposes window.horillaTour.toggle() so the "?" navbar
- * button can open/close the launcher panel.
+ * button can open/close the launcher panel. Users can opt out of auto-started
+ * tours from the popover ("Don't show tours again") and opt back in from the
+ * launcher panel; tours stay available there either way.
  *
  * Depends on:
  *   - driver.js  (already on window.driver.js.driver)
@@ -13,6 +15,7 @@
   'use strict';
 
   var CFG = window.HORILLA_TOUR || {};
+  var LABELS = CFG.labels || {};
   if (!CFG.activeUrl) return;
 
   var driverFactory = window.driver && window.driver.js && window.driver.js.driver;
@@ -22,6 +25,7 @@
   var _driverInst = null;
   var _panel = null;
   var _fetched = false;
+  var _autoStartDisabled = false;
 
   // ── CSRF ──────────────────────────────────────────────────────────────────
 
@@ -48,6 +52,50 @@
       credentials: 'same-origin',
       keepalive: true,
     }).catch(function () {});
+  }
+
+  // ── Auto-start preference ─────────────────────────────────────────────────
+
+  function postPreference(disabled) {
+    _autoStartDisabled = disabled;
+    if (!CFG.preferenceUrl) return;
+    var fd = new FormData();
+    fd.append('auto_start_disabled', disabled ? '1' : '0');
+    fd.append('csrfmiddlewaretoken', csrfToken());
+    fetch(CFG.preferenceUrl, { method: 'POST', body: fd }).catch(function () {});
+  }
+
+  function setPendingDot(visible) {
+    var dot = document.querySelector('#tourLauncherBtn span.absolute');
+    if (dot) dot.style.display = visible ? '' : 'none';
+  }
+
+  // Popover link: skip this tour and stop auto-starting any tour.
+  function addOptOutLink(popover, tour) {
+    if (!popover || !popover.wrapper) return;
+    if (popover.wrapper.querySelector('.horilla-tour-optout')) return;
+    var row = document.createElement('div');
+    // Looks (light and dark) live in horilla_theme's ux.css.
+    row.className = 'horilla-tour-optout';
+    var link = document.createElement('button');
+    link.type = 'button';
+    link.className = 'horilla-tour-optout__link';
+    link.textContent = LABELS.dontShowAgain || "Don't show tours again";
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      postPreference(true);
+      postProgress(tour.id, 'skipped', _driverInst ? _driverInst.getActiveIndex() : 0);
+      setPendingDot(false);
+      if (_driverInst) {
+        _driverInst.destroy();
+        _driverInst = null;
+      }
+    });
+    row.appendChild(link);
+    popover.wrapper.appendChild(row);
+    // The popover was positioned before this row existed; re-place it.
+    if (_driverInst) _driverInst.refresh();
   }
 
   // ── Run a tour ────────────────────────────────────────────────────────────
@@ -80,6 +128,7 @@
       allowClose: tour.allow_close !== false,
       showProgress: tour.show_progress !== false,
       steps: steps,
+      onPopoverRendered: function (popover) { addOptOutLink(popover, tour); },
       onDestroyStarted: function (el, step, opts) {
         var idx = opts.state.activeIndex;
         var isLast = typeof idx === 'number' && idx >= steps.length - 1;
@@ -116,6 +165,7 @@
       .then(function (r) { return r.ok ? r.json() : { tours: [] }; })
       .then(function (data) {
         _tours = data.tours || [];
+        _autoStartDisabled = !!data.auto_start_disabled;
         _fetched = true;
         return _tours;
       })
@@ -149,10 +199,30 @@
       if (!_panel) return;
       var btn2 = document.getElementById('tourLauncherBtn');
       if (btn2 && btn2.contains(e.target)) return;
+      // Keep the panel open while ticking its preference checkbox.
+      if (_panel.contains(e.target)) return;
       closePanel();
     });
 
     return _panel;
+  }
+
+  // Panel footer checkbox: the way back in after "Don't show tours again".
+  function renderPreferenceToggle(panel) {
+    var label = document.createElement('label');
+    label.className = 'hx-tour-panel__pref';
+    var box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = !_autoStartDisabled;
+    box.addEventListener('change', function () {
+      postPreference(!box.checked);
+      if (!box.checked) setPendingDot(false);
+    });
+    var text = document.createElement('span');
+    text.textContent = LABELS.showAutomatically || 'Show tours automatically';
+    label.appendChild(box);
+    label.appendChild(text);
+    panel.appendChild(label);
   }
 
   function renderPanel(tours) {
@@ -171,6 +241,7 @@
       empty.className = 'hx-tour-panel__empty';
       empty.textContent = 'No tours available for this page.';
       panel.appendChild(empty);
+      renderPreferenceToggle(panel);
       return;
     }
 
@@ -207,6 +278,7 @@
     });
 
     panel.appendChild(list);
+    renderPreferenceToggle(panel);
   }
 
   function openPanel() {

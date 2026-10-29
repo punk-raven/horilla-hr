@@ -58,10 +58,15 @@
     page: "{{ request.resolver_match.url_name|default:'' }}",
     path: "{{ request.path|escapejs }}",
     activeUrl: "{% url 'tour-active' %}",
-    progressUrl: "{% url 'tour-progress' %}"
+    progressUrl: "{% url 'tour-progress' %}",
+    preferenceUrl: "{% url 'tour-preference' %}",
+    labels: {
+      dontShowAgain: "{% trans "Don't show tours again"|escapejs %}",
+      showAutomatically: "{% trans "Show tours automatically"|escapejs %}"
+    }
   };
 </script>
-<script src="{% static 'build/js/tourController.js' %}?v=2"></script>
+<script src="{% static 'build/js/tourController.js' %}?v=3"></script>
 {% endif %}
 
 {% block footer_scripts %}

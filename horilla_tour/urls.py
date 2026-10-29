@@ -8,6 +8,7 @@ urlpatterns = [
     # ---- Public JSON API (consumed by tourController.js) ----
     path("tour/api/active/", views.tour_active, name="tour-active"),
     path("tour/api/progress/", views.tour_progress, name="tour-progress"),
+    path("tour/api/preference/", views.tour_preference, name="tour-preference"),
     # ---- Settings admin: Tours ----
     path("settings/tours/", views.tour_settings_page, name="tour-section"),
     path("tour-nav/", views.TourNav.as_view(), name="tour-nav"),

@@ -400,10 +400,11 @@ def send_notification_task(request, recipient, verb, redirect, icon):
 
 @receiver(notify)
 def send_notification_on_whatsapp(
-    sender, recipient, verb, redirect, icon=None, **kwargs
+    sender, recipient, verb, redirect=None, icon=None, **kwargs
 ):
     """
-    Send notification on whatspp
+    Send notification on whatspp. Not every notify.send() passes a redirect
+    (the notifications package's own senders do not), so it is optional.
     """
 
     if not IntegrationApps.objects.filter(

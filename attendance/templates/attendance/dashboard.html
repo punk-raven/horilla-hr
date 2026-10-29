@@ -12,7 +12,7 @@
             cursor: default;
         }
         :root {
-            --am-indigo: var(--primary-600, #e54f38);
+            --am-indigo: var(--primary-600, #e54f38); --am-fill: var(--primary-fill, #ce4732); --am-fill-hover: var(--primary-fill-hover, #af3c2a);
             --md-indigo: var(--am-indigo);
             --am-green: #22c55e;
             --am-amber: #f59e0b;
@@ -448,7 +448,7 @@
             height: 24px;
             padding: 0 6px;
             border-radius: 999px;
-            background: var(--am-indigo);
+            background: var(--am-fill);
             color: #fff;
             font-size: 12px;
             font-weight: 600;
@@ -608,13 +608,13 @@
             color: var(--am-indigo);
         }
         .am-period-preset--active {
-            border-color: var(--am-indigo);
-            background: var(--am-indigo);
+            border-color: var(--am-fill);
+            background: var(--am-fill);
             color: #fff;
         }
         .am-period-preset--active:hover {
-            border-color: var(--am-indigo);
-            background: var(--am-indigo);
+            border-color: var(--am-fill);
+            background: var(--am-fill);
             color: #fff;
         }
         .dark .am-period-picker input[type="date"] {
@@ -773,7 +773,7 @@
             transition: transform 0.2s;
         }
         .am-cust-item__toggle--on {
-            background: var(--am-indigo);
+            background: var(--am-fill);
         }
         .am-cust-item__toggle--on::after {
             transform: translateX(16px);

@@ -1,4 +1,4 @@
-{% load static i18n horillafilters %}
+{% load static i18n horillafilters theme_colors %}
 {% comment %}
     Shell of the pages shown before sign-in (login, forgot and reset
     password): a card on a tinted background, coloured by the theme marked
@@ -91,6 +91,20 @@
                         danger:  { light: "#fca5a5", DEFAULT: "#ef4444", dark: "#b91c1c" },
                     },
                     extend: {
+                        // Button fills (white labels): the theme's 600 deepened
+                        // to WCAG AA, and its hover shade (horilla_theme/colors.py).
+                        backgroundColor: {
+                            brand: {
+                                600: '{{ theme_obj.primary_600|default:"#3b82f6"|button_fill }}',
+                                700: '{{ theme_obj.primary_600|default:"#3b82f6"|button_fill_hover }}',
+                                800: '{{ theme_obj.primary_600|default:"#3b82f6"|button_fill_hover }}',
+                            },
+                            primary: {
+                                600: '{{ theme_obj.primary_600|default:"#3b82f6"|button_fill }}',
+                                700: '{{ theme_obj.primary_600|default:"#3b82f6"|button_fill_hover }}',
+                                800: '{{ theme_obj.primary_600|default:"#3b82f6"|button_fill_hover }}',
+                            },
+                        },
                         boxShadow: { card: "0px 0px 10px rgba(0, 0, 0, 0.05)" },
                         spacing: { 18: "4.5rem", 72: "18rem", 84: "21rem", 96: "24rem" },
                         borderRadius: { "4xl": "2rem", "5xl": "2.5rem" },
@@ -110,9 +124,11 @@
                 --primary-600: {{ theme_obj.primary_600|default:"#3b82f6" }};
                 --primary-700: {{ theme_obj.primary_700|default:"#0c4a6e" }};
                 --primary-800: {{ theme_obj.primary_800|default:"#1e3a8a" }};
+                --primary-fill: {{ theme_obj.primary_600|default:"#3b82f6"|button_fill }};
+                --primary-fill-hover: {{ theme_obj.primary_600|default:"#3b82f6"|button_fill_hover }};
             }
         </style>
-        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=5">
+        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=8">
     </head>
     {% comment %} Dark theme: the same surfaces as the signed-in app's
        dark.css (page #05080f, cards #1c2437, borders #374564, text #dde1e9).

@@ -11,7 +11,8 @@ from datetime import timezone as dt_timezone
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
-from django.contrib.auth.models import Group, User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 from django.template import Context, Template
@@ -25,6 +26,9 @@ from notifications.base.models import notify_handler
 from notifications.signals import notify
 from notifications.tests.test_models.models import Customer, TargetObject
 from notifications.utils import id2slug
+
+# The project swaps auth.User for horilla_auth.HorillaUser.
+User = get_user_model()
 
 Notification = load_model("notifications", "Notification")
 

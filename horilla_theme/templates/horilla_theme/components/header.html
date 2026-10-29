@@ -17,7 +17,7 @@
         color: #ffffff;
     }
     body.dark .oh-main-header .bg-primary-100:hover {
-        background-color: {{ theme_obj.primary_600|default:'#e54f38' }} !important;
+        background-color: var(--primary-fill) !important;
     }
     body.dark .oh-main-header .bg-primary-100:hover i {
         color: #ffffff;
@@ -94,7 +94,7 @@
                     <span
                         id="notifyBadgeCircle"
                         class="absolute w-7 h-7 rounded-full text-xs text-[white] font-semibold flex items-center justify-center border-2 border-white p-1 [right:-10px] [top:-7px]{% if not unread_count %} hidden{% endif %}"
-                        style="background-color: {{ theme_obj.primary_600|default:'#d7391d' }}"
+                        style="background-color: var(--primary-fill)"
                     >
                         {% live_notify_badge %}
                     </span>

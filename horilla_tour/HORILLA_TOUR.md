@@ -23,6 +23,7 @@ These systems are complementary: the checklist drives first-time HR configuratio
 | Multi-tenant | Scoped by `company_id`; `company_id=None` = global tour for all tenants. |
 | Help launcher | Header “Take a tour” opens a panel to Start / Replay tours for the current page. |
 | Draft vs live | Unpublished tours never appear to end users. |
+| Opt out | "Don't show tours again" in any tour popover stops all auto-started tours for that user (`TourPreference`); "Show tours automatically" in the Help launcher turns them back on. Manual Start / Replay keeps working. |
 
 **Admin flow**
 
@@ -38,6 +39,7 @@ These systems are complementary: the checklist drives first-time HR configuratio
 3. Highest-priority unfinished `auto_once` tour starts via driver.js
 4. On close/finish, JS posts status to `POST /tour/api/progress/`
 5. User can reopen tours from the Help launcher anytime
+6. "Don't show tours again" (popover) posts to `POST /tour/api/preference/`; from then on no tour auto-starts for that user (legacy settings/pipeline drivers included) until they tick "Show tours automatically" in the Help launcher
 
 ---
 
@@ -69,6 +71,7 @@ These systems are complementary: the checklist drives first-time HR configuratio
 - URLs: `path("", include("horilla_tour.urls"))` in `horilla/urls.py`
 - Context processor: `horilla_tour.context_processors.pending_tours_flag`
   - Exposes `tour_launcher_enabled`, `tour_has_pending` for the header Help button
+  - Exposes `tour_auto_start_disabled` (user opted out); also gates the legacy `settingsDriver.js` / `pipelineDriver.js` auto-run
 - Settings menu: `horilla_tour/sidebar.py` → “Product Tours / Manage Tours”
 - Scripts: `horilla_theme/.../footer_scripts.html` (authenticated only)
 
@@ -105,12 +108,20 @@ These systems are complementary: the checklist drives first-time HR configuratio
 | `status` | `in_progress` / `completed` / `skipped` |
 | `last_step`, `completed_at` | Resume / audit |
 
+**`TourPreference`**
+
+| Field | Notes |
+|---|---|
+| `user` | One-to-one; no row = tours on |
+| `auto_start_disabled` | `True` = never auto-start a tour for this user |
+
 #### Public API
 
 | URL name | Path | Method | Purpose |
 |---|---|---|---|
 | `tour-active` | `/tour/api/active/` | GET | Tours for current page + user (auth required) |
 | `tour-progress` | `/tour/api/progress/` | POST | `tour_id`, `status`, `last_step` |
+| `tour-preference` | `/tour/api/preference/` | POST | `auto_start_disabled` = `1` (off) / `0` (back on) |
 
 **`tour_active` filtering**
 
@@ -118,7 +129,7 @@ These systems are complementary: the checklist drives first-time HR configuratio
 2. Audience via `_audiences_for(user)` (superuser gets all; managers detected via `EmployeeWorkInformation.reporting_manager_id`)
 3. Page match (`_tour_matches_page`)
 4. Non-empty steps for current page
-5. `auto_start = trigger == auto_once` and status not completed/skipped
+5. `auto_start = trigger == auto_once` and status not completed/skipped and the user has not opted out (response also carries top-level `auto_start_disabled`)
 
 #### Settings CRUD (permission-gated)
 
@@ -139,6 +150,7 @@ Patterns: HorillaListView row actions, HTMX modals, generic delete.
 - On destroy: posts `completed` if last step reached, else `skipped`
 - Exposes launcher UI (`#horillaTourLauncher`) and `window.horillaTour` for Start/Replay
 - Header button `#tourLauncherBtn` toggles the panel
+- Adds a "Don't show tours again" link under each popover (`onPopoverRendered`) and a "Show tours automatically" checkbox at the bottom of the launcher panel, both posting to `tour-preference`
 
 #### Permissions
 
