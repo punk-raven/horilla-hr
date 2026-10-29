@@ -178,6 +178,13 @@ from base.models import (
     WorkTypeRequest,
     WorkTypeRequestComment,
 )
+from base.theme import (
+    FOLLOW_SYSTEM,
+    LEGACY_SESSION_KEY,
+    THEMES,
+    clear_theme_cookie,
+    set_theme_cookie,
+)
 from employee.filters import EmployeeFilter
 from employee.forms import ActiontypeForm, EmployeeGeneralSettingPrefixForm
 from employee.models import (
@@ -1270,17 +1277,30 @@ def logout_user(request):
     return response
 
 
-@login_required
-# @hx_request_required
 def toggle_theme(request):
-    if request.method == "POST":
-        current = request.session.get("theme")
+    """
+    Store the theme the user switched to: POST theme=dark|light keeps that
+    choice, theme=system forgets it so the theme follows the OS again.
 
-        request.session["theme"] = "light" if current == "dark" else "dark"
+    Open to anonymous users so the sign-in pages can switch theme too; it only
+    sets a cookie on the caller's own browser.
+    """
+    if request.method != "POST":
+        return HttpResponse(status=400)
 
-        return HttpResponse(status=204)
+    theme = request.POST.get("theme")
+    if theme not in (*THEMES, FOLLOW_SYSTEM):
+        return HttpResponse(status=400)
 
-    return HttpResponse(status=400)
+    response = HttpResponse(status=204)
+    if theme == FOLLOW_SYSTEM:
+        clear_theme_cookie(response)
+    else:
+        set_theme_cookie(request, response, theme)
+    # The cookie is the only store now: drop a pre-cookie session value so it
+    # cannot come back as a fallback.
+    request.session.pop(LEGACY_SESSION_KEY, None)
+    return response
 
 
 class Workinfo:

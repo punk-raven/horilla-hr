@@ -17,6 +17,7 @@ from base.models import (
     DefaultExportPermission,
     TrackLateComeEarlyOut,
 )
+from base.theme import get_theme_preference
 from base.urls import urlpatterns
 from employee.models import EmployeeGeneralSetting, ProfileEditFeature
 from horilla.__version__ import __version__
@@ -492,3 +493,11 @@ def horilla_version(request):
     exact set of advisories that apply.
     """
     return {"horilla_version": __version__}
+
+
+def theme_preference(request):
+    """
+    The user's explicit theme choice for the templates: "dark", "light", or
+    "" when the theme follows the system (see base/theme.py).
+    """
+    return {"theme_preference": get_theme_preference(request) or ""}

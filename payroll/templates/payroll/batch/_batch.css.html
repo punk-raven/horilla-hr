@@ -585,10 +585,11 @@ apart the moment they were written twice.
     }
   }
 
-  /* The app's dark mode is `body.dark`, set from request.session.theme --
-     NOT the OS preference. A prefers-color-scheme block here turned these
-     panels dark inside an otherwise light page for anyone whose machine is
-     set to dark, which is exactly what it looked like. */
+  /* The app's dark mode is `body.dark`, set by theme_init.html from the
+     user's choice, or from the OS preference when there is none. Key off the
+     class, never a prefers-color-scheme block here: an explicit light choice
+     beats the OS, and such a block turned these panels dark inside a light
+     page. */
   body.dark .pb {
     --pb-line: #3a3a3a;
     --pb-line-soft: #2c2c2c;

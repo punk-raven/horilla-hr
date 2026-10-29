@@ -83,35 +83,22 @@
         overflow-y: auto !important;
     }
 </style>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    var btn = document.getElementById("themeToggleButton");
-    if (!btn) return;
-
-    btn.addEventListener("click", function (e) {
-        e.preventDefault();
-
-        fetch("{% url 'toggle_theme' %}", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": "{{ csrf_token }}",
-            "X-Requested-With": "XMLHttpRequest"
+    // Charts pick their colours for the theme on screen when they are drawn,
+    // so after a theme switch (the toggle, or the OS while following the
+    // system) redraw a page that has any, the way the sidebar loads it.
+    document.addEventListener("horilla:themechange", function () {
+        var main = document.getElementById("ohMainContent");
+        if (!main || !window.htmx || !main.querySelector(".apexcharts-canvas, canvas")) {
+            return;
         }
-        })
-        .then(response => {
-        if (response.status === 204) {
-            const isDark = document.documentElement.classList.toggle("dark");
-            document.body.classList.toggle("dark", isDark);
-
-            const icon = btn.querySelector("i");
-            if (icon) {
-            icon.classList.toggle("fa-moon", !isDark);
-            icon.classList.toggle("fa-lightbulb", isDark);
-            }
-        }
-        })
-        .catch(err => console.error(err));
-    });
+        htmx.ajax("GET", window.location.pathname + window.location.search, {
+            target: main,
+            select: "#ohMainContent > *",
+            swap: "innerHTML",
+            headers: { "HX-Sidebar-Nav": "true" },
+        });
     });
 </script>
 
@@ -123,6 +110,9 @@
 <script src="{% static 'horilla_theme/assets/js/tailwind.js' %}"></script>
 <script>
     window.tailwind.config = {
+        // dark: variants follow the app's theme (the `dark` class that
+        // theme_init.html puts on <html>), not the OS setting directly.
+        darkMode: 'class',
         theme: {
             extend: {
                 // Under extend, not theme: replacing theme.colors drops Tailwind's

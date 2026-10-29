@@ -1,0 +1,124 @@
+{% comment %}
+    Light or dark theme, applied before the page paints. Include it in the
+    <head>, before any stylesheet (index.html and auth_layout.html do).
+
+    theme_preference (base.context_processors) is the explicit choice from
+    the theme cookie: "dark", "light", or "" to follow the system. While it is
+    "" the page follows prefers-color-scheme, live. The stylesheets key off
+    `dark` on <html> (Tailwind's darkMode: 'class') and on <body> (dark.css),
+    so both get it: the template renders it for an explicit "dark", and the
+    script below covers the system case, adding it to <body> as soon as the
+    parser creates it, before the first paint.
+
+    Any element with data-theme-toggle switches the theme. The new choice is
+    the opposite of what is shown; when that is what the system would show
+    anyway, the choice is dropped and the page follows the system again.
+    Icons marked .hx-theme-when-light / .hx-theme-when-dark show only in
+    that theme, so a toggle's icon is right on load in every case.
+{% endcomment %}
+<style>
+    html.dark .hx-theme-when-light,
+    html:not(.dark) .hx-theme-when-dark {
+        display: none !important;
+    }
+</style>
+<script>
+    (function () {
+        var root = document.documentElement;
+        var media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+        var preference = "{{ theme_preference|escapejs }}" || null;
+
+        function systemTheme() {
+            return media && media.matches ? "dark" : "light";
+        }
+
+        function current() {
+            return preference || systemTheme();
+        }
+
+        function apply() {
+            var dark = current() === "dark";
+            root.classList.toggle("dark", dark);
+            root.style.colorScheme = dark ? "dark" : "light";
+            if (document.body) {
+                document.body.classList.toggle("dark", dark);
+            }
+            var label = dark ? "{{ _('Switch to light theme')|escapejs }}" : "{{ _('Switch to dark theme')|escapejs }}";
+            document.querySelectorAll("[data-theme-toggle]").forEach(function (el) {
+                el.setAttribute("aria-label", label);
+                el.setAttribute("title", label);
+            });
+        }
+
+        apply();
+        if (!document.body) {
+            // <body> does not exist yet: give it the class the moment the
+            // parser inserts it (observer callbacks run before any paint).
+            var observer = new MutationObserver(function () {
+                if (document.body) {
+                    observer.disconnect();
+                    apply();
+                }
+            });
+            observer.observe(root, { childList: true });
+        }
+        document.addEventListener("DOMContentLoaded", apply);
+
+        function changed() {
+            apply();
+            document.dispatchEvent(new CustomEvent("horilla:themechange", {
+                detail: { theme: current(), preference: preference },
+            }));
+        }
+
+        if (media) {
+            var onSystemChange = function () {
+                if (!preference) {
+                    changed();
+                }
+            };
+            if (media.addEventListener) {
+                media.addEventListener("change", onSystemChange);
+            } else if (media.addListener) {
+                media.addListener(onSystemChange);
+            }
+        }
+
+        function toggle() {
+            var wanted = current() === "dark" ? "light" : "dark";
+            var choice = wanted === systemTheme() ? "system" : wanted;
+            var body = new URLSearchParams({ theme: choice });
+            return fetch("{% url 'toggle_theme' %}", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                body: body,
+            }).then(function (response) {
+                if (response.status !== 204) {
+                    throw new Error("Theme not saved: HTTP " + response.status);
+                }
+                preference = choice === "system" ? null : choice;
+                changed();
+            }).catch(function (error) {
+                console.error(error);
+            });
+        }
+
+        document.addEventListener("click", function (event) {
+            var trigger = event.target.closest && event.target.closest("[data-theme-toggle]");
+            if (trigger) {
+                event.preventDefault();
+                toggle();
+            }
+        });
+
+        window.horillaTheme = {
+            current: current,
+            preference: function () { return preference; },
+            toggle: toggle,
+        };
+    })();
+</script>
