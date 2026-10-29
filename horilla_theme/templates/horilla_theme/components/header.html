@@ -41,15 +41,15 @@
             {% endif %}
             <button
                 id="themeToggleButton"
+                type="button"
+                data-theme-toggle
+                aria-label="{% trans 'Toggle theme' %}"
                 class="md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 flex items-center justify-center"
             >
-                <a href="#" aria-label="{% trans 'Toggle theme' %}" onclick="return false">
-                    {% if request.session.theme == "dark" %}
-                        <i class="fa-solid fa-lightbulb transition duration-300 group-hover:text-white"></i>
-                    {% else %}
-                        <i class="fa-solid fa-moon transition duration-300 group-hover:text-white"></i>
-                    {% endif %}
-                </a>
+                {% comment %} Both icons render; theme_init.html shows the one
+                   for the theme on screen, which may come from the system. {% endcomment %}
+                <i class="hx-theme-when-light fa-solid fa-moon transition duration-300 group-hover:text-white" aria-hidden="true"></i>
+                <i class="hx-theme-when-dark fa-solid fa-lightbulb transition duration-300 group-hover:text-white" aria-hidden="true"></i>
             </button>
             {% if show_section %}
                 <button class="md:block p-2 group text-primary-600 w-12 h-12 bg-primary-100 hover:bg-primary-600 rounded-full transition duration-300 flex items-center justify-center">

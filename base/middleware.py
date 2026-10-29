@@ -18,6 +18,12 @@ from base.backends import ConfiguredEmailBackend
 from base.context_processors import AllCompany, AllMyCompanies
 from base.horilla_company_manager import HorillaCompanyManager
 from base.models import Company, ShiftRequest, WorkTypeRequest
+from base.theme import (
+    LEGACY_SESSION_KEY,
+    THEME_COOKIE_NAME,
+    get_session_theme,
+    set_theme_cookie,
+)
 from employee.models import (
     DisciplinaryAction,
     Employee,
@@ -499,3 +505,24 @@ class TwoFactorAuthMiddleware:
                 return self.get_response(request)
 
         return self.get_response(request)
+
+
+class ThemePreferenceMiddleware:
+    """
+    Move a theme choice kept in the session by older versions into the
+    theme cookie, once, so users keep their choice and it now survives
+    logout (see base/theme.py).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if THEME_COOKIE_NAME in request.COOKIES:
+            return response
+        theme = get_session_theme(request)
+        if theme and THEME_COOKIE_NAME not in response.cookies:
+            set_theme_cookie(request, response, theme)
+            del request.session[LEGACY_SESSION_KEY]
+        return response

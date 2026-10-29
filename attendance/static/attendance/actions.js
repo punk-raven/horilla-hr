@@ -1638,3 +1638,38 @@ $(".timeformat_changer").each(function (index, element) {
 // Display the formatted time wherever needed
 var currentTime = $(".timeformat_changer").first().text();
 var formattedTime = timeFormatter.getFormattedTime(currentTime);
+
+// "Create Batch Attendance" on a batch select (attendance/forms.py
+// add_batch_create_option): open the batch form in the shared create modal,
+// then put the new batch on the select it was picked from. The select is
+// tracked by id, as the form around it can be re-rendered meanwhile. This
+// file is re-run on page updates, so the declaration has no initializer:
+// re-running it must not drop a pick still waiting on the batch form.
+var batchAttendanceSelectId;
+
+function dynamicBatchAttendance(element) {
+  if (element.val() !== "dynamic_create") {
+    return;
+  }
+  batchAttendanceSelectId = element.attr("id");
+  // Clear the pick; "change.select2" only refreshes the select2 display.
+  element.val(null).trigger("change.select2");
+  htmx
+    .ajax("GET", element.data("create-url"), { target: "#dynamicCreateModalTarget" })
+    .then(function () {
+      $("#dynamicCreateModal").addClass("oh-modal--show");
+    });
+}
+
+function batchAttendanceCreated(id, title) {
+  $("#dynamicCreateModal").removeClass("oh-modal--show");
+  var select = batchAttendanceSelectId && document.getElementById(batchAttendanceSelectId);
+  batchAttendanceSelectId = null;
+  if (!select) {
+    return;
+  }
+  var option = new Option(title, id, true, true);
+  var createOption = select.querySelector("option[value=dynamic_create]");
+  select.insertBefore(option, createOption);
+  $(select).val(id).trigger("change.select2");
+}

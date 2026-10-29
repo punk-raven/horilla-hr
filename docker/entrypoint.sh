@@ -43,22 +43,36 @@ fi
 # If SECRET_KEY is unset or matches one of those, generate a random one and
 # persist it in the media volume so it survives container restarts instead of
 # invalidating every session/JWT on each `docker compose up`.
-SECRET_KEY_FILE="/app/media/.generated_secret_key"
-case "${SECRET_KEY:-}" in
-  ""|"django-insecure-default-key"|"dev-secret-key-change-in-production"|"django-insecure-j8op9)1q8\$1&0^s&p*_0%d#pr@w9qj@1o=3#@d=a(^@9@zd@%j"|change-me*|django-insecure-*)
-    if [ -f "$SECRET_KEY_FILE" ]; then
-      SECRET_KEY="$(cat "$SECRET_KEY_FILE")"
-      echo "Using previously generated SECRET_KEY from $SECRET_KEY_FILE"
-    else
-      SECRET_KEY="$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')"
-      mkdir -p "$(dirname "$SECRET_KEY_FILE")"
-      printf '%s' "$SECRET_KEY" > "$SECRET_KEY_FILE"
-      chmod 600 "$SECRET_KEY_FILE"
-      echo "Generated a new random SECRET_KEY and saved it to $SECRET_KEY_FILE"
-    fi
-    export SECRET_KEY
-    ;;
-esac
+#
+# The key is only written here, never exported: Django settings read the file
+# (horilla.settings.security.resolve_secret_key). An exported variable would
+# reach this script's own child only, so `docker exec ... manage.py shell`,
+# which starts from the container's configured environment, signed with the
+# placeholder and none of its tokens validated in gunicorn.
+SECRET_KEY_FILE="${SECRET_KEY_FILE:-/app/media/.generated_secret_key}"
+# security.py is loaded by path: importing it as horilla.settings.security
+# would run the whole settings package, production gate included, before the
+# key it is waiting for exists.
+key_status=0
+python -c 'import importlib.util, os, sys
+spec = importlib.util.spec_from_file_location("security", "horilla/settings/security.py")
+security = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(security)
+sys.exit(10 if security.is_insecure_secret_key(os.environ.get("SECRET_KEY", "")) else 0)' || key_status=$?
+if [ "$key_status" -ne 0 ] && [ "$key_status" -ne 10 ]; then
+  echo "ERROR: could not check SECRET_KEY (exit $key_status)"
+  exit 1
+fi
+if [ "$key_status" -eq 10 ]; then
+  if [ -s "$SECRET_KEY_FILE" ]; then
+    echo "Using previously generated SECRET_KEY from $SECRET_KEY_FILE"
+  else
+    mkdir -p "$(dirname "$SECRET_KEY_FILE")"
+    ( umask 077
+      python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key(), end="")' > "$SECRET_KEY_FILE" )
+    echo "Generated a new random SECRET_KEY and saved it to $SECRET_KEY_FILE"
+  fi
+fi
 
 # Compile translation catalogs when they are missing.
 #

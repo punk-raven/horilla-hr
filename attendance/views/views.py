@@ -3160,6 +3160,36 @@ def enable_disable_check_in(request):
 
 
 @login_required
+@hx_request_required
+@permission_required("attendance.change_attendancegeneralsetting")
+@require_http_methods(["POST"])
+def enable_disable_auto_check_in_out(request):
+    """
+    Turn automatic check in/check out on or off for the selected company.
+    With "All Companies" selected the change applies to every company, as
+    each company's own setting row would otherwise override the global one.
+    """
+    company = get_session_company(request)
+    enabled = request.POST.get("auto_check_in_out") == "on"
+    if company is None:
+        AttendanceGeneralSetting.objects.entire().update(auto_check_in_out=enabled)
+        AttendanceGeneralSetting.objects.entire().get_or_create(
+            company_id=None, defaults={"auto_check_in_out": enabled}
+        )
+    else:
+        AttendanceGeneralSetting.objects.entire().update_or_create(
+            company_id=company, defaults={"auto_check_in_out": enabled}
+        )
+    messages.success(
+        request,
+        _("Automatic Check In/Check Out has been {} successfully.").format(
+            _("enabled") if enabled else _("disabled")
+        ),
+    )
+    return HttpResponse("")
+
+
+@login_required
 @permission_required("attendance.view_attendancevalidationcondition")
 def time_policies_settings_view(request):
     """
@@ -3334,6 +3364,7 @@ def attendance_rule_settings_view(request):
         {
             "tracking": tracking,
             "attendance_general_settings": attendance_general_settings,
+            "auto_check_in_out_enabled": setting.auto_check_in_out,
             "show_company": show_company,
             "biometric": biometric,
             "allowed_ips": allowed_ips,

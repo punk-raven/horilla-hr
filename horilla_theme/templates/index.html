@@ -3,10 +3,11 @@
 {% load horillafilters %}
 {% get_company as theme_obj %}
 <!DOCTYPE html>
-<html class="{% if request.session.theme == 'dark' %}dark{% endif %}">
+<html class="{% if theme_preference == 'dark' %}dark{% endif %}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% include "horilla_theme/components/theme_init.html" %}
         <title class="time-runner stop-runner">{{ white_label_company_name }}</title>
         <link rel="stylesheet" href="{% static 'build/css/sweetalert2.min.css' %}">
         <link rel="stylesheet" href="{% static 'build/css/summernote-lite.min.css' %}">
@@ -44,7 +45,7 @@
         >
         <link
             rel="stylesheet"
-            href="{% static 'horilla_theme/assets/css/dark.css' %}"
+            href="{% static 'horilla_theme/assets/css/dark.css' %}?v=4"
         >
         <link
             href="{% static 'cdn/googleapi/css/inter-font-style.css' %}"
@@ -246,6 +247,19 @@
                 tr[style*="background-color: lightgrey"] .stickyright {
                     background-color: lightgrey !important;
                 }
+                /* In the dark theme lightgrey sat under dark.css's light cell
+                   text, which made those rows unreadable. Dim them on the
+                   dark palette instead (#8b95a8 on #0f1420 is 6:1). */
+                body.dark tr[style*="background-color: lightgrey"],
+                body.dark tr[style*="background-color: lightgrey"] > td,
+                body.dark tr[style*="background-color: lightgrey"] .stickyleft,
+                body.dark tr[style*="background-color: lightgrey"] .stickyleft-second,
+                body.dark tr[style*="background-color: lightgrey"] .stickyright {
+                    background-color: #0f1420 !important;
+                }
+                body.dark tr[style*="background-color: lightgrey"] > td {
+                    color: #8b95a8 !important;
+                }
                 /* Same problem for the rgba(255, 166, 0, 0.158) row tint set
                    inline by diff_cell() (Employee: rows you manage as reporting
                    manager; Leave: rejected requests). Sticky cells need the
@@ -283,13 +297,18 @@
                 }
             </style>
         {% endwith %}
+        {% comment %} UX polish layer (focus rings, control states, toasts,
+           row hover, loading bar). Built from horilla_theme/frontend - see
+           the README there. Loads after the theme tokens above, which it
+           reads, and before page-specific styles. {% endcomment %}
+        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=5">
 
         {% block styles %}
             <!-- Page-specific styles (optional) -->
         {% endblock %}
     </head>
 
-    <body class="bg-[{{theme_obj.primary_50}}] font-[Inter,_sans-serif] overflow-hidden {% if request.session.theme == 'dark' %}dark{% endif %}">
+    <body class="bg-[{{theme_obj.primary_50}}] font-[Inter,_sans-serif] overflow-hidden {% if theme_preference == 'dark' %}dark{% endif %}">
         {% get_current_language_bidi as LANGUAGE_BIDI %}
         {% get_current_language as LANGUAGE_CODE %}
         <div hidden id="statiUrl" data-url='{% static "" %}'></div>

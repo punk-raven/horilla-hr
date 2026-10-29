@@ -1,65 +1,29 @@
 import datetime
-from datetime import timedelta
-
-from django.utils import timezone
 
 from base.backends import logger
 from horilla.scheduling import register_job
 
 
 def auto_punch_out():
-    from attendance.methods.utils import Request
-    from attendance.models import Attendance, AttendanceActivity
-    from attendance.views.clock_in_out import clock_out
-    from base.models import EmployeeShiftSchedule
+    """
+    Check out open attendances whose shift has ended: for shifts with
+    "Automatic Check Out" on, and for every shift when automatic check in/out
+    is on for the employee's company. The job keeps its historical name and
+    id so the persisted jobstore row stays valid.
+    """
+    from attendance.methods.auto_attendance import auto_check_out
 
-    automatic_check_out_shifts = EmployeeShiftSchedule.objects.filter(
-        is_auto_punch_out_enabled=True
-    )
+    auto_check_out()
 
-    for shift_schedule in automatic_check_out_shifts:
-        activities = AttendanceActivity.objects.filter(
-            shift_day=shift_schedule.day,
-            clock_out_date=None,
-            clock_out=None,
-        ).order_by("-created_at")
 
-        for activity in activities:
-            attendance = Attendance.objects.filter(
-                employee_id=activity.employee_id,
-                attendance_clock_out=None,
-                attendance_clock_out_date=None,
-                shift_id=shift_schedule.shift_id,
-                attendance_day=shift_schedule.day,
-                attendance_date=activity.attendance_date,
-            ).first()
+def auto_check_in():
+    """
+    Check employees in at their shift start when automatic check in/out is
+    on for their company.
+    """
+    from attendance.methods.auto_attendance import auto_check_in as run
 
-            if attendance:
-                date = activity.attendance_date
-                if (
-                    shift_schedule.is_night_shift
-                    and shift_schedule.start_time
-                    and shift_schedule.end_time
-                    and shift_schedule.start_time > shift_schedule.end_time
-                ):
-                    date += timedelta(days=1)
-
-                combined_datetime = timezone.make_aware(
-                    datetime.datetime.combine(date, shift_schedule.auto_punch_out_time)
-                )
-
-                if combined_datetime < timezone.now():
-                    try:
-                        clock_out(
-                            Request(
-                                user=attendance.employee_id.employee_user_id,
-                                date=date,
-                                time=shift_schedule.auto_punch_out_time,
-                                datetime=combined_datetime,
-                            )
-                        )
-                    except Exception as e:
-                        logger.error(f"auto_punch_out error: {e}")
+    run()
 
 
 def create_work_record():
@@ -117,6 +81,13 @@ register_job(
     auto_punch_out,
     "interval",
     job_id="auto_punch_out",
+    minutes=5,
+    misfire_grace_time=600,
+)
+register_job(
+    auto_check_in,
+    "interval",
+    job_id="auto_check_in",
     minutes=5,
     misfire_grace_time=600,
 )

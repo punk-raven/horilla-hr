@@ -14,6 +14,7 @@ from django.utils.translation import gettext_lazy as _
 
 from base.horilla_company_manager import HorillaCompanyManager
 from base.models import Company
+from horilla.currency import DEFAULT_CURRENCY_SYMBOL
 from horilla.models import HorillaModel
 from payroll.models.models import FilingStatus
 
@@ -28,9 +29,11 @@ class PayrollSettings(HorillaModel):
         ("postfix", _("Suffix")),
     ]
 
-    currency_symbol = models.CharField(null=True, default="$", max_length=5)
+    currency_symbol = models.CharField(
+        null=True, default=DEFAULT_CURRENCY_SYMBOL, max_length=5
+    )
     position = models.CharField(
-        max_length=15, null=True, choices=choices, default="postfix"
+        max_length=15, null=True, choices=choices, default="prefix"
     )
 
     company_id = models.ForeignKey(Company, null=True, on_delete=models.PROTECT)

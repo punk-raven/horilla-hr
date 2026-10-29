@@ -2150,7 +2150,8 @@ class DynamicEmailConfiguration(HorillaModel):
         )
 
     def clean(self):
-        if self.use_ssl and self.use_tls:
+        # TLS and SSL apply to SMTP only.
+        if self.transport == self.SMTP and self.use_ssl and self.use_tls:
             raise ValidationError(
                 _(
                     '"Use TLS" and "Use SSL" are mutually exclusive, '

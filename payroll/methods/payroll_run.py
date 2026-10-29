@@ -577,8 +577,8 @@ def payroll_calculation(employee, start_date, end_date, month_summary=None):
         uncovered_deduction = round(total_deductions - gross_pay, 2)
         total_deductions = gross_pay
         logger.warning(
-            "Deductions for %s came to %s against gross %s; %s not taken.",
-            employee,
+            "Deductions for employee id %s came to %s against gross %s; %s not taken.",
+            employee.pk,
             round(deduction_before_cap, 2),
             round(gross_pay, 2),
             uncovered_deduction,
@@ -635,8 +635,8 @@ def payroll_calculation(employee, start_date, end_date, month_summary=None):
     if net_pay < 0:
         uncovered_deduction = round(uncovered_deduction - net_pay, 2)
         logger.warning(
-            "Net pay deductions exceeded pay for %s; net floored at zero.",
-            employee,
+            "Net pay deductions exceeded pay for employee id %s; net floored at zero.",
+            employee.pk,
         )
         net_pay = 0.0
 

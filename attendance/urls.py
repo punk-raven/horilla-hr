@@ -810,6 +810,11 @@ urlpatterns = [
         name="enable-disable-check-in",
     ),
     path(
+        "enable-disable-auto-check-in-out/",
+        views.enable_disable_auto_check_in_out,
+        name="enable-disable-auto-check-in-out",
+    ),
+    path(
         "grace-settings-view/",
         views.grace_time_view,
         name="grace-settings-view",

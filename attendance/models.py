@@ -48,6 +48,19 @@ _validate_time_in_minutes = validate_time_in_minutes
 # Create your models here.
 
 
+def entry_mode_label(auto_clock_in, auto_clock_out):
+    """
+    Label telling an automatic check-in/out (by the scheduler) from a manual one.
+    """
+    if auto_clock_in and auto_clock_out:
+        return _("Automatic")
+    if auto_clock_in:
+        return _("Auto in")
+    if auto_clock_out:
+        return _("Auto out")
+    return _("Manual")
+
+
 class AttendanceActivity(HorillaModel):
     """
     AttendanceActivity model
@@ -76,6 +89,14 @@ class AttendanceActivity(HorillaModel):
     clock_out_date = models.DateField(null=True, verbose_name=_("Out Date"))
     out_datetime = models.DateTimeField(null=True)
     clock_out = models.TimeField(null=True, verbose_name=_("Check Out"))
+    # Set when the scheduler, not the employee, recorded the punch (see
+    # attendance/methods/auto_attendance.py), so admins can tell them apart.
+    auto_clock_in = models.BooleanField(
+        default=False, editable=False, verbose_name=_("Automatic Check In")
+    )
+    auto_clock_out = models.BooleanField(
+        default=False, editable=False, verbose_name=_("Automatic Check Out")
+    )
     objects = HorillaCompanyManager(
         related_company_field="employee_id__employee_work_info__company_id"
     )
@@ -92,6 +113,12 @@ class AttendanceActivity(HorillaModel):
         """
 
         ordering = ["-attendance_date", "employee_id__employee_first_name", "clock_in"]
+
+    def entry_mode(self):
+        """
+        How the activity was recorded: by the employee or automatically.
+        """
+        return entry_mode_label(self.auto_clock_in, self.auto_clock_out)
 
     def get_status(self):
         """
@@ -489,6 +516,20 @@ class Attendance(HorillaModel):
         return render_template(
             path="cbv/attendance_request/comment.html",
             context={"instance": self},
+        )
+
+    def entry_mode(self):
+        """
+        Whether the day's check-in/out was recorded automatically or manually.
+        """
+        flags = list(
+            AttendanceActivity.objects.filter(
+                employee_id=self.employee_id, attendance_date=self.attendance_date
+            ).values_list("auto_clock_in", "auto_clock_out")
+        )
+        return entry_mode_label(
+            any(auto_in for auto_in, _out in flags),
+            any(auto_out for _in, auto_out in flags),
         )
 
     def attendance_detail_activity_col(self):
@@ -1750,8 +1791,31 @@ class AttendanceGeneralSetting(HorillaModel):
             "Enabling this feature allows employees to record their attendance using the Check-In/Check-Out button."
         ),
     )
+    auto_check_in_out = models.BooleanField(
+        default=True,
+        verbose_name=_("Automatic Check In/Check Out"),
+        help_text=_(
+            "Automatically check in every employee with a work shift at the shift "
+            "start time and check them out at the shift end time."
+        ),
+    )
     company_id = models.ForeignKey(Company, on_delete=models.CASCADE, null=True)
     objects = HorillaCompanyManager()
+
+    @classmethod
+    def auto_check_in_out_enabled(cls, company):
+        """
+        Whether automatic check in/out applies to `company`: its own setting
+        row wins, then the global (company_id=None) row, then the default.
+        """
+        setting = None
+        if company is not None:
+            setting = cls.objects.entire().filter(company_id=company).first()
+        if setting is None:
+            setting = cls.objects.entire().filter(company_id=None).first()
+        if setting is None:
+            return cls._meta.get_field("auto_check_in_out").default
+        return setting.auto_check_in_out
 
     def company_col(self):
         if self.company_id:
@@ -1768,6 +1832,43 @@ class AttendanceGeneralSetting(HorillaModel):
             path="cbv/settings/check_in_check_out_col.html",
             context={"instance": self},
         )
+
+
+class AutoCheckInLog(models.Model):
+    """
+    One row per employee and attendance date the scheduler has automatically
+    checked in. It is what makes the job idempotent: once a day is handled it
+    is never handled again, so an attendance an admin deletes (say, the
+    employee did not turn up) is not recreated on the next run.
+    """
+
+    employee_id = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="auto_check_in_logs",
+        verbose_name=_("Employee"),
+    )
+    attendance_date = models.DateField(verbose_name=_("Attendance Date"))
+    shift_id = models.ForeignKey(
+        EmployeeShift,
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_("Shift"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Automatic Check In Log")
+        verbose_name_plural = _("Automatic Check In Logs")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["employee_id", "attendance_date"],
+                name="unique_auto_check_in_per_employee_day",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.employee_id_id} - {self.attendance_date}"
 
 
 class WorkRecords(models.Model):

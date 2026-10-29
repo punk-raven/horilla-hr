@@ -69,6 +69,59 @@
         </div>
     {% endif %}
 
+    {% if perms.attendance.change_attendancegeneralsetting or perms.attendance.view_attendancegeneralsetting %}
+        <div class="border border-[#ebebeb] rounded-md overflow-hidden mb-5 mr-3">
+            <h5 class="text-sm font-semibold bg-[#f3f3f3] px-4 py-3 text-[#333] flex items-center justify-between">
+                {% trans "Automatic Check In/Check Out" %}
+            </h5>
+            <div class="p-4">
+                <div class="grid grid-cols-12 gap-4 myform">
+                    <div class="col-span-12">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <div class="flex space-x-2">
+                                    <h3 class="text-sm font-medium">
+                                        {% trans "Enable Automatic Check In/Check Out" %}
+                                    </h3>
+                                    <span
+                                        class="oh-info mr-2"
+                                        title="{% trans 'Every employee with a work shift is checked in at the shift start time and checked out at the shift end time. Holidays, weekly off days and full-day leaves are skipped.' %}"
+                                    >
+                                    </span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    {% trans "Every employee with a work shift is checked in at the shift start time and checked out at the shift end time. Holidays, weekly off days and full-day leaves are skipped." %}
+                                </p>
+                            </div>
+                            <label class="toggle-label">
+                                <input
+                                    type="checkbox"
+                                    class="toggle-input"
+                                    id="auto_check_in_out"
+                                    name="auto_check_in_out"
+                                    style="cursor: pointer"
+                                    {% if auto_check_in_out_enabled %}
+                                        checked
+                                    {% endif %}
+                                    {% if perms.attendance.change_attendancegeneralsetting %}
+                                        hx-post="{% url 'enable-disable-auto-check-in-out' %}"
+                                        hx-target="#objectDetailsModalW25Target"
+                                        hx-swap="none"
+                                        hx-trigger="change"
+                                        hx-on-htmx-after-request="window.location.reload()"
+                                    {% else %}
+                                        disabled
+                                    {% endif %}
+                                >
+                                <div class="toggle-switch"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {% if perms.attendance.change_attendancegeneralsetting %}
             <div class="border border-[#ebebeb] rounded-md overflow-hidden mb-5">

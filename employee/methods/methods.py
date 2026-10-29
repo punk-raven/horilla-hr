@@ -566,8 +566,10 @@ def set_initial_password(employees):
         try:
             employee.employee_user_id.set_password(generate_random_password())
             employee.employee_user_id.save()
-        except Exception as e:
-            logger.error(f"falied to set initial password for {employee}")
+        except Exception:
+            logger.error(
+                "Failed to set the initial password for employee id %s", employee.pk
+            )
     logger.info("initial password configured")
 
 
@@ -586,13 +588,15 @@ def send_employee_invitation(employee, host, is_secure):
     user = employee.employee_user_id
     if not user:
         return False
-    email_backend = ConfiguredEmailBackend()
-    if not email_backend.configuration:
-        return False
-    form = PassWordResetForm(data={"email": user.username})
-    if not form.is_valid():
-        return False
     try:
+        # Building the backend validates the stored mail server (e.g. TLS and
+        # SSL both enabled raises ValueError), so it belongs inside the guard.
+        email_backend = ConfiguredEmailBackend()
+        if not email_backend.configuration:
+            return False
+        form = PassWordResetForm(data={"email": user.username})
+        if not form.is_valid():
+            return False
         user.is_new_employee = True
         user.save(update_fields=["is_new_employee"])
         form.save(
@@ -604,7 +608,11 @@ def send_employee_invitation(employee, host, is_secure):
         )
         return True
     except Exception:
-        logger.error("Failed to send invitation email to %s", employee, exc_info=True)
+        logger.error(
+            "Failed to send the invitation email to employee id %s",
+            employee.pk,
+            exc_info=True,
+        )
         return False
 
 

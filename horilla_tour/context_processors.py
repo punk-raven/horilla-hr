@@ -23,16 +23,15 @@ def pending_tours_flag(request):
         from horilla_tour.models import Tour, TourProgress
 
         # Published tours visible to the user's company (+ global) that are
-        # auto-start and not yet completed/skipped by this user.
+        # auto-start and not yet shown to this user (no progress row at all,
+        # matching the tour-active API's auto_start rule).
         published = Tour.objects.filter(is_active=True, is_published=True)
         if published.exists():
-            done_ids = set(
-                TourProgress.objects.filter(
-                    user=user, status__in=["completed", "skipped"]
-                ).values_list("tour_id", flat=True)
+            seen_ids = TourProgress.objects.filter(user=user).values_list(
+                "tour_id", flat=True
             )
             has_pending = (
-                published.filter(trigger="auto_once").exclude(id__in=done_ids).exists()
+                published.filter(trigger="auto_once").exclude(id__in=seen_ids).exists()
             )
     except Exception as exc:  # never let the launcher break a page render
         logger.debug("pending_tours_flag skipped: %s", exc)

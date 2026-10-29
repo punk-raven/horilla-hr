@@ -34,7 +34,12 @@
         box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
         animation: pw-modal-in 0.18s ease-out;
     }
-    .dark .pw-modal { background: #1c2437; }
+    /* Dark: the sign-in card's look (auth_layout.html), on a deeper veil. */
+    .dark .pw-modal-backdrop { background: rgb(2 4 9 / 0.6); }
+    .dark .pw-modal {
+        background: #1c2437;
+        box-shadow: 0 0 0 1px #374564, 0 24px 48px -16px rgb(0 0 0 / 0.7);
+    }
     .pw-modal__close {
         position: absolute;
         top: 12px;
@@ -59,7 +64,9 @@
     }
 </style>
 <div class="pw-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pw-modal-title">
-    <div class="pw-modal">
+    {% comment %} oh-auth-card: the sign-in pages' field, link and button
+       styles from ux.css, in both themes, so this card matches them. {% endcomment %}
+    <div class="pw-modal oh-auth-card">
         {% if not request.user.is_new_employee %}
             <a href="/" class="pw-modal__close" title="{% trans 'Close' %}" aria-label="{% trans 'Close' %}">
                 <ion-icon name="close-outline"></ion-icon>
@@ -68,7 +75,7 @@
         <img
             src="{% if white_label_company.icon %}{{white_label_company.icon.url}}{% else %}{% static 'horilla_theme/assets/img/logo.svg' %}{% endif %}"
             alt="{{ white_label_company_name }}"
-            class="m-auto mb-4 object-contain"
+            class="m-auto mb-4 object-contain{% if not white_label_company.icon %} rounded-[14px] dark:[box-shadow:0_0_0_1px_rgb(255_255_255/0.14)]{% endif %}"
             width="64"
             height="64"
         >
@@ -122,7 +129,7 @@
                             name="password"
                             autocomplete="new-password"
                             placeholder="{% trans 'Enter New Password' %}"
-                            class="oh-input--password text-color-600 w-full border border-dark-50 rounded-md p-3 mt-1 focus-visible:outline-0 placeholder:text-[#9ca3af] placeholder:font-medium text-xs [transition:.3s] focus:border-primary-600"
+                            class="oh-input--password text-color-600 w-full border border-dark-50 rounded-md p-3 pr-[40px] mt-1 focus-visible:outline-0 placeholder:text-[#9ca3af] placeholder:font-medium text-xs [transition:.3s] focus:border-primary-600"
                         >
                         <span
                             type="button"
@@ -146,7 +153,7 @@
                 <div class="flex justify-end">
                     <a
                         href="{% url 'forgot-password' %}"
-                        class="text-sm text-right font-medium text-primary-600 hover:underline focus-visible:underline focus-visible:outline-0 mb-3 mt-2"
+                        class="text-sm text-right font-medium text-brand-600 hover:text-brand-800 hover:underline focus-visible:underline focus-visible:outline-0 mb-3 mt-2"
                     >
                         {% trans "Forgot password" %}?
                     </a>
@@ -155,7 +162,7 @@
                 <div class="my-3">
                     <button
                         type="submit"
-                        class="p-3 bg-brand-600 hover:bg-brand-700 w-full flex gap-3 justify-center rounded-md text-[white] [transition:.3s]"
+                        class="p-3 bg-brand-600 hover:bg-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 w-full flex gap-3 items-center justify-center rounded-md text-[white] [transition:.3s]"
                     >
                         <img src='{% static "horilla_theme/assets/icons/sign.svg" %}'>
                         {% trans "Update" %}

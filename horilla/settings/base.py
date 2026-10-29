@@ -27,10 +27,17 @@ env = environ.Env(
 # Existing process environment (Compose, systemd, CI) wins over .env values.
 env.read_env(os.path.join(BASE_DIR, ".env"), overwrite=False)
 
+from horilla.settings.security import resolve_secret_key  # noqa: E402
+
 # ========================================
 # CORE DJANGO SETTINGS
 # ========================================
-SECRET_KEY = env("SECRET_KEY")
+# The Docker entrypoint persists a generated key here when SECRET_KEY is unset
+# or a public default; see horilla.settings.security.resolve_secret_key.
+SECRET_KEY_FILE = env(
+    "SECRET_KEY_FILE", default=str(BASE_DIR / "media" / ".generated_secret_key")
+)
+SECRET_KEY = resolve_secret_key(env("SECRET_KEY"), SECRET_KEY_FILE)
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
@@ -211,6 +218,7 @@ MIDDLEWARE = [
     "base.middleware.CompanyMiddleware",
     "base.middleware.ForcePasswordChangeMiddleware",
     "base.middleware.TwoFactorAuthMiddleware",
+    "base.middleware.ThemePreferenceMiddleware",
     "accessibility.middlewares.AccessibilityMiddleware",
     "horilla.horilla_middlewares.MethodNotAllowedMiddleware",
     "horilla.horilla_middlewares.SVGSecurityMiddleware",
@@ -354,6 +362,7 @@ TEMPLATES = [
                 "base.context_processors.enable_profile_edit",
                 "base.context_processors.export_access_enabled",
                 "base.context_processors.navbar_languages",
+                "base.context_processors.theme_preference",
                 "horilla_tour.context_processors.pending_tours_flag",
                 "horilla_crumbs.context_processors.breadcrumbs",
             ],
@@ -651,8 +660,9 @@ AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=5)
 AXES_COOLOFF_TIME = timedelta(minutes=env.int("AXES_COOLOFF_MINUTES", default=30))
 AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_RESET_ON_SUCCESS = True
-# Count only real failures; a lockout response is not itself a new attempt.
-AXES_LOCKOUT_TEMPLATE = None
+# The lockout is shown on the sign-in card (horilla_theme), with axes' 429
+# status. XHR posts still get axes' JSON body.
+AXES_LOCKOUT_TEMPLATE = "account_lockout.html"
 AXES_ENABLE_ADMIN = True
 # Behind nginx/ELB the client IP is in X-Forwarded-For. Only trust it when the
 # deployment actually sets a proxy count, otherwise a client can spoof the

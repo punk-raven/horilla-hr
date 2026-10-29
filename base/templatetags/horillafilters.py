@@ -18,6 +18,7 @@ from django.utils.translation import gettext as _
 
 from base.models import Company, EmployeeShiftSchedule, IntegrationApps
 from employee.methods.duration_methods import strtime_seconds
+from horilla.currency import DEFAULT_CURRENCY_SYMBOL
 from horilla.horilla_middlewares import _thread_locals, get_selected_company
 from horilla.methods import get_horilla_model_class
 from horilla_theme.models import CompanyTheme, HorillaColorTheme
@@ -327,7 +328,7 @@ def on_off(value):
 @register.filter(name="currency_symbol_position")
 def currency_symbol_position(amount):
     if not apps.is_installed("payroll"):
-        return f"$ {amount}"
+        return f"{DEFAULT_CURRENCY_SYMBOL} {amount}"
 
     PayrollSettings = get_horilla_model_class(
         app_label="payroll", model="payrollsettings"
@@ -341,7 +342,7 @@ def currency_symbol_position(amount):
     if symbol is None:
         symbol = PayrollSettings.objects.first()
 
-    currency = symbol.currency_symbol if symbol else "$"
+    currency = symbol.currency_symbol if symbol else DEFAULT_CURRENCY_SYMBOL
 
     position = symbol.position if symbol else "prefix"
 

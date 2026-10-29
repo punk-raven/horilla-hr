@@ -178,6 +178,13 @@ from base.models import (
     WorkTypeRequest,
     WorkTypeRequestComment,
 )
+from base.theme import (
+    FOLLOW_SYSTEM,
+    LEGACY_SESSION_KEY,
+    THEMES,
+    clear_theme_cookie,
+    set_theme_cookie,
+)
 from employee.filters import EmployeeFilter
 from employee.forms import ActiontypeForm, EmployeeGeneralSettingPrefixForm
 from employee.models import (
@@ -878,6 +885,11 @@ def login_user(request):
 
         user = authenticate(request, username=username, password=password)
 
+        if not user and getattr(request, "axes_locked_out", False):
+            # AxesMiddleware swaps this response for its lockout page, which
+            # says why; a queued "invalid" toast would contradict it there.
+            return redirect("login")
+
         if not user:
             # One message for every failure mode. Distinguishing "blocked" from
             # "invalid" told an unauthenticated caller which usernames exist,
@@ -1270,17 +1282,30 @@ def logout_user(request):
     return response
 
 
-@login_required
-# @hx_request_required
 def toggle_theme(request):
-    if request.method == "POST":
-        current = request.session.get("theme")
+    """
+    Store the theme the user switched to: POST theme=dark|light keeps that
+    choice, theme=system forgets it so the theme follows the OS again.
 
-        request.session["theme"] = "light" if current == "dark" else "dark"
+    Open to anonymous users so the sign-in pages can switch theme too; it only
+    sets a cookie on the caller's own browser.
+    """
+    if request.method != "POST":
+        return HttpResponse(status=400)
 
-        return HttpResponse(status=204)
+    theme = request.POST.get("theme")
+    if theme not in (*THEMES, FOLLOW_SYSTEM):
+        return HttpResponse(status=400)
 
-    return HttpResponse(status=400)
+    response = HttpResponse(status=204)
+    if theme == FOLLOW_SYSTEM:
+        clear_theme_cookie(response)
+    else:
+        set_theme_cookie(request, response, theme)
+    # The cookie is the only store now: drop a pre-cookie session value so it
+    # cannot come back as a fallback.
+    request.session.pop(LEGACY_SESSION_KEY, None)
+    return response
 
 
 class Workinfo:
@@ -2145,7 +2170,20 @@ def test_email_failure_message(emailconfig, error):
         ) % {"host": emailconfig.host, "port": emailconfig.port}
     else:
         hint = _("Check the host, port, username, password and SSL/TLS settings.")
-    return " ".join([_("The test email was not sent:"), str(error) + ".", str(hint)])
+    detail = str(error)
+    # An API error carries the provider's JSON answer: show its message alone.
+    response = getattr(error, "response", None)
+    try:
+        api_message = response.json().get("message")
+    except Exception:
+        api_message = None
+    if api_message:
+        detail = _("the API answered %(status)s: %(message)s") % {
+            "status": response.status_code,
+            "message": api_message,
+        }
+    detail = detail.strip().rstrip(".") + "."
+    return " ".join([str(_("The test email was not sent:")), detail, str(hint)])
 
 
 @login_required
@@ -2211,29 +2249,32 @@ def mail_server_test_email(request):
             # Plain text content (fallback for email clients that do not support HTML)
             text_content = strip_tags(html_content)
 
-            email_backend = ConfiguredEmailBackend()
             emailconfig = DynamicEmailConfiguration.objects.filter(
                 id=instance_id
             ).first()
-            email_backend.configuration = emailconfig
-            # The backend took its connection settings from the company's
-            # server when it was built; test the server that was picked.
-            email_backend.host = email_backend.dynamic_host
-            email_backend.port = email_backend.dynamic_port
-            email_backend.username = email_backend.dynamic_username
-            email_backend.password = email_backend.dynamic_password
-            email_backend.use_tls = email_backend.dynamic_use_tls
-            email_backend.use_ssl = email_backend.dynamic_use_ssl
-            # The timeout applies to each address the host resolves to, and
-            # must leave the whole attempt inside the form's 60s request
-            # timeout, so cap it for this check.
-            email_backend.timeout = min(
-                email_backend.dynamic_timeout or TEST_EMAIL_TIMEOUT, TEST_EMAIL_TIMEOUT
-            )
-            # A test must report failure, whatever the company's server says.
-            email_backend.fail_silently = False
-
             try:
+                # Inside the try: a misconfigured company server fails
+                # building the backend, and that must be reported too.
+                email_backend = ConfiguredEmailBackend()
+                email_backend.configuration = emailconfig
+                # The backend took its connection settings from the company's
+                # server when it was built; test the server that was picked.
+                email_backend.host = email_backend.dynamic_host
+                email_backend.port = email_backend.dynamic_port
+                email_backend.username = email_backend.dynamic_username
+                email_backend.password = email_backend.dynamic_password
+                email_backend.use_tls = email_backend.dynamic_use_tls
+                email_backend.use_ssl = email_backend.dynamic_use_ssl
+                # The timeout applies to each address the host resolves to, and
+                # must leave the whole attempt inside the form's 60s request
+                # timeout, so cap it for this check.
+                email_backend.timeout = min(
+                    email_backend.dynamic_timeout or TEST_EMAIL_TIMEOUT,
+                    TEST_EMAIL_TIMEOUT,
+                )
+                # A test must report failure, whatever the company's server says.
+                email_backend.fail_silently = False
+
                 msg = EmailMultiAlternatives(
                     subject,
                     text_content,

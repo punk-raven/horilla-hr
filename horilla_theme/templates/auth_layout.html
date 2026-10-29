@@ -6,10 +6,11 @@
 {% endcomment %}
 {% get_def_theme as theme_obj %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" class="{% if theme_preference == 'dark' %}dark{% endif %}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% include "horilla_theme/components/theme_init.html" %}
         <link href="{% static 'horilla_theme/assets/css/tailwind.css' %}" rel="stylesheet">
         <title>{% block title %}{{ white_label_company_name }}{% endblock %}</title>
         <link
@@ -34,6 +35,8 @@
         <script src='{% static "horilla_theme/assets/js/tailwindcdn.js" %}'></script>
         <script>
             window.tailwind.config = {
+                // dark: variants follow the `dark` class theme_init.html sets.
+                darkMode: 'class',
                 theme: {
                     colors: {
                         white: '#FFFFFF',
@@ -98,9 +101,33 @@
             };
         </script>
         <script src="{% static '/jquery/jquery.min.js' %}"></script>
+        <link href="{% static 'cdn/googleapi/css/inter-font-style.css' %}" rel="stylesheet">
+        <style>
+            /* The theme tokens ux.css reads (index.html sets the same ones
+               for signed-in pages). */
+            :root {
+                --primary-300: {{ theme_obj.primary_300|default:"#bfdbfe" }};
+                --primary-600: {{ theme_obj.primary_600|default:"#3b82f6" }};
+                --primary-700: {{ theme_obj.primary_700|default:"#0c4a6e" }};
+                --primary-800: {{ theme_obj.primary_800|default:"#1e3a8a" }};
+            }
+        </style>
+        <link rel="stylesheet" href="{% static 'horilla_theme/assets/css/ux.css' %}?v=5">
     </head>
-    <body class="bg-primary-200 font-[Inter,_sans-serif]">
-        <div class="oh-alert-container">
+    {% comment %} Dark theme: the same surfaces as the signed-in app's
+       dark.css (page #05080f, cards #1c2437, borders #374564, text #dde1e9).
+       The card's contents are styled in ux.css (Sign-in pages). {% endcomment %}
+    <body class="bg-primary-200 font-[Inter,_sans-serif] dark:bg-[#05080f] dark:text-[#dde1e9] {% if theme_preference == 'dark' %}dark{% endif %}">
+        <button
+            type="button"
+            data-theme-toggle
+            aria-label="{% trans 'Toggle theme' %}"
+            class="oh-auth-theme-toggle fixed top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-[20px]"
+        >
+            <ion-icon class="hx-theme-when-light" name="moon-outline" aria-hidden="true"></ion-icon>
+            <ion-icon class="hx-theme-when-dark" name="bulb-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <div class="oh-alert-container oh-auth-alerts" role="status" aria-live="polite">
             {% for message in messages %}
                 <div class="oh-alert oh-alert--animated {{ message.tags }}">
                     {{ message }}
@@ -108,12 +135,18 @@
             {% endfor %}
         </div>
 
-        <div class="min-h-screen w-full flex items-center justify-center p-4">
-            <div class="bg-white p-[50px] rounded-2xl [box-shadow:0px_0px_25px_#a1a1a1] w-[450px] max-w-full">
+        {% comment %} On a phone the card can reach the top of the screen: the
+           72px top padding keeps it clear of the fixed theme switch (16px +
+           40px + a 16px gap). {% endcomment %}
+        <div class="min-h-screen w-full flex items-center justify-center px-4 pb-4 pt-[72px] sm:p-4">
+            <div class="oh-auth-card bg-white p-[50px] rounded-2xl [box-shadow:0px_0px_25px_#a1a1a1] dark:bg-[#1c2437] dark:[box-shadow:0_0_0_1px_#374564,0_24px_48px_-16px_rgb(0_0_0/0.7)] w-[450px] max-w-full">
+                {% comment %} The default logo is a black tile: a hairline ring
+                   (box-shadow, so no layout change) keeps it from reading as a
+                   hole in the dark card. Custom icons are left as they are. {% endcomment %}
                 <img
                     src="{% if white_label_company.icon %}{{white_label_company.icon.url}}{% else %}{% static 'horilla_theme/assets/img/logo.svg' %}{% endif %}"
                     alt="{{ white_label_company_name }}"
-                    class="m-auto mb-5 object-contain"
+                    class="m-auto mb-5 object-contain{% if not white_label_company.icon %} rounded-[14px] dark:[box-shadow:0_0_0_1px_rgb(255_255_255/0.14)]{% endif %}"
                     width="64"
                     height="64"
                 >
@@ -136,6 +169,7 @@
 
                     const show = passwordInput.type === 'password';
                     passwordInput.type = show ? 'text' : 'password';
+                    this.setAttribute('aria-pressed', show ? 'true' : 'false');
                     ['hidden', 'd-none'].forEach(cls => {
                         showIcon.classList.toggle(cls, show);
                         hideIcon.classList.toggle(cls, !show);

@@ -20,6 +20,7 @@ from urllib.parse import unquote
 from django.http import HttpResponse
 from django.utils import timezone
 
+from horilla.currency import DEFAULT_CURRENCY_SYMBOL
 from horilla.export_safety import FORMULA_TRIGGERS, neutralize_formula
 from horilla.media import media_data_uri, read_media
 
@@ -199,7 +200,7 @@ def _looks_money_header(header: str) -> bool:
 def _currency_format() -> tuple[str, str]:
     """(symbol, position) from PayrollSettings — same convention as
     base/templatetags/horillafilters.py::currency_symbol_position, with the
-    same "$"/prefix fallback used app-wide when payroll isn't installed or
+    same DEFAULT_CURRENCY_SYMBOL/prefix fallback used app-wide when payroll isn't installed or
     no settings row exists yet."""
     try:
         from django.apps import apps as django_apps
@@ -210,12 +211,12 @@ def _currency_format() -> tuple[str, str]:
             settings_row = PayrollSettings.objects.first()
             if settings_row:
                 return (
-                    settings_row.currency_symbol or "$",
+                    settings_row.currency_symbol or DEFAULT_CURRENCY_SYMBOL,
                     settings_row.position or "prefix",
                 )
     except Exception:
         pass
-    return "$", "prefix"
+    return DEFAULT_CURRENCY_SYMBOL, "prefix"
 
 
 def _money_number_format(symbol: str, position: str) -> str:
