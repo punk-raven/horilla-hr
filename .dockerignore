@@ -92,3 +92,6 @@ CODEBASE_INDEX.md
 
 # Claude/AI
 .claude/
+
+# Railway IaC SDK (.railway/package.json)
+.railway/node_modules/

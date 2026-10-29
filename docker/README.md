@@ -360,7 +360,12 @@ docker compose logs --tail=50 web
 
 ### Deploying on Railway (behind Cloudflare)
 
-The repo ships `railway.toml` (web) and `railway.scheduler.toml` (scheduler).
+The services are described as code in `.railway/railway.ts` (Railway IaC;
+variables stay unmanaged, in the dashboard). Preview changes with
+`cd .railway && npm ci && cd .. && railway config plan`; a matching file reports
+no changes. `railway.toml` (web) and `railway.scheduler.toml` (scheduler) are the
+deprecated Config as Code files Railway reads until a service is cut over with
+`railway config migrate cutover`; delete them after the cutover.
 The layout below keeps web off the public internet: Cloudflare owns the
 domain and reaches web only through a Cloudflare Tunnel, and media lives in a
 Cloudflare R2 bucket so web and scheduler share it (a Railway volume attaches
@@ -369,8 +374,8 @@ to one service only).
 | Railway service | Source | Notes |
 |---|---|---|
 | `Postgres`, `Redis` | Railway database templates | |
-| `web` | this repo | uses `railway.toml`; **no public Railway domain** |
-| `scheduler` | this repo | config-as-code path `/railway.scheduler.toml`; exactly 1 replica |
+| `web` | this repo | health check `/health/`; **no public Railway domain** |
+| `scheduler` | this repo | start command `/entrypoint.sh python manage.py run_scheduler`; no health check; exactly 1 replica |
 | `cloudflared` | image `cloudflare/cloudflared:<pinned tag>` | start command `cloudflared tunnel --no-autoupdate run`, variable `TUNNEL_TOKEN` |
 
 **Cloudflare, once:**
