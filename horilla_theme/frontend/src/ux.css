@@ -482,6 +482,26 @@ body.dark .oh-alert[class*="oh-alert--"] {
   background-color: rgb(255 255 255 / 0.12);
 }
 
+/* Toasts on the sign-in pages. The theme switch is fixed in the top right
+   corner (16px in, 40px square) and the toasts were placed by v1_styles.css
+   on their own numbers (75px down, 2rem in, 95% wide, flush left under
+   576px), so whether the two collided was luck. Lay them out from the
+   switch instead: the toasts start one 16px gap below it and share its
+   right edge, and on a phone they keep the same 16px from both sides.
+   Several toasts stack downwards, away from the switch. The switch also
+   stays above them (and the card) should anything ever reach it. */
+.oh-auth-theme-toggle {
+  z-index: 10000;
+}
+
+.oh-alert-container.oh-auth-alerts {
+  top: calc(16px + 40px + 16px);
+  right: 16px;
+  left: auto;
+  width: calc(100% - 32px);
+  max-width: 500px;
+}
+
 /* Sign-in pages in the dark theme, on dark.css's palette: card #1c2437
    (set in auth_layout.html), fields #151b2a, borders #374564, text
    #dde1e9, secondary text #bbbbbb (8.2:1). Low specificity on purpose, so
