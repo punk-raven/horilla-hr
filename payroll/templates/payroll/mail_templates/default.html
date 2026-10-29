@@ -77,7 +77,8 @@
           <table class="hr-table-main__header">
             <tr>
               <td style="width: 50%">
-                <img src="{{protocol}}://{{ host }}{% static '/images/ui/horilla-logo.png' %}" height="30" width="110.4" />
+                <img src="cid:brand_logo" alt="" height="32" width="32" style="display: inline-block; vertical-align: middle; border: 0" />
+                <span style="display: inline-block; vertical-align: middle; margin-left: 8px; font-size: 18px; font-weight: 700; color: #111827">{{ white_label_company_name }}</span>
               </td>
               <td style="width: 50%; text-align: right">
                 <a href="#" class="hr-link">{% trans "View in browser" %}</a>
@@ -109,7 +110,7 @@
       <tr>
         <td style="padding: 15px" align="center">
           <a href="{{protocol}}://{{ host }}{% url "view-payslip" %}" style="
-                background-color: #e54f37;
+                background-color: #326ed1;
                 color: #fff;
                 border-radius: 10px;
                 display: inline-block;
@@ -143,7 +144,6 @@
               padding-bottom: 10px;
               padding-top: 10px;
               color: #5c5c5c;
-              {% comment %} background-color: #e54f37; {% endcomment %}
               font-size: 12px;
             ">
           &copy; {{current_year}} {{white_label_company_name}}

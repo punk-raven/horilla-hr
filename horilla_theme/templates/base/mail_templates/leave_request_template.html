@@ -1,6 +1,5 @@
-{% load static horillafilters i18n %}
+{% load static i18n %}
 {% now "Y" as current_year %}
-{% get_company as theme_obj %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -79,7 +78,7 @@
                         <table class="hr-table-main__header">
                             <tr>
                                 <td style="width: 50%">
-                                    <img src="cid:company_logo" height="100" width="100">
+                                    <img src="cid:brand_logo" alt="{{ white_label_company_name }}" height="100" width="100">
                                 </td>
                                 <td style="width: 50%; text-align: right">
                                     <a href="#" class="hr-link">{% trans 'View in browser' %}</a>
@@ -119,7 +118,7 @@
                         <td style="padding: 15px" align="center">
                             <a
                                 href="{{protocol}}://{{host}}/leave/request-view/?id={{link}}"
-                                style="background-color: {{ theme_obj.primary_600 }}; color: #fff; border-radius: 10px; display: inline-block; padding: 15px 25px; text-decoration: none; font-weight: bold"
+                                style="background-color: #326ed1; color: #fff; border-radius: 10px; display: inline-block; padding: 15px 25px; text-decoration: none; font-weight: bold"
                             >{% trans 'View Leave Request' %}</a>
                         </td>
                     </tr>

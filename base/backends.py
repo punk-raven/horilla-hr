@@ -11,6 +11,7 @@ from django.core.cache import cache
 from django.core.mail import EmailMessage
 from django.core.mail.backends.smtp import EmailBackend
 
+from base.email_branding import attach_brand_logo
 from base.email_redaction import get_current_company, redact_credential_body
 from base.models import DynamicEmailConfiguration, EmailLog
 from horilla import settings
@@ -233,6 +234,10 @@ class ConfiguredEmailBackend(BACKEND_CLASS):
         ).send_messages(email_messages)
 
     def send_messages(self, email_messages):
+        # The Resend API takes attachments, not MIME, so the logo the HTML
+        # shows is attached here rather than when the MIME message is built.
+        for message in email_messages:
+            attach_brand_logo(message)
         if self.uses_resend_api:
             response = self.send_via_resend_api(email_messages)
         else:
