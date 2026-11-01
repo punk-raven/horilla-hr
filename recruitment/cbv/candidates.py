@@ -23,7 +23,6 @@ from import_export import fields, resources
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
-from xhtml2pdf import pisa
 
 from base.methods import has_export_access
 from employee.forms import BulkUpdateFieldForm
@@ -437,6 +436,8 @@ class ListCandidates(HorillaListView):
 
             # Convert HTML to PDF using xhtml2pdf
             result = io.BytesIO()
+            from xhtml2pdf import pisa  # ~80 MB; load only when exporting a PDF
+
             pisa_status = pisa.CreatePDF(html_string, dest=result)
 
             if pisa_status.err:

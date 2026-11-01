@@ -29,7 +29,6 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 from urllib.parse import parse_qs, urlparse
 
-import pandas as pd
 from django.conf import settings
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -275,6 +274,7 @@ def attendance_import(request):
         HttpResponse or redirect: An HTTP response with an Excel file containing error details
         if validation fails, or a redirect to the attendance view if successful.
     """
+    import pandas as pd
     if request.method == "POST":
         file = request.FILES["attendance_import"]
         file_extension = file.name.split(".")[-1].lower()
@@ -1016,6 +1016,7 @@ def attendance_activity_bulk_delete(request):
 
 
 def process_activity_dicts(activity_dicts):
+    import pandas as pd
     from attendance.views.clock_in_out import clock_in, clock_out
 
     if not activity_dicts:
@@ -1092,6 +1093,7 @@ def process_activity_dicts(activity_dicts):
 def handle_activity_import_error(error_data):
 
     # Directly create the DataFrame from the list of dictionaries
+    import pandas as pd
     data_frame = pd.DataFrame(error_data)
 
     # Create an HTTP response with an Excel attachment
@@ -1119,6 +1121,7 @@ def handle_activity_import_error(error_data):
 @hx_request_required
 @permission_required("attendance.add_attendanceactivity")
 def attendance_activity_import(request):
+    import pandas as pd
     if request.method == "POST":
         file = request.FILES["activity_import"]
         data_frame = pd.read_excel(file)
@@ -2758,6 +2761,7 @@ def _build_applied_filters_summary(filterset, request_get):
 @permission_required("attendance.view_workrecords")
 def work_record_export(request):
 
+    import pandas as pd
     try:
         month_str = request.GET.get("month")
         if month_str:

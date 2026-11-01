@@ -1,7 +1,6 @@
 import calendar
 from datetime import date, datetime, timedelta
 
-import pandas as pd
 from django.apps import apps
 from django.db.models import Q
 
@@ -167,6 +166,7 @@ def parse_excel_date(value):
     Convert Excel date values into a valid Python date object.
     Supports multiple formats: YYYY-MM-DD, DD-MM-YYYY, DD Month YYYY, MM/DD/YYYY, etc.
     """
+    import pandas as pd
     if not value or pd.isna(value):
         return None
 

@@ -12,7 +12,6 @@ from datetime import date, datetime, timedelta
 from io import BytesIO
 from urllib.parse import parse_qs, unquote
 
-import pandas as pd
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
@@ -28,7 +27,6 @@ from django.utils.translation import gettext as __
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import gettext_noop
 from django.views.decorators.http import require_http_methods
-from xhtml2pdf import pisa
 
 from base.filters import PenaltyFilter
 from base.forms import PenaltyAccountForm
@@ -88,6 +86,7 @@ def generate_error_report(error_list, error_data, file_name):
     """
     Function used to generate error excle file for imported datas
     """
+    import pandas as pd
     for item in error_list:
         for key, value in error_data.items():
             if key in item:
@@ -686,6 +685,8 @@ def generate_leave_request_pdf(template_path, context, html=False):
             return HttpResponse(html_content)
 
         result = BytesIO()
+        from xhtml2pdf import pisa  # ~80 MB; load only when exporting a PDF
+
         pdf_status = pisa.CreatePDF(src=html_content, dest=result)
 
         if pdf_status.err:
@@ -2079,6 +2080,7 @@ def leave_assign_delete(request, obj_id):
     Returns:
     - Redirects to the assigned leave type view or refreshes the page.
     """
+    import pandas as pd
     pd = request.GET.urlencode()
 
     try:
@@ -2159,6 +2161,7 @@ def assign_leave_type_import(request):
     It processes the data, checks for errors, and either assigns leave types to employees
     or generates an error report in the form of an Excel file.
     """
+    import pandas as pd
     template_columns = [
         "Employee Badge ID",
         "Leave Type",
@@ -2385,6 +2388,7 @@ def leave_request_import(request):
     returned in an error workbook with the reason beside each. Mail and
     notifications are not sent for imported rows.
     """
+    import pandas as pd
     template_columns = [
         "Badge ID",
         "Leave Type",
@@ -2849,6 +2853,7 @@ def restrict_days_bulk_delete(request):
     Returns:
     GET : return restricted days view template
     """
+    import pandas as pd
     pd = request.GET.urlencode()
     if request.method == "POST":
         restrict_day_ids = request.POST.getlist("ids")

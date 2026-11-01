@@ -21,8 +21,6 @@ import threading
 from datetime import date, datetime, timedelta
 from urllib.parse import parse_qs, urlparse
 
-import numpy as np
-import pandas as pd
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
@@ -2948,6 +2946,7 @@ def employee_import(request):
     """
     This method is used to create employee and corresponding user.
     """
+    import pandas as pd
     if request.method == "POST":
         file = request.FILES["file"]
         # Read the Excel file into a Pandas DataFrame
@@ -3009,6 +3008,7 @@ def employee_export(request):
     selected specific employees in the list view (instance_ids), only those
     are exported; otherwise every employee is exported, same as before.
     """
+    import pandas as pd
     if not has_export_access(request, Employee):
         return HorillaRedirect(
             request, message=_("You don't have access to export this data")
@@ -3062,6 +3062,7 @@ def work_info_import_file(request):
     """
     This method is used to return the excel file of import Employee instances
     """
+    import pandas as pd
     data_frame = pd.DataFrame(
         columns=[
             "Badge ID",
@@ -3097,6 +3098,8 @@ def work_info_import_file(request):
 @hx_request_required
 @permission_required("employee.add_employee")
 def work_info_import(request):
+    import numpy as np
+    import pandas as pd
     if request.method == "GET":
         return render(request, "employee/employee_import.html")
 
@@ -3205,6 +3208,7 @@ def _to_excel_bold_header(data_frame, response):
 
     Newer pandas no longer styles the header row, so bold it with openpyxl.
     """
+    import pandas as pd
     from openpyxl.styles import Font
 
     with pd.ExcelWriter(response, engine="openpyxl") as writer:
@@ -3220,6 +3224,7 @@ def work_info_export(request):
     """
     This method is used to export employee data to xlsx
     """
+    import pandas as pd
     if not has_export_access(request, Employee):
         return HorillaRedirect(
             request, message=_("You don't have access to export this data")

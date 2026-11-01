@@ -5,7 +5,6 @@ import re
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import pandas as pd
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 
@@ -471,6 +470,7 @@ class EmployeesDataset(Dataset):
         return merged
 
     def _check_create(self, rows, ctx: Context, progress=None) -> Checked:
+        import pandas as pd
         rows = self.prepare(rows, ctx)
         result = Checked()
         if not rows:
