@@ -13,7 +13,6 @@ import json
 from collections import defaultdict
 from itertools import chain
 
-import pandas as pd
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -1130,6 +1129,7 @@ def attendance_monthly_summary_export(request):
     HR-190 — Download the current summary as an XLSX file.
     Accepts the same GET params as the table view (no pagination).
     """
+    import pandas as pd
     today = datetime.date.today()
     from_date = _parse_date(request.GET.get("from_date"), today.replace(day=1))
     to_date = _parse_date(

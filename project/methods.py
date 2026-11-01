@@ -1,6 +1,5 @@
 import random
 
-import pandas as pd
 from django.core.paginator import Paginator
 from django.utils.translation import gettext_lazy as _
 
@@ -293,6 +292,7 @@ def resolve_project_import_company(
     ``allowed_ids`` (set for non-superusers) limits which companies may be
     named. ``companies`` maps lower-cased company name -> Company.
     """
+    import pandas as pd
     name = str(name).strip() if name is not None and not pd.isna(name) else ""
     if selected_company and not name:
         return None, _(
@@ -320,6 +320,7 @@ def process_project_records(data_frame, selected_company=None, allowed_ids=None)
     the same company is updated (as the importer always did); the same title
     in another company is a separate project (title + company is unique).
     """
+    import pandas as pd
     from django.db import transaction
 
     from base.models import Company

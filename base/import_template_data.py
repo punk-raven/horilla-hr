@@ -8,7 +8,6 @@ Use `import_template_frame(key)` to get a ready DataFrame.
 
 import datetime
 
-import pandas as pd
 
 IMPORT_TEMPLATES = {
     "employee": {
@@ -211,6 +210,7 @@ IMPORT_TEMPLATES = {
 
 def import_template_frame(key):
     """Return the example DataFrame for the given template key."""
+    import pandas as pd
     template = IMPORT_TEMPLATES[key]
     return pd.DataFrame(template["rows"], columns=template["columns"])
 
@@ -221,6 +221,7 @@ def write_import_xlsx(data_frame, response):
     Shared by the import templates and the import error downloads so both
     look the same.
     """
+    import pandas as pd
     from openpyxl.styles import Alignment, Font
 
     response["Content-Type"] = (

@@ -10,7 +10,6 @@ import uuid
 from datetime import date, datetime
 from urllib.parse import parse_qs
 
-import pandas as pd
 from django.contrib import messages
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
@@ -1360,6 +1359,7 @@ def convert_nan(val):
     """
     Convert NaN values to None.
     """
+    import pandas as pd
     if pd.isna(val):
         return None
     return val
@@ -1441,6 +1441,7 @@ def _import_asset_row(row):
 
 def handle_asset_import_errors(error_rows):
     """Build a downloadable error sheet and return its dynamic URL path."""
+    import pandas as pd
     from asset.urls import path, urlpatterns
 
     data_frame = pd.DataFrame(error_rows)
@@ -1497,6 +1498,7 @@ def asset_import(request):
 
 def _asset_import_file(request, file, error_response):
     """Run the import for an uploaded file; returns the HTMX response."""
+    import pandas as pd
     name = file.name.lower()
     if name.endswith(".csv"):
         dataframe = pd.read_csv(file)
@@ -1544,6 +1546,7 @@ def asset_excel(_request):
 @permission_required("asset.view_assetcategory")
 def asset_export_excel(request):
     """asset export view"""
+    import pandas as pd
     if not has_export_access(request, Asset):
         return HorillaRedirect(
             request, message=_("You don't have access to export this data")

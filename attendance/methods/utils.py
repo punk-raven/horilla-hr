@@ -7,7 +7,6 @@ This module is used write custom methods
 import calendar
 from datetime import date, datetime, time, timedelta
 
-import pandas as pd
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -701,6 +700,7 @@ def parse_time(time_str):
 
 
 def parse_date(date_str, error_key, activity):
+    import pandas as pd
     try:
         return pd.to_datetime(date_str).date()
     except (pd.errors.ParserError, ValueError):

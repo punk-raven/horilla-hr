@@ -10,7 +10,6 @@ import datetime as dt
 import json
 from datetime import date, datetime, timedelta
 
-import pandas as pd
 from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.db import models, transaction

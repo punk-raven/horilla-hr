@@ -9,7 +9,6 @@ import traceback
 from typing import Any
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
 
-import pandas as pd
 from auditlog.registry import auditlog
 from django import forms
 from django.contrib import messages
@@ -769,6 +768,7 @@ class HorillaListView(ListView):
         """
         Method to import records
         """
+        import pandas as pd
         try:
             if not self.import_accessibility():
                 messages.info(request, _("You don't have permission"))

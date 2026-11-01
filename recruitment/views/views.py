@@ -13,6 +13,7 @@ provide the main entry points for interacting with the application's functionali
 
 import ast
 import contextlib
+import functools
 import io
 import json
 import os
@@ -25,7 +26,6 @@ from urllib.parse import parse_qs
 import phonenumbers
 import pycountry
 import pymupdf  # type: ignore
-import spacy
 from dateutil import parser as dateutil_parser
 from django import template
 from django.contrib import messages
@@ -3433,9 +3433,19 @@ def delete_reject_reason(request):
     return HttpResponse(f"<script>{script}</script>")
 
 
-# Loaded once per worker process at import time (spaCy model load is slow;
-# never call spacy.load() inside a request-handling function).
-_resume_nlp = spacy.load("en_core_web_sm")
+@functools.cache
+def _resume_nlp():
+    """
+    Return the spaCy pipeline used for resume parsing, loading it on first use.
+
+    spaCy plus en_core_web_sm add ~130 MB to a process. Importing it with this
+    module put that on every gunicorn worker and every manage.py command, even
+    though only resume parsing needs it. Cached so the slow load happens once
+    per process, never per request.
+    """
+    import spacy
+
+    return spacy.load("en_core_web_sm")
 
 
 def extract_text_with_font_info(pdf):
@@ -3661,7 +3671,7 @@ def extract_info(pdf):
 
     max_font_size = max(item["font_size"] for item in ranked_text)
     top_spans = [item for item in ranked_text if item["font_size"] == max_font_size]
-    name_doc = _resume_nlp(" ".join(item["text"] for item in top_spans))
+    name_doc = _resume_nlp()(" ".join(item["text"] for item in top_spans))
     person_names = [ent.text for ent in name_doc.ents if ent.label_ == "PERSON"]
     if person_names:
         extracted_info["full_name"] = " ".join(person_names)
@@ -3683,7 +3693,7 @@ def extract_info(pdf):
 
     gpe_address_candidate = None
 
-    doc = _resume_nlp(full_text)
+    doc = _resume_nlp()(full_text)
     for ent in doc.ents:
         if ent.label_ != "GPE":
             continue

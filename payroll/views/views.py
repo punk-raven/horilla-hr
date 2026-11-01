@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 from itertools import groupby
 from urllib.parse import parse_qs
 
-import pandas as pd
 import pdfkit
 from django.conf import settings as pay_settings
 from django.contrib import messages
@@ -978,6 +977,7 @@ def payslip_export(request):
 
     """
 
+    import pandas as pd
     start_date = request.POST.get("start_date")
     end_date = request.POST.get("end_date")
     employee = request.POST.getlist("employees")

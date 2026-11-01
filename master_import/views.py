@@ -5,7 +5,6 @@ import json
 import logging
 import re
 
-import pandas as pd
 from django.contrib import messages
 from django.core.files.base import ContentFile
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
@@ -157,6 +156,7 @@ def upload(request):
 
 @login_required
 def template_download(request, dataset):
+    import pandas as pd
     spec = get_dataset(dataset)
     if not _allowed(request, spec):
         raise Http404
@@ -168,6 +168,7 @@ def template_download(request, dataset):
 
 def _xlsx_bytes(frame):
     """A sheet people can work in: a frozen yellow header, borders, readable widths."""
+    import pandas as pd
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
 
@@ -602,6 +603,7 @@ def _masked(row, key, secret):
 
 
 def _error_workbook(errors, dataset):
+    import pandas as pd
     keys = [f.key for f in dataset.fields]
     secret = _secret_keys(dataset)
     frame = pd.DataFrame(
@@ -642,6 +644,7 @@ def done(request, job_id):
 @login_required
 def download_records(request, job_id, kind):
     """The valid, error or skipped rows as a sheet, with corrections applied."""
+    import pandas as pd
     job, dataset = _job_for(request, job_id)
     if kind not in ("valid", "errors", "skipped") or not job.mapping or not job.file:
         raise Http404

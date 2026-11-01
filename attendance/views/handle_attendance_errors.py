@@ -2,7 +2,6 @@
 
 import uuid
 
-import pandas as pd
 from django.conf import settings
 from django.http import HttpResponse
 
@@ -22,6 +21,7 @@ def handle_attendance_errors(error_list):
         dict: A structured dictionary where keys represent error types and values are lists
               of error details for each type.
     """
+    import pandas as pd
     keys_to_remove = []
     error_data = {
         "Badge ID": [],

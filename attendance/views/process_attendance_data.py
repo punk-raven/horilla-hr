@@ -7,7 +7,6 @@ from Excel files and saving it to a database.
 
 from datetime import datetime
 
-import pandas as pd
 
 from attendance.models import Attendance
 from base.models import EmployeeShift, WorkType
@@ -29,6 +28,7 @@ def process_attendance_data(attendance_dicts):
     Returns:
         list: A list of dictionaries representing errors encountered during processing.
     """
+    import pandas as pd
     error_list = []
     attendance_list = []
     today = datetime.today().date()

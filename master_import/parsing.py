@@ -3,8 +3,6 @@
 import re
 from difflib import get_close_matches
 
-import numpy as np
-import pandas as pd
 
 ALLOWED_EXTENSIONS = (".csv", ".xlsx", ".xls")
 MAX_BYTES = 10 * 1024 * 1024
@@ -16,6 +14,8 @@ class UploadError(Exception):
 
 def read_upload(file):
     """Any CSV or Excel sheet as a DataFrame of text-or-None, headers trimmed."""
+    import numpy as np
+    import pandas as pd
     name = (getattr(file, "name", "") or "").lower()
     if not name.endswith(ALLOWED_EXTENSIONS):
         raise UploadError("Upload a CSV or Excel file (.csv, .xlsx, .xls).")

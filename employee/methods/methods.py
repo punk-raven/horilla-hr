@@ -8,7 +8,6 @@ import threading
 from datetime import date, datetime
 from itertools import chain, groupby
 
-import pandas as pd
 from django.apps import apps
 from django.contrib.auth.hashers import make_password
 from django.db import connection, models, transaction
@@ -87,6 +86,7 @@ def normalize_phone(phone):
 
 
 def import_valid_date(date_value, field_label, errors_dict, error_key):
+    import pandas as pd
     if date_value is None or pd.isna(date_value) or str(date_value).strip() == "":
         return None
 
@@ -117,6 +117,7 @@ def clean_badge_id(value):
     - If the value is a non-numeric string (e.g., "A101"), returns the stripped string.
     - If the value is NaN or None, returns an empty string.
     """
+    import pandas as pd
     if pd.isna(value):
         return ""
 
@@ -276,6 +277,7 @@ def process_employee_records(
     - `progress(done, total)`: called every few rows, for a progress bar.
     """
 
+    import pandas as pd
     email_regex = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
     phone_regex = re.compile(r"^\+?\d{10,15}$")
     allowed_genders = frozenset(choice[0] for choice in Employee.choice_gender)
@@ -825,6 +827,7 @@ def bulk_create_employee_types(success_lists):
 
 def _import_number(value):
     """A pay figure from the sheet, or None when the cell is empty."""
+    import pandas as pd
     if value in (None, "") or pd.isnull(value):
         return None
     try:
@@ -915,6 +918,7 @@ def bulk_create_work_info_import(success_lists):
     """
     Bulk creation of employee work info instances based on the excel import of employees
     """
+    import pandas as pd
     new_work_info_list = []
     update_work_info_list = []
 

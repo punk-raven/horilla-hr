@@ -27,7 +27,6 @@ from django.views.decorators.http import require_POST
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from xhtml2pdf import pisa
 
 from base.methods import eval_validate, has_export_access
 from horilla.decorators import login_required as func_login_required
@@ -1003,6 +1002,8 @@ def export_data(request, *args, **kwargs):
         )
 
         buf = BytesIO()
+        from xhtml2pdf import pisa  # ~80 MB; load only when exporting a PDF
+
         pisa.CreatePDF(html, dest=buf)
 
         return HttpResponse(

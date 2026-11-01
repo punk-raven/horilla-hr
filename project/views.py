@@ -5,8 +5,6 @@ import logging
 from collections import defaultdict
 from urllib.parse import parse_qs, urlparse
 
-import numpy as np
-import pandas as pd
 from django.contrib import messages
 from django.core import serializers
 from django.http import Http404, HttpResponse, JsonResponse
@@ -393,6 +391,8 @@ def project_import(request):
     Import Project instances from a CSV/Excel file (same flow as the employee
     import). GET renders the import modal, POST processes the uploaded file.
     """
+    import numpy as np
+    import pandas as pd
     template = "project/project_import.html"
     if request.method == "GET":
         return render(request, template)
@@ -475,6 +475,7 @@ def project_bulk_export(request):
     """
     This method is used to export bulk of Project instances
     """
+    import pandas as pd
     if not has_export_access(request, Project):
         return HttpResponse("<script>$('#reloadMessagesButton').click();</script>")
     # No selection means "export everything", same convention as every other

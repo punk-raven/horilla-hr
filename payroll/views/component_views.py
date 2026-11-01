@@ -14,7 +14,6 @@ from datetime import date, datetime, timedelta
 from itertools import groupby
 from urllib.parse import parse_qs
 
-import pandas as pd
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
@@ -1238,6 +1237,7 @@ def payslip_export(request):
     This view exports payslip data based on selected fields and filters,
     and generates an Excel file for download.
     """
+    import pandas as pd
     if not has_export_access(request, Payslip):
         return HorillaRedirect(
             request, message=_("You don't have access to export this data")

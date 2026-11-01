@@ -18,7 +18,6 @@ from datetime import datetime, timedelta
 from os import path
 from urllib.parse import parse_qs, unquote, urlencode, urlparse
 
-import pandas as pd
 from dateutil import parser
 from django import forms
 from django.apps import apps
@@ -3800,6 +3799,7 @@ def rotating_shift_assign_export(request):
 
 
 def normalize_list(lst):
+    import pandas as pd
     return [None if pd.isna(x) else x for x in lst]
 
 
@@ -3807,6 +3807,7 @@ def normalize_list(lst):
 @hx_request_required
 @manager_can_enter("base.add_rotatingworktypeassign")
 def rotating_shift_assign_import(request):
+    import pandas as pd
     if request.method == "POST":
         rotating_shift_obj_list = []
         employee_ids = []
@@ -8091,6 +8092,7 @@ def get_horilla_installed_apps(request):
 
 
 def generate_error_report(error_list, error_data, file_name):
+    import pandas as pd
     for item in error_list:
         for key, value in error_data.items():
             if key in item:
@@ -8196,6 +8198,7 @@ def _resolve_holiday_company(value, selected_company=None):
       company, or leave it blank (company_id=None, applies to all companies).
     Returns ``(company, error_message)``.
     """
+    import pandas as pd
     name = None if value is None or pd.isna(value) else str(value).strip() or None
     if selected_company and not name:
         return None, _(
@@ -8343,6 +8346,7 @@ def excel_holiday_import(file, selected_company=None):
     - "Company": Optional company name; blank applies the holiday to all companies
 
     """
+    import pandas as pd
     error_list = []
     valid_holidays = []
     data_frame = pd.read_excel(file)

@@ -9,7 +9,6 @@ import re
 from datetime import date, datetime, time, timedelta
 from types import SimpleNamespace
 
-import pandas as pd
 import pdfkit
 from django import template
 from django.apps import apps
@@ -1108,6 +1107,7 @@ def has_export_access(request, model):
 
 
 def export_data(request, model, form_class, filter_class, file_name, perm=None):
+    import pandas as pd
     fields_mapping = {
         "male": _("Male"),
         "female": _("Female"),

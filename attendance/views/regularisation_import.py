@@ -16,7 +16,6 @@ was written to answer.
 import calendar
 import datetime
 
-import pandas as pd
 from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponse
@@ -101,6 +100,7 @@ def regularisation_template(request):
     point: most of them are right, and the ones that are not are far easier to
     spot beside the rest than to reconstruct from nothing.
     """
+    import pandas as pd
     employees, from_date, to_date = _scope(request)
     period_days = (to_date - from_date).days + 1
     rows, _total_working, _totals = build_monthly_summary(from_date, to_date, employees)
@@ -253,6 +253,7 @@ def _safe_next(request):
 
 def _read(upload):
     """The uploaded sheet, or None if it could not be parsed."""
+    import pandas as pd
     try:
         if upload.name.lower().endswith(".csv"):
             return pd.read_csv(upload)
@@ -390,6 +391,7 @@ def regularisation_import(request):
     Rejected rows come back as a workbook with a Problem column — the same shape
     the attendance import already uses. Correct them in place and upload again.
     """
+    import pandas as pd
     back = redirect(_safe_next(request))
 
     if request.method != "POST" or "regularisation_file" not in request.FILES:
