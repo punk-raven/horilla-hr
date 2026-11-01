@@ -15,15 +15,21 @@ export default defineRailway(() => {
   const redisVolume2TxT = volume("redis-volume-2TxT", { alerts: { usage: { "100": {}, "80": {}, "95": {} } }, allowOnlineResize: true, region: "asia-southeast1-eqsg3a", sizeMB: 5000 });
 
   // No start command: on Railway it would replace the image ENTRYPOINT, and web
-  // needs docker/entrypoint.sh to wait for Postgres, migrate and collectstatic
-  // before gunicorn starts. A first boot applies every migration, hence 300s.
+  // needs docker/entrypoint.sh to wait for Postgres before gunicorn starts.
+  //
+  // A few users, so web sleeps when idle (Serverless) and wakes on the next
+  // request through the tunnel. Every wake is a fresh container start, so the
+  // migrate runs once per deploy here instead of in the entrypoint: set
+  // HORILLA_MIGRATIONS_IN_PREDEPLOY=1 and GUNICORN_WORKERS=1 on web in the
+  // dashboard. Static files are already in the image. A wake then takes ~3 s.
   const web = service("web", {
     source: horillaHr,
     build: { buildEnvironment: "V3", builder: "DOCKERFILE", dockerfilePath: "Dockerfile" },
+    preDeploy: "python manage.py migrate --noinput",
     healthcheck: "/health/",
     healthcheckTimeout: 300,
     replicas: { "asia-southeast1-eqsg3a": 1 },
-    deploy: { restartPolicyMaxRetries: 5 },
+    deploy: { restartPolicyMaxRetries: 5, sleepApplication: true },
   });
 
   // Runs the APScheduler jobs. It binds no port, so it has no health check.

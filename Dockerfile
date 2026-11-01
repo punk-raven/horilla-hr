@@ -140,9 +140,25 @@ RUN chmod +x /entrypoint.sh
 # Both COPYs above already set --chown, so only the new dirs need ownership;
 # a recursive chown over /app would duplicate a whole layer for no gain.
 RUN mkdir -p staticfiles media \
-    && chown appuser:appuser staticfiles media
+    && touch .static-build-id \
+    && chown appuser:appuser staticfiles media .static-build-id
 
 USER appuser
+
+# Collect static files into the image instead of on every container start.
+# Runtime collectstatic --clear rewrites ~5,300 files on each start (a wake went
+# from 15.0 s to 10.5 s without it), and a platform that sleeps idle containers
+# (Railway Serverless) pays that on every wake.
+# collectstatic needs no database; the placeholders only satisfy the production
+# settings gate for this one command and are not kept in the image.
+# The build id lets the entrypoint tell this copy apart from a stale STATIC_ROOT
+# volume left by an older image (see docker/entrypoint.sh).
+RUN SECRET_KEY=collectstatic-build-placeholder-not-a-real-secret \
+        DB_INIT_PASSWORD=collectstatic-build-placeholder \
+        ALLOWED_HOSTS=localhost DEBUG=0 \
+        python manage.py collectstatic --noinput >/dev/null \
+    && python -c "import uuid; print(uuid.uuid4().hex)" > /app/.static-build-id \
+    && cp /app/.static-build-id /app/staticfiles/.static-build-id
 
 # Build metadata. VERSION should match horilla/__version__.py and the release
 # tag; the publish workflow passes all three and fails if they disagree.

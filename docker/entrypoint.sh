@@ -121,7 +121,17 @@ if [ "${HORILLA_SKIP_RELEASE_TASKS:-0}" = "1" ]; then
   exec "$@"
 fi
 
-python manage.py migrate --noinput
+# HORILLA_MIGRATIONS_IN_PREDEPLOY=1 is for platforms that run
+# `python manage.py migrate --noinput` once per deploy before the new container
+# starts (Railway's pre-deploy command). Even with nothing to apply, migrate
+# costs ~7 s (Django startup plus post_migrate handlers), and a service
+# that sleeps when idle (Railway Serverless) would pay it on every wake. Only
+# set it where that pre-deploy step exists, or the schema is never migrated.
+if [ "${HORILLA_MIGRATIONS_IN_PREDEPLOY:-0}" = "1" ]; then
+  echo "HORILLA_MIGRATIONS_IN_PREDEPLOY=1 -- migrations run in the pre-deploy step, skipping."
+else
+  python manage.py migrate --noinput
+fi
 
 # Collect static files.
 #
@@ -133,7 +143,22 @@ python manage.py migrate --noinput
 # curl, getting the identity encoding, saw the current file — JS functions
 # "not defined" and half-rendered pages that looked fine to any check that
 # bypassed static serving. Wiping first keeps what we serve equal to the image.
-python manage.py collectstatic --noinput --clear
+#
+# The image already collects static at build time and stamps STATIC_ROOT with a
+# build id. When STATIC_ROOT still carries this image's stamp it is exactly what
+# collectstatic would produce, so skip the rerun (~4.5 s): that cost lands on every
+# cold start, including each wake from Railway Serverless sleep. A named volume
+# from an older image carries an older stamp (or none) and is rebuilt as before.
+STATIC_BUILD_ID_FILE=/app/.static-build-id
+STATIC_ROOT_ID_FILE=/app/staticfiles/.static-build-id
+if [ -s "$STATIC_BUILD_ID_FILE" ] && cmp -s "$STATIC_BUILD_ID_FILE" "$STATIC_ROOT_ID_FILE"; then
+  echo "Static files are current for this image -- skipping collectstatic."
+else
+  python manage.py collectstatic --noinput --clear
+  if [ -s "$STATIC_BUILD_ID_FILE" ]; then
+    cp "$STATIC_BUILD_ID_FILE" "$STATIC_ROOT_ID_FILE"
+  fi
+fi
 
 echo "Starting server..."
 exec "$@"
