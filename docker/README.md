@@ -432,6 +432,27 @@ parallel, so the scheduler's entrypoint waits until `migrate --check` passes
 (up to `HORILLA_MIGRATE_WAIT_TRIES` checks, 5s apart, default 60) instead of
 booting against an unmigrated schema.
 
+#### Sleeping when idle (small teams)
+
+For a handful of users, web can sleep when nobody is using it and wake on the
+next request. Set on **web**:
+
+| Setting | Value | Why |
+|---------|-------|-----|
+| `GUNICORN_WORKERS` | `1` | One worker with 4 threads is plenty for a few users; each extra worker costs ~260 MB |
+| Pre-deploy command | `python manage.py migrate --noinput` | Migrates once per deploy instead of on every start |
+| `HORILLA_MIGRATIONS_IN_PREDEPLOY` | `1` | Skips the entrypoint's own migrate (~7 s even with nothing to apply). Only set it together with the pre-deploy command |
+| Serverless | on | Railway sleeps web after 5-10 minutes without outbound traffic |
+
+Static files are collected into the image at build time, so with the settings
+above a wake only starts gunicorn: ~3 s to the first page, down from ~15 s. The first request after a wake can return a 502
+from the tunnel while web boots; reload after a few seconds.
+
+Keep the scheduler awake: it runs jobs every minute, so it would never sleep
+anyway, and jobs must not stop while web is asleep. Put Cloudflare Access in
+front of the hostname so bots and scanners are stopped at the edge instead of
+waking web.
+
 #### Backups on Railway
 
 Two independent copies: Railway's own volume backups of the Postgres service,
