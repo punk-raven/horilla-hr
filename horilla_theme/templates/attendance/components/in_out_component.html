@@ -181,10 +181,14 @@
             clearInterval(window.timeRunnerInterval);
         }
 
-        $(".time-runner").not("title").html(secondsToDuration(at_work_seconds));
-        $("title.time-runner").html(` ${whiteLabelCompany} | ` + secondsToDuration(at_work_seconds));
+        // .at_work_seconds is only rendered when this user can check in. Without
+        // it there is nothing to time, and the title read "Company | NaN:NaN:NaN".
+        if ($(".at_work_seconds").length) {
+            $(".time-runner").not("title").html(secondsToDuration(at_work_seconds));
+            $("title.time-runner").html(` ${whiteLabelCompany} | ` + secondsToDuration(at_work_seconds));
+        }
 
-        if (run) {
+        if (run && $(".at_work_seconds").length) {
             window.timeRunnerInterval = setInterval(() => {
                 at_work_seconds = parseInt(at_work_seconds) + 1;
                 $("div.time-runner").html(secondsToDuration(at_work_seconds));

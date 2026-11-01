@@ -41,6 +41,8 @@ SECRET_KEY = resolve_secret_key(env("SECRET_KEY"), SECRET_KEY_FILE)
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+# A stale sign-in form redirects instead of answering 403 (see the view).
+CSRF_FAILURE_VIEW = "horilla.error_views.csrf_failure"
 HORILLA_ENV = env("HORILLA_ENV", default="")
 REDIS_URL = env("REDIS_URL", default=None)
 

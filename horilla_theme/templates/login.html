@@ -10,7 +10,7 @@
     <p class="mb-5 text-center text-sm text-color-600">
         {% trans "Please login to access the dashboard." %}
     </p>
-    <form method="post" class="oh-form-group">
+    <form method="post" class="oh-form-group" id="loginForm">
         {% csrf_token %}
         <div class="mb-3">
             <label for="username" class="text-sm text-color-600">{% trans "Username" %}</label>
@@ -71,6 +71,29 @@
             <img src='{% static "horilla_theme/assets/icons/sign.svg" %}' alt=""> {% trans "Sign In" %}
         </button>
     </form>
+    <script>
+        // Submit once. Signing in rotates the CSRF token, so a second click or
+        // Enter while the dashboard loads would post a stale token.
+        (function () {
+            var form = document.getElementById("loginForm");
+            var button = form.querySelector('button[type="submit"]');
+            form.addEventListener("submit", function (event) {
+                if (form.dataset.submitted) {
+                    event.preventDefault();
+                    return;
+                }
+                form.dataset.submitted = "true";
+                button.disabled = true;
+                button.setAttribute("aria-busy", "true");
+            });
+            // Back/forward cache restores the page as it was left.
+            window.addEventListener("pageshow", function () {
+                delete form.dataset.submitted;
+                button.disabled = false;
+                button.removeAttribute("aria-busy");
+            });
+        })();
+    </script>
     {% if initialize_database %}
         <div>
             <div class="d-flex gap-2">
